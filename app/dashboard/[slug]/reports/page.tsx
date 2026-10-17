@@ -1,21 +1,14 @@
-// app/dashboard/[slug]/reports/page.tsx
-import { auth } from "@clerk/nextjs/server";
-import { redirect, notFound } from "next/navigation";
+﻿import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { getWorkspace } from "@/lib/supabase";
 import ReportsView from "@/components/reports/ReportsView";
 
-export default async function ReportsPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ReportsPage({ params }: { params: { slug: string } }) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const { slug } = await params;
-  let workspace;
-  try {
-    workspace = await getWorkspace(slug, userId);
-  } catch {
-    workspace = null;
-  }
-  if (!workspace) notFound();
+  const workspace = await getWorkspace(params.slug, userId);
+  if (!workspace) redirect("/dashboard");
 
-  return <ReportsView workspaceSlug={workspace.slug} />;
+  return <ReportsView workspaceSlug={params.slug} />;
 }
