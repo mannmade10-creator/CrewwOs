@@ -1,0 +1,41 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #060612;
+  --eng: #00D4FF;
+  --sales: #FF6B35;
+  --mktg: #A855F7;
+  --ops: #10B981;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: #fff;
+  font-family: Inter, sans-serif;
+  margin: 0;
+}
+
+code, .mono { font-family: "JetBrains Mono", monospace; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0d0d1a; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+@keyframes pulseRing {
+  0%   { transform: scale(0.9); opacity: 0.8; }
+  70%  { transform: scale(1.6); opacity: 0;   }
+  100% { transform: scale(0.9); opacity: 0;   }
+}
+
+@keyframes walkBob {
+  0%, 100% { transform: translateY(0);   }
+  50%       { transform: translateY(-2px);}
+}

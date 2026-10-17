@@ -1,0 +1,5 @@
+{
+  "/api/integrations/route": "app/api/integrations/route.js",
+  "/dashboard/[slug]/integrations/page": "app/dashboard/[slug]/integrations/page.js",
+  "/dashboard/[slug]/page": "app/dashboard/[slug]/page.js"
+}
