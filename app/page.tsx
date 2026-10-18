@@ -1,12 +1,12 @@
-// app/page.tsx â€” CrewwOS Hub (public landing, redirects signed-in users to dashboard)
+// app/page.tsx â€" CrewwOS Hub (public landing, redirects signed-in users to dashboard)
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export const metadata = {
-  title: "CrewwOS â€” The AI Agent Platform",
+  title: "CrewwOS â€" The AI Agent Platform",
   description:
-    "19 AI agents that run your communications, sales, content, and operations â€” 24/7, for any industry.",
+    "19 AI agents that run your communications, sales, content, and operations â€" 24/7, for any industry.",
 };
 
 export default async function Home() {
@@ -15,10 +15,10 @@ export default async function Home() {
 
   return (
     <main className="hub-root">
-      {/* â”€â”€ ambient glow â”€â”€ */}
+      {/* â"€â"€ ambient glow â"€â"€ */}
       <div className="hub-glow" aria-hidden />
 
-      {/* â”€â”€ NAV â”€â”€ */}
+      {/* â"€â"€ NAV â"€â"€ */}
       <nav className="hub-nav">
         <Link href="/" className="hub-logo">
           <span className="hub-logo-mark">C</span>
@@ -32,15 +32,15 @@ export default async function Home() {
         </ul>
         <div className="hub-nav-right">
           <Link href="/sign-in" className="hub-login">Log in</Link>
-          <Link href="/sign-up" className="hub-cta">Get started â†’</Link>
+          <Link href="/sign-up" className="hub-cta">Get started â†'</Link>
         </div>
       </nav>
 
-      {/* â”€â”€ HERO â”€â”€ */}
+      {/* â"€â"€ HERO â"€â"€ */}
       <section className="hub-hero">
         <div className="hub-badge">
           <span className="hub-badge-dot" />
-          Now live â€” 19 AI agents for every industry
+          Now live â€" 19 AI agents for every industry
         </div>
         <h1 className="hub-h1">
           One platform.<br />
@@ -48,10 +48,10 @@ export default async function Home() {
         </h1>
         <p className="hub-sub">
           CrewwOS deploys AI agents that run your communications, sales, content, operations,
-          and intelligence â€” 24/7, without hiring. Pick your industry and go live in minutes.
+          and intelligence â€" 24/7, without hiring. Pick your industry and go live in minutes.
         </p>
         <div className="hub-actions">
-          <a href="#verticals" className="hub-btn-primary">Find your industry â†’</a>
+          <a href="#verticals" className="hub-btn-primary">Find your industry â†'</a>
           <a href="#agents" className="hub-btn-ghost">Explore all 19 agents</a>
         </div>
         <div className="hub-stats">
@@ -69,7 +69,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* â”€â”€ VERTICALS â”€â”€ */}
+      {/* â"€â"€ VERTICALS â"€â"€ */}
       <section id="verticals" className="hub-section" style={{ paddingTop: 0 }}>
         <p className="hub-eyebrow">Choose your vertical</p>
         <h2 className="hub-section-title">Built for your world.</h2>
@@ -83,7 +83,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* â”€â”€ HOW IT WORKS â”€â”€ */}
+      {/* â"€â"€ HOW IT WORKS â"€â"€ */}
       <section id="how" className="hub-section">
         <p className="hub-eyebrow">How it works</p>
         <h2 className="hub-section-title">Live in under 10 minutes.</h2>
@@ -102,12 +102,12 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* â”€â”€ AGENT TICKER â”€â”€ */}
+      {/* â"€â"€ AGENT TICKER â"€â"€ */}
       <section id="agents" className="hub-section" style={{ paddingBottom: 60 }}>
         <p className="hub-eyebrow">The full roster</p>
         <h2 className="hub-section-title">19 agents. Every department.</h2>
         <p className="hub-section-sub">
-          From answering phones to generating video ads â€” your CrewwOS agents cover every
+          From answering phones to generating video ads â€" your CrewwOS agents cover every
           part of running a modern business.
         </p>
         <div className="hub-ticker-wrap">
@@ -121,7 +121,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* â”€â”€ WHITE LABEL â”€â”€ */}
+      {/* â"€â"€ WHITE LABEL â"€â"€ */}
       <section id="white-label" className="hub-section hub-wl-section">
         <div className="hub-wl-inner">
           <div>
@@ -160,7 +160,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* â”€â”€ CTA â”€â”€ */}
+      {/* â"€â"€ CTA â"€â"€ */}
       <section className="hub-section hub-cta-section">
         <div className="hub-cta-inner">
           <h2 className="hub-cta-h2">
@@ -168,31 +168,31 @@ export default async function Home() {
             <span className="hub-gradient">Now it runs on agents too.</span>
           </h2>
           <p className="hub-cta-sub">
-            Whether you're a barber in OKC, a rapper in Atlanta, or a contractor in Dallas â€”
+            Whether you're a barber in OKC, a rapper in Atlanta, or a contractor in Dallas â€"
             CrewwOS gives you the same AI workforce that Fortune 500s pay millions for.
             At a price that makes sense.
           </p>
           <Link href="/sign-up" className="hub-btn-primary" style={{ display: "inline-flex", marginBottom: 32 }}>
-            Choose your industry â†’
+            Choose your industry â†'
           </Link>
           <div className="hub-cta-grid">
             <Link href="/business" className="hub-cta-card">
               <div className="hub-cta-card-label" style={{ color: "#3b82f6" }}>Business</div>
-              <div className="hub-cta-card-title">For local &amp; service businesses â†’</div>
+              <div className="hub-cta-card-title">For local &amp; service businesses â†'</div>
             </Link>
             <Link href="/artists" className="hub-cta-card">
               <div className="hub-cta-card-label" style={{ color: "#a855f7" }}>Artists</div>
-              <div className="hub-cta-card-title">For musicians &amp; producers â†’</div>
+              <div className="hub-cta-card-title">For musicians &amp; producers â†'</div>
             </Link>
             <Link href="/white-label" className="hub-cta-card">
               <div className="hub-cta-card-label" style={{ color: "#00d8c0" }}>Agencies</div>
-              <div className="hub-cta-card-title">White-label for resellers â†’</div>
+              <div className="hub-cta-card-title">White-label for resellers â†'</div>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* â”€â”€ FOOTER â”€â”€ */}
+      {/* â"€â"€ FOOTER â"€â"€ */}
       <footer className="hub-footer">
         <span>Â© 2026 CrewwOS Â· M.A.D.E Technologies Inc.</span>
         <div className="hub-footer-links">
@@ -205,7 +205,7 @@ export default async function Home() {
   );
 }
 
-/* â”€â”€ Sub-component â”€â”€ */
+/* â"€â"€ Sub-component â"€â"€ */
 function VerticalCard({ href, color, colorRgb, icon, name, sub, agents, priceFrom, price, live }: (typeof VERTICALS)[0]) {
   const card = (
     <div
@@ -226,14 +226,14 @@ function VerticalCard({ href, color, colorRgb, icon, name, sub, agents, priceFro
       <div className="hub-vc-price">
         <span className="hub-vc-from">Starting at</span>
         <span className="hub-vc-num" style={{ color }}>{price}</span>
-        <span className="hub-vc-arrow">â†’</span>
+        <span className="hub-vc-arrow">â†'</span>
       </div>
     </div>
   );
   return live ? <Link href={href} style={{ textDecoration: "none", color: "inherit" }}>{card}</Link> : card;
 }
 
-/* â”€â”€ Data â”€â”€ */
+/* â"€â"€ Data â"€â"€ */
 const VERTICALS = [
   {
     id: "biz", href: "/business", color: "#3b82f6", colorRgb: "59,130,246", icon: "ğŸ¢",
@@ -245,35 +245,35 @@ const VERTICALS = [
   {
     id: "music", href: "/artists", color: "#a855f7", colorRgb: "168,85,247", icon: "ğŸµ",
     name: "CrewwOS for Artists", live: true,
-    sub: "Independent musicians and producers who need a release machine â€” curator pitching, fan engagement, content creation, and algorithm-feeding on autopilot.",
+    sub: "Independent musicians and producers who need a release machine â€" curator pitching, fan engagement, content creation, and algorithm-feeding on autopilot.",
     agents: ["PitchAgent", "VideoAgent", "FanAgent", "SaveAgent"],
     priceFrom: true, price: "$97/mo",
   },
   {
     id: "realestate", href: "/real-estate", color: "#f59e0b", colorRgb: "245,158,11", icon: "ğŸ ",
     name: "CrewwOS for Real Estate", live: true,
-    sub: "Agents and brokerages. Automated listing outreach, lead follow-up, showing scheduling, and market reporting â€” so you close more with less chasing.",
+    sub: "Agents and brokerages. Automated listing outreach, lead follow-up, showing scheduling, and market reporting â€" so you close more with less chasing.",
     agents: ["LeadAgent", "ShowingAgent", "ListingAgent"],
     priceFrom: true, price: "$397/mo",
   },
   {
     id: "food", href: "/restaurants", color: "#ef4444", colorRgb: "239,68,68", icon: "ğŸ½ï¸",
     name: "CrewwOS for Restaurants", live: true,
-    sub: "Food trucks, pop-ups, and brick-and-mortar. Reservation handling, review management, catering outreach, and daily social content â€” fully automated.",
+    sub: "Food trucks, pop-ups, and brick-and-mortar. Reservation handling, review management, catering outreach, and daily social content â€" fully automated.",
     agents: ["ReservationAgent", "ReviewAgent", "CateringAgent"],
     priceFrom: true, price: "$197/mo",
   },
   {
-    id: "trades", href: "/trades", color: "#10b981", colorRgb: "16,185,129", icon: "ğŸ”§",
+    id: "trades", href: "/trades", color: "#10b981", colorRgb: "16,185,129", icon: "ğŸ"§",
     name: "CrewwOS for Trades", live: true,
     sub: "Electricians, plumbers, HVAC, and general contractors. Quote generation, job scheduling, follow-up, and review collection running in the background while you work.",
     agents: ["QuoteAgent", "DispatchAgent", "FollowUpAgent"],
     priceFrom: true, price: "$297/mo",
   },
   {
-    id: "ecom", href: "/ecommerce", color: "#f43f8e", colorRgb: "244,63,142", icon: "ğŸ›’",
+    id: "ecom", href: "/ecommerce", color: "#f43f8e", colorRgb: "244,63,142", icon: "ğŸ›'",
     name: "CrewwOS for E-Commerce", live: true,
-    sub: "Dropshippers and online store owners. Product description writing, abandoned cart follow-up, ad copy generation, and customer service â€” automated end to end.",
+    sub: "Dropshippers and online store owners. Product description writing, abandoned cart follow-up, ad copy generation, and customer service â€" automated end to end.",
     agents: ["CartAgent", "AdAgent", "CopyAgent"],
     priceFrom: true, price: "$197/mo",
   },
@@ -287,21 +287,22 @@ const HOW_STEPS = [
 ];
 
 const ALL_AGENTS = [
-  { icon: "ğŸ‘‘", name: "Nia â€” Chief of Staff" }, { icon: "ğŸ“", name: "PhoneAgent" },
-  { icon: "ğŸ’¬", name: "TextAgent" }, { icon: "âœ‰ï¸", name: "InboxAgent" },
-  { icon: "ğŸ¤–", name: "ChatAgent" }, { icon: "ğŸ“²", name: "OutreachAgent" },
-  { icon: "ğŸ”", name: "FollowUpAgent" }, { icon: "ğŸ“‹", name: "QuoteAgent" },
+  { icon: "ğŸ''", name: "Nia â€" Chief of Staff" }, { icon: "ğŸ"", name: "PhoneAgent" },
+  { icon: "ğŸ'¬", name: "TextAgent" }, { icon: "âœ‰ï¸", name: "InboxAgent" },
+  { icon: "ğŸ¤–", name: "ChatAgent" }, { icon: "ğŸ"²", name: "OutreachAgent" },
+  { icon: "ğŸ"", name: "FollowUpAgent" }, { icon: "ğŸ"‹", name: "QuoteAgent" },
   { icon: "â­", name: "ReviewAgent" }, { icon: "ğŸ—‚ï¸", name: "CRMAgent" },
-  { icon: "ğŸ“…", name: "ScheduleAgent" }, { icon: "ğŸ’°", name: "InvoiceAgent" },
-  { icon: "ğŸš€", name: "OnboardAgent" }, { icon: "ğŸ“Š", name: "ReportAgent" },
-  { icon: "ğŸ“¦", name: "SupplyAgent" }, { icon: "ğŸ¬", name: "VideoAgent" },
-  { icon: "âœï¸", name: "CopyAgent" }, { icon: "ğŸ“„", name: "BrochureAgent" },
-  { icon: "ğŸ‘‚", name: "ListenAgent" }, { icon: "ğŸ“ˆ", name: "TrendAgent" },
+  { icon: "ğŸ"…", name: "ScheduleAgent" }, { icon: "ğŸ'°", name: "InvoiceAgent" },
+  { icon: "ğŸš€", name: "OnboardAgent" }, { icon: "ğŸ"Š", name: "ReportAgent" },
+  { icon: "ğŸ"¦", name: "SupplyAgent" }, { icon: "ğŸ¬", name: "VideoAgent" },
+  { icon: "âœï¸", name: "CopyAgent" }, { icon: "ğŸ"„", name: "BrochureAgent" },
+  { icon: "ğŸ'‚", name: "ListenAgent" }, { icon: "ğŸ"ˆ", name: "TrendAgent" },
 ];
 
 const WL_FEATS = [
-  { icon: "ğŸ¨", title: "Fully branded client portals", desc: "Custom logo, colors, domain, and pricing â€” your clients never see "CrewwOS."" },
-  { icon: "ğŸ’°", title: "Set your own pricing", desc: "Charge $500, $1,000, $2,000/mo â€” the difference between your price and ours is your margin." },
-  { icon: "ğŸ“Š", title: "Agency dashboard", desc: "Manage every client from one place. See their agents, usage, and billing at a glance." },
-  { icon: "âš¡", title: "Launch a client in minutes", desc: "New client? Spin up their branded portal, assign agents, and hand them over â€” same day." },
+  { icon: "ğŸ¨", title: "Fully branded client portals", desc: "Custom logo, colors, domain, and pricing â€" your clients never see "CrewwOS."" },
+  { icon: "ğŸ'°", title: "Set your own pricing", desc: "Charge $500, $1,000, $2,000/mo â€" the difference between your price and ours is your margin." },
+  { icon: "ğŸ"Š", title: "Agency dashboard", desc: "Manage every client from one place. See their agents, usage, and billing at a glance." },
+  { icon: "âš¡", title: "Launch a client in minutes", desc: "New client? Spin up their branded portal, assign agents, and hand them over â€" same day." },
 ];
+
