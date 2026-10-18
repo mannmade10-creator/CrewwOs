@@ -1,12 +1,12 @@
-﻿// app/page.tsx �" CrewwOS Hub (public landing, redirects signed-in users to dashboard)
+// app/page.tsx �" CrewwOS Hub (public landing, redirects signed-in users to dashboard)
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export const metadata = {
-  title: "CrewwOS �" The AI Agent Platform",
+  title: "CrewwOS - The AI Agent Platform",
   description:
-    "19 AI agents that run your communications, sales, content, and operations �" 24/7, for any industry.",
+    "19 AI agents that run your communications, sales, content, and operations - 24/7, for any industry.",
 };
 
 export default async function Home() {
@@ -300,7 +300,7 @@ const ALL_AGENTS = [
 ];
 
 const WL_FEATS = [
-  { icon: "🎨", title: "Fully branded client portals", desc: "Custom logo, colors, domain, and pricing �" your clients never see "CrewwOS."" },
+  { icon: "🎨", title: "Fully branded client portals", desc: "Custom logo, colors, domain, and pricing �" your clients never see CrewwOS."" },
   { icon: "�'�", title: "Set your own pricing", desc: "Charge $500, $1,000, $2,000/mo �" the difference between your price and ours is your margin." },
   { icon: "�"�", title: "Agency dashboard", desc: "Manage every client from one place. See their agents, usage, and billing at a glance." },
   { icon: "⚡", title: "Launch a client in minutes", desc: "New client? Spin up their branded portal, assign agents, and hand them over �" same day." },
