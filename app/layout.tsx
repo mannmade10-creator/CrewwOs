@@ -4,8 +4,9 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CrewOS — Hire the team. Skip the overhead.",
-  description: "Deploy 19 AI agents to run every department of your business, 24/7.",
+  title: "CrewwOS — The AI Agent Platform for Every Industry",
+  description:
+    "19 AI agents that run your communications, sales, content, and operations — 24/7, for any industry. Built for businesses, artists, and beyond.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
