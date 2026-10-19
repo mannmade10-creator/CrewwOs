@@ -4,6 +4,14 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 });
 
+// Used by the existing billing system (lib/billing.ts, app/api/billing/checkout)
+export const PLAN_PRICE_IDS: Record<string, string> = {
+  starter: process.env.STRIPE_PRICE_STARTER!,
+  pro: process.env.STRIPE_PRICE_PRO!,
+  enterprise: process.env.STRIPE_PRICE_ENTERPRISE!,
+};
+
+// Full price ID map for all products
 export const PRICE_IDS = {
   // Main subscription tiers
   starter: process.env.STRIPE_PRICE_STARTER!,
