@@ -1,28 +1,31 @@
-// lib/stripe.ts
 import Stripe from "stripe";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 });
 
-// Section 12 pricing. Price IDs come from your Stripe dashboard (create one
-// recurring monthly Price per plan) — set as env vars, never hardcode the
-// actual price ID strings here since they differ between test/live modes.
-export const PLAN_PRICE_IDS: Record<string, string | undefined> = {
-  starter: process.env.STRIPE_PRICE_STARTER,
-  growth: process.env.STRIPE_PRICE_GROWTH,
-  enterprise: process.env.STRIPE_PRICE_ENTERPRISE,
-  agency: process.env.STRIPE_PRICE_AGENCY,
-};
+export const PRICE_IDS = {
+  // Main subscription tiers
+  starter: process.env.STRIPE_PRICE_STARTER!,
+  pro: process.env.STRIPE_PRICE_PRO!,
+  enterprise: process.env.STRIPE_PRICE_ENTERPRISE!,
 
-// Note: display labels (name/price/agents copy) live in lib/plans.ts, which
-// has zero Stripe SDK / secret dependencies and is safe to import from
-// client components. Nothing in this file should ever be imported by a
-// "use client" component.
+  // Website + App Builder (standalone)
+  site_basic: process.env.STRIPE_PRICE_SITE_BASIC!,
+  site_pro: process.env.STRIPE_PRICE_SITE_PRO!,
+  site_elite: process.env.STRIPE_PRICE_SITE_ELITE!,
 
-// Maps a Stripe subscription status to whether the workspace should be
-// treated as having active paid access. `trialing` and `active` both count;
-// everything else (past_due, canceled, unpaid, incomplete_expired) doesn't.
-export function isPaidStatus(status: string | null): boolean {
-  return status === "trialing" || status === "active";
-}
+  // Nia AI Receptionist
+  nia_setup: process.env.STRIPE_PRICE_NIA_SETUP!,
+  nia_credits_500: process.env.STRIPE_PRICE_NIA_500!,
+  nia_credits_1500: process.env.STRIPE_PRICE_NIA_1500!,
+  nia_credits_5000: process.env.STRIPE_PRICE_NIA_5000!,
+
+  // Business Formation
+  biz_registration: process.env.STRIPE_PRICE_BIZ_REGISTRATION!,
+  biz_ein: process.env.STRIPE_PRICE_BIZ_EIN!,
+  biz_bundle: process.env.STRIPE_PRICE_BIZ_BUNDLE!,
+  biz_registered_agent: process.env.STRIPE_PRICE_BIZ_AGENT!,
+} as const;
+
+export type PriceKey = keyof typeof PRICE_IDS;
