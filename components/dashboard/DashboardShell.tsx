@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
 import { AGENTS } from "@/lib/agents";
 import { agentsAllowedForPlan, PLAN_LABELS } from "@/lib/plans";
 import type { WorkspaceSummary } from "@/lib/workspaces";
@@ -138,10 +139,23 @@ export default function DashboardShell({ workspaceName, workspaceSlug, plan, chi
         </div>
 
         <div style={{ flex: 1 }} />
-        <div style={{ display: "flex", gap: 6 }}>
+
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {[`🟢 ${allowedCount}/${AGENTS.length} Agents Active`, "⚡ AI Powered", "🔒 Secure"].map(t => (
             <div key={t} style={{ background: "#ffffff08", border: "1px solid #ffffff11", borderRadius: 20, padding: "3px 10px", fontSize: 10, color: "#ffffff88" }}>{t}</div>
           ))}
+
+          {/* Sign out / profile via Clerk's built-in UserButton */}
+          <div style={{ marginLeft: 8 }}>
+            <UserButton
+              afterSignOutUrl="/sign-in"
+              appearance={{
+                elements: {
+                  avatarBox: { width: 30, height: 30 },
+                },
+              }}
+            />
+          </div>
         </div>
       </div>
 
