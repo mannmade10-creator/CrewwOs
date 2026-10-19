@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, Circle, ExternalLink, ChevronRight, Building2, FileText, Landmark, CreditCard } from "lucide-react";
 
-// ── State Secretary of State portal lookup ──────────────────────────────────
 const STATE_SOS: Record<string, { name: string; url: string; fee: string; processingTime: string }> = {
   AL: { name: "Alabama", url: "https://www.sos.alabama.gov/business-services/file", fee: "$200", processingTime: "3-5 days" },
   AK: { name: "Alaska", url: "https://www.commerce.alaska.gov/web/cbpl/BusinessLicensing.aspx", fee: "$250", processingTime: "5-7 days" },
@@ -75,6 +73,29 @@ interface BusinessSetupState {
   bankStatus: "pending" | "opened";
 }
 
+const IconExternal = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+    <polyline points="15 3 21 3 21 9"/>
+    <line x1="10" y1="14" x2="21" y2="3"/>
+  </svg>
+);
+
+const s: Record<string, React.CSSProperties> = {
+  wrap: { maxWidth: 600, margin: "0 auto", padding: "24px 16px" },
+  card: { background: "#0d0d1a", border: "1px solid #ffffff18", borderRadius: 16, padding: 28, marginBottom: 12 },
+  heading: { color: "#fff", fontSize: 18, fontWeight: 700, marginBottom: 6 },
+  sub: { color: "#ffffff66", fontSize: 13, marginBottom: 20, lineHeight: 1.6 },
+  btn: { width: "100%", background: "linear-gradient(135deg,#00D4FF,#A855F7)", border: "none", borderRadius: 10, padding: "11px", color: "#000", fontWeight: 700, fontSize: 14, cursor: "pointer" },
+  btnOutline: { width: "100%", background: "transparent", border: "1px solid #ffffff22", borderRadius: 10, padding: "11px", color: "#ffffff88", fontWeight: 600, fontSize: 14, cursor: "pointer" },
+  label: { color: "#00D4FF", fontSize: 11, letterSpacing: 3, marginBottom: 8, textAlign: "center" },
+  row: { display: "flex", gap: 10 },
+  select: { width: "100%", padding: "10px 12px", background: "#060612", border: "1px solid #ffffff22", borderRadius: 10, color: "#fff", fontSize: 13, marginBottom: 16 },
+  infoBox: { background: "#060612", border: "1px solid #ffffff15", borderRadius: 12, padding: "14px 16px", marginBottom: 16 },
+  link: { color: "#00D4FF", fontSize: 12, display: "flex", alignItems: "center", gap: 4, textDecoration: "none", marginTop: 6 },
+  progressBar: { height: 6, background: "#ffffff15", borderRadius: 99, overflow: "hidden", marginTop: 8 },
+};
+
 export default function BusinessLaunchFlow({ workspaceId }: { workspaceId: string }) {
   const [step, setStep] = useState<Step>("entity");
   const [setup, setSetup] = useState<BusinessSetupState>({
@@ -87,329 +108,169 @@ export default function BusinessLaunchFlow({ workspaceId }: { workspaceId: strin
 
   const selectedState = STATE_SOS[setup.state];
 
-  const steps = [
-    { id: "entity", label: "Business Type", icon: Building2 },
-    { id: "state", label: "State", icon: Landmark },
-    { id: "ein", label: "EIN Number", icon: FileText },
-    { id: "status", label: "Track Progress", icon: CreditCard },
-  ];
-
-  const currentStepIdx = steps.findIndex((s) => s.id === step);
+  const stepLabels: Record<Step, string> = {
+    entity: "STEP 1 OF 4 · BUSINESS TYPE",
+    state: "STEP 2 OF 4 · STATE",
+    ein: "STEP 3 OF 4 · EIN NUMBER",
+    status: "STEP 4 OF 4 · TRACK PROGRESS",
+  };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Launch Your Business</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          We'll help you register your entity, get your EIN, and track your setup.
-        </p>
-      </div>
+    <div style={s.wrap}>
+      <div style={s.label}>{stepLabels[step]}</div>
 
-      {/* Step progress */}
-      <div className="flex items-center gap-2">
-        {steps.map((s, i) => {
-          const Icon = s.icon;
-          const done = i < currentStepIdx;
-          const active = i === currentStepIdx;
-          return (
-            <div key={s.id} className="flex items-center gap-2 flex-1">
-              <div
-                className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
-                  done ? "text-green-600" : active ? "text-indigo-600 dark:text-indigo-400" : "text-gray-400"
-                }`}
-              >
-                {done ? (
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                ) : (
-                  <Icon className={`w-4 h-4 ${active ? "text-indigo-500" : "text-gray-400"}`} />
-                )}
-                <span className="hidden sm:inline">{s.label}</span>
-              </div>
-              {i < steps.length - 1 && (
-                <ChevronRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Step: Entity Type */}
       {step === "entity" && (
-        <div className="space-y-3">
-          <h2 className="font-semibold text-gray-800 dark:text-gray-100">
-            What type of business are you forming?
-          </h2>
-          <div className="grid gap-3">
+        <div style={s.card}>
+          <div style={s.heading}>What type of business are you forming?</div>
+          <div style={s.sub}>This affects your taxes, liability, and paperwork.</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
             {ENTITY_TYPES.map((et) => (
-              <button
-                key={et.id}
-                onClick={() => setSetup((s) => ({ ...s, entityType: et.id }))}
-                className={`text-left p-4 rounded-xl border-2 transition-all ${
-                  setup.entityType === et.id
-                    ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950"
-                    : "border-gray-200 dark:border-gray-700 hover:border-indigo-300"
-                }`}
-              >
-                <div className="font-semibold text-sm text-gray-900 dark:text-white">{et.label}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{et.description}</div>
+              <button key={et.id} onClick={() => setSetup((p) => ({ ...p, entityType: et.id }))}
+                style={{ textAlign: "left", padding: "12px 14px", borderRadius: 10, cursor: "pointer",
+                  background: setup.entityType === et.id ? "#00D4FF15" : "#060612",
+                  border: `1.5px solid ${setup.entityType === et.id ? "#00D4FF" : "#ffffff18"}` }}>
+                <div style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>{et.label}</div>
+                <div style={{ color: "#ffffff55", fontSize: 12, marginTop: 2 }}>{et.description}</div>
               </button>
             ))}
           </div>
-          <button
-            disabled={!setup.entityType}
-            onClick={() => setStep("state")}
-            className="w-full mt-4 py-2.5 px-4 bg-indigo-600 text-white rounded-lg font-medium text-sm disabled:opacity-40 hover:bg-indigo-700 transition-colors"
-          >
-            Continue
+          <button style={{ ...s.btn, opacity: setup.entityType ? 1 : 0.4 }} disabled={!setup.entityType} onClick={() => setStep("state")}>
+            Continue →
           </button>
         </div>
       )}
 
-      {/* Step: State */}
       {step === "state" && (
-        <div className="space-y-4">
-          <h2 className="font-semibold text-gray-800 dark:text-gray-100">
-            Which state do you want to register in?
-          </h2>
-          <p className="text-xs text-gray-500">
-            Most businesses register in their home state. Delaware and Wyoming are popular for tax advantages.
-          </p>
-          <select
-            value={setup.state}
-            onChange={(e) => setSetup((s) => ({ ...s, state: e.target.value }))}
-            className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white"
-          >
+        <div style={s.card}>
+          <div style={s.heading}>Which state do you want to register in?</div>
+          <div style={s.sub}>Most businesses register in their home state. Delaware and Wyoming are popular for tax advantages.</div>
+          <select style={s.select} value={setup.state} onChange={(e) => setSetup((p) => ({ ...p, state: e.target.value }))}>
             <option value="">Select a state...</option>
             {Object.entries(STATE_SOS).map(([code, info]) => (
-              <option key={code} value={code}>
-                {info.name}
-              </option>
+              <option key={code} value={code}>{info.name}</option>
             ))}
           </select>
-
           {selectedState && (
-            <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Filing fee</span>
-                <span className="font-medium text-gray-900 dark:text-white">{selectedState.fee}</span>
+            <div style={s.infoBox}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ color: "#ffffff55", fontSize: 12 }}>Filing fee</span>
+                <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>{selectedState.fee}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Processing time</span>
-                <span className="font-medium text-gray-900 dark:text-white">{selectedState.processingTime}</span>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ color: "#ffffff55", fontSize: 12 }}>Processing time</span>
+                <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>{selectedState.processingTime}</span>
               </div>
-              <a
-                href={selectedState.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-medium pt-1 hover:underline"
-              >
-                Go to {selectedState.name} Secretary of State
-                <ExternalLink className="w-3.5 h-3.5" />
+              <a href={selectedState.url} target="_blank" rel="noopener noreferrer" style={s.link}>
+                Go to {selectedState.name} Secretary of State <IconExternal />
               </a>
             </div>
           )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => setStep("entity")}
-              className="flex-1 py-2.5 px-4 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            >
-              Back
-            </button>
-            <button
-              disabled={!setup.state}
-              onClick={() => setStep("ein")}
-              className="flex-1 py-2.5 px-4 bg-indigo-600 text-white rounded-lg font-medium text-sm disabled:opacity-40 hover:bg-indigo-700 transition-colors"
-            >
-              Continue
-            </button>
+          <div style={s.row}>
+            <button style={s.btnOutline} onClick={() => setStep("entity")}>← Back</button>
+            <button style={{ ...s.btn, opacity: setup.state ? 1 : 0.4 }} disabled={!setup.state} onClick={() => setStep("ein")}>Continue →</button>
           </div>
         </div>
       )}
 
-      {/* Step: EIN */}
       {step === "ein" && (
-        <div className="space-y-4">
-          <h2 className="font-semibold text-gray-800 dark:text-gray-100">Get your EIN (Tax ID)</h2>
-          <p className="text-xs text-gray-500">
-            An Employer Identification Number is your business's federal tax ID. It's free and takes about 15 minutes through the IRS.
-          </p>
-
-          <div className="p-4 rounded-xl border-2 border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950 space-y-3">
-            <div className="font-semibold text-sm text-indigo-900 dark:text-indigo-100">
-              Free — Apply directly with the IRS
-            </div>
-            <ul className="text-xs text-indigo-700 dark:text-indigo-300 space-y-1 list-disc list-inside">
+        <div style={s.card}>
+          <div style={s.heading}>Get your EIN (Tax ID)</div>
+          <div style={s.sub}>Your EIN is your business federal tax ID. Free and takes about 15 minutes through the IRS.</div>
+          <div style={{ ...s.infoBox, border: "1.5px solid #00D4FF44", marginBottom: 12 }}>
+            <div style={{ color: "#00D4FF", fontWeight: 700, fontSize: 13, marginBottom: 8 }}>Free — Apply directly with the IRS</div>
+            <ul style={{ color: "#ffffff88", fontSize: 12, paddingLeft: 16, lineHeight: 1.8, margin: 0 }}>
               <li>Instant approval — get your EIN same day</li>
-              <li>Available Monday–Friday, 7am–10pm ET</li>
-              <li>You'll need your SSN or ITIN to apply</li>
+              <li>Available Mon–Fri, 7am–10pm ET</li>
+              <li>You will need your SSN or ITIN</li>
               <li>Have your business name and address ready</li>
             </ul>
-            <a
-              href="https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 w-full justify-center py-2.5 px-4 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors"
-            >
-              Apply on IRS.gov (Free)
-              <ExternalLink className="w-3.5 h-3.5" />
+            <a href="https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online"
+              target="_blank" rel="noopener noreferrer" style={{ ...s.link, marginTop: 12, fontWeight: 700 }}>
+              Apply on IRS.gov (Free) <IconExternal />
             </a>
           </div>
-
-          <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-3">
-            <div className="font-semibold text-sm text-gray-800 dark:text-gray-200">
-              Premium — We file it for you
+          <div style={{ ...s.infoBox, marginBottom: 20 }}>
+            <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 6 }}>Premium — We file it for you · $49</div>
+            <div style={{ color: "#ffffff55", fontSize: 12, marginBottom: 10 }}>
+              Our partner handles the SS-4 submission and delivers your EIN directly.
             </div>
-            <p className="text-xs text-gray-500">
-              Our partner handles the SS-4 form submission and delivers your EIN directly. Ideal if you're outside the US or need it handled.
-            </p>
-            <button
-              className="w-full py-2.5 px-4 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              onClick={() => {
-                // TODO: integrate Middesk or similar EIN filing API
-                alert("Premium EIN filing coming soon. Use the free IRS option for now.");
-              }}
-            >
+            <button style={{ ...s.btnOutline, padding: "8px" }} onClick={() => alert("Premium EIN filing coming soon. Use the free IRS option for now.")}>
               File for me — $49
             </button>
           </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => setStep("state")}
-              className="flex-1 py-2.5 px-4 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            >
-              Back
-            </button>
-            <button
-              onClick={() => setStep("status")}
-              className="flex-1 py-2.5 px-4 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors"
-            >
-              I'll track my progress
-            </button>
+          <div style={s.row}>
+            <button style={s.btnOutline} onClick={() => setStep("state")}>← Back</button>
+            <button style={s.btn} onClick={() => setStep("status")}>Track my progress →</button>
           </div>
         </div>
       )}
 
-      {/* Step: Status Tracker */}
       {step === "status" && (
-        <div className="space-y-4">
-          <h2 className="font-semibold text-gray-800 dark:text-gray-100">Business Launch Tracker</h2>
-          <p className="text-xs text-gray-500">
-            Mark each step as you complete it. Come back anytime to update your progress.
-          </p>
+        <div style={s.card}>
+          <div style={s.heading}>Business Launch Tracker</div>
+          <div style={s.sub}>Mark each step as you complete it. Come back anytime to update.</div>
 
-          <div className="space-y-3">
-            {/* Entity Registration */}
-            <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="font-medium text-sm text-gray-900 dark:text-white">
-                  {setup.entityType.toUpperCase()} Registration — {selectedState?.name}
-                </div>
-                <select
-                  value={setup.entityStatus}
-                  onChange={(e) =>
-                    setSetup((s) => ({ ...s, entityStatus: e.target.value as any }))
-                  }
-                  className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
-                >
-                  <option value="pending">Not started</option>
-                  <option value="filed">Filed — awaiting approval</option>
-                  <option value="approved">Approved ✓</option>
-                </select>
+          <div style={{ ...s.infoBox, marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <div style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>
+                {setup.entityType.toUpperCase()} — {selectedState?.name ?? setup.state}
               </div>
-              {selectedState && (
-                <a
-                  href={selectedState.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:underline"
-                >
-                  Open {selectedState.name} filing portal
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
+              <select value={setup.entityStatus} onChange={(e) => setSetup((p) => ({ ...p, entityStatus: e.target.value as any }))}
+                style={{ fontSize: 11, background: "#0d0d1a", border: "1px solid #ffffff22", color: "#fff", borderRadius: 6, padding: "3px 6px" }}>
+                <option value="pending">Not started</option>
+                <option value="filed">Filed — awaiting approval</option>
+                <option value="approved">Approved</option>
+              </select>
             </div>
-
-            {/* EIN */}
-            <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="font-medium text-sm text-gray-900 dark:text-white">EIN / Federal Tax ID</div>
-                <select
-                  value={setup.einStatus}
-                  onChange={(e) =>
-                    setSetup((s) => ({ ...s, einStatus: e.target.value as any }))
-                  }
-                  className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
-                >
-                  <option value="pending">Not started</option>
-                  <option value="filed">Applied — pending</option>
-                  <option value="received">Received ✓</option>
-                </select>
-              </div>
-              <a
-                href="https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:underline"
-              >
-                Apply on IRS.gov
-                <ExternalLink className="w-3 h-3" />
+            {selectedState && (
+              <a href={selectedState.url} target="_blank" rel="noopener noreferrer" style={s.link}>
+                Open {selectedState.name} filing portal <IconExternal />
               </a>
-            </div>
-
-            {/* Business Bank Account */}
-            <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <div className="font-medium text-sm text-gray-900 dark:text-white">Business Bank Account</div>
-                <select
-                  value={setup.bankStatus}
-                  onChange={(e) =>
-                    setSetup((s) => ({ ...s, bankStatus: e.target.value as any }))
-                  }
-                  className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
-                >
-                  <option value="pending">Not opened yet</option>
-                  <option value="opened">Account opened ✓</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Overall progress */}
-            {(() => {
-              const done = [
-                setup.entityStatus === "approved",
-                setup.einStatus === "received",
-                setup.bankStatus === "opened",
-              ].filter(Boolean).length;
-              return (
-                <div className="pt-2">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-                    <span>Overall progress</span>
-                    <span>{done}/3 complete</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                      style={{ width: `${(done / 3) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })()}
+            )}
           </div>
 
-          {/* Save to workspace — TODO: persist to Supabase */}
-          <button
-            onClick={async () => {
-              // TODO: POST /api/workspace/[slug]/business-setup with setup state
-              alert("Progress saved to your workspace!");
-            }}
-            className="w-full py-2.5 px-4 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors"
-          >
-            Save Progress
-          </button>
+          <div style={{ ...s.infoBox, marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <div style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>EIN / Federal Tax ID</div>
+              <select value={setup.einStatus} onChange={(e) => setSetup((p) => ({ ...p, einStatus: e.target.value as any }))}
+                style={{ fontSize: 11, background: "#0d0d1a", border: "1px solid #ffffff22", color: "#fff", borderRadius: 6, padding: "3px 6px" }}>
+                <option value="pending">Not started</option>
+                <option value="filed">Applied — pending</option>
+                <option value="received">Received</option>
+              </select>
+            </div>
+            <a href="https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online"
+              target="_blank" rel="noopener noreferrer" style={s.link}>
+              Apply on IRS.gov <IconExternal />
+            </a>
+          </div>
+
+          <div style={{ ...s.infoBox, marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>Business Bank Account</div>
+              <select value={setup.bankStatus} onChange={(e) => setSetup((p) => ({ ...p, bankStatus: e.target.value as any }))}
+                style={{ fontSize: 11, background: "#0d0d1a", border: "1px solid #ffffff22", color: "#fff", borderRadius: 6, padding: "3px 6px" }}>
+                <option value="pending">Not opened yet</option>
+                <option value="opened">Account opened</option>
+              </select>
+            </div>
+          </div>
+
+          {(() => {
+            const done = [setup.entityStatus === "approved", setup.einStatus === "received", setup.bankStatus === "opened"].filter(Boolean).length;
+            return (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "#ffffff55", fontSize: 12, marginBottom: 4 }}>
+                  <span>Overall progress</span><span>{done}/3 complete</span>
+                </div>
+                <div style={s.progressBar}>
+                  <div style={{ height: "100%", width: `${(done / 3) * 100}%`, background: "linear-gradient(90deg,#00D4FF,#A855F7)", transition: "width 0.4s" }} />
+                </div>
+              </div>
+            );
+          })()}
+
+          <button style={s.btn} onClick={() => alert("Progress saved!")}>Save Progress</button>
         </div>
       )}
     </div>
