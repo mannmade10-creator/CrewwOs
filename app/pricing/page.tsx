@@ -53,10 +53,7 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<PriceKey | null>(null);
 
   async function checkout(priceKey: PriceKey) {
-    if (!isSignedIn) {
-      router.push("/sign-in?redirect=/pricing");
-      return;
-    }
+    
 
     setLoading(priceKey);
     try {
@@ -341,3 +338,4 @@ export default function PricingPage() {
     </main>
   );
 }
+
