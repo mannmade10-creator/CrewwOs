@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export const metadata = undefined; // metadata exported from layout covers this route
 
 /**
  * /demo — CrewwOS Interactive Feature Demo
