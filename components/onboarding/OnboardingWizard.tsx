@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+type EntityStep = "ask" | "setup" | "skip";
+
 export default function OnboardingWizard() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
+  const [entityChoice, setEntityChoice] = useState<EntityStep | null>(null);
 
   const create = async () => {
     if (!name.trim()) {
@@ -34,14 +37,30 @@ export default function OnboardingWizard() {
     setCreating(false);
   };
 
+  const handleEntityChoice = (choice: EntityStep) => {
+    setEntityChoice(choice);
+    if (choice === "setup") {
+      // Route to business launch flow inside their new dashboard
+      router.push(`/dashboard/${createdSlug}/business-setup`);
+    } else {
+      setStep(3);
+    }
+  };
+
+  const stepLabel =
+    step === 1 ? "STEP 1 OF 3" :
+    step === 2 ? "STEP 2 OF 3" :
+    "STEP 3 OF 3";
+
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
       <div style={{ width: "100%", maxWidth: 480 }}>
         <div style={{ color: "#00D4FF", fontSize: 12, letterSpacing: 3, marginBottom: 8, textAlign: "center" }} className="mono">
-          CREWOS · STEP {step} OF 2
+          CREWOS · {stepLabel}
         </div>
 
-        {step === 1 ? (
+        {/* ── Step 1: Name workspace ────────────────────────────────────── */}
+        {step === 1 && (
           <div style={{ background: "#0d0d1a", border: "1px solid #ffffff18", borderRadius: 16, padding: 32 }}>
             <div style={{ color: "#fff", fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Name your workspace</div>
             <div style={{ color: "#ffffff66", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
@@ -53,12 +72,16 @@ export default function OnboardingWizard() {
               onKeyDown={e => e.key === "Enter" && create()}
               placeholder="e.g. Box Flow OS"
               autoFocus
-              style={{ width: "100%", background: "#060612", border: "1px solid #ffffff22", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 14, outline: "none", marginBottom: 20, boxSizing: "border-box" }}
+              style={{
+                width: "100%", background: "#060612", border: "1px solid #ffffff22",
+                borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 14,
+                outline: "none", marginBottom: 20, boxSizing: "border-box",
+              }}
             />
             <button onClick={create} disabled={creating} style={{
               width: "100%", background: "linear-gradient(135deg, #00D4FF, #A855F7)", border: "none",
-              borderRadius: 10, padding: "12px", color: "#000", fontWeight: 700, fontSize: 14, cursor: "pointer",
-              opacity: creating ? 0.6 : 1,
+              borderRadius: 10, padding: "12px", color: "#000", fontWeight: 700, fontSize: 14,
+              cursor: "pointer", opacity: creating ? 0.6 : 1,
             }}>
               {creating ? "Setting up your crew..." : "Create workspace"}
             </button>
@@ -66,7 +89,63 @@ export default function OnboardingWizard() {
               Starts on the Starter plan — upgrade anytime from Settings.
             </div>
           </div>
-        ) : (
+        )}
+
+        {/* ── Step 2: Business entity question ─────────────────────────── */}
+        {step === 2 && (
+          <div style={{ background: "#0d0d1a", border: "1px solid #ffffff18", borderRadius: 16, padding: 32 }}>
+            <div style={{ fontSize: 32, marginBottom: 12, textAlign: "center" }}>🏢</div>
+            <div style={{ color: "#fff", fontSize: 20, fontWeight: 700, marginBottom: 8, textAlign: "center" }}>
+              Is your business officially registered?
+            </div>
+            <div style={{ color: "#ffffff66", fontSize: 13, marginBottom: 24, lineHeight: 1.6, textAlign: "center" }}>
+              CrewwOS can help you form your LLC, get your EIN, and register with your state — all in one place.
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {/* Already registered */}
+              <button
+                onClick={() => handleEntityChoice("skip")}
+                style={{
+                  background: "#060612", border: "1px solid #10B98155", borderRadius: 12,
+                  padding: "14px 16px", color: "#fff", textAlign: "left", cursor: "pointer",
+                  transition: "border-color 0.2s",
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 3 }}>✅ Yes, I'm already registered</div>
+                <div style={{ color: "#ffffff55", fontSize: 12 }}>I have my LLC/Corp and EIN sorted</div>
+              </button>
+
+              {/* Help me register */}
+              <button
+                onClick={() => handleEntityChoice("setup")}
+                style={{
+                  background: "linear-gradient(135deg, #00D4FF11, #A855F711)",
+                  border: "1px solid #00D4FF55", borderRadius: 12,
+                  padding: "14px 16px", color: "#fff", textAlign: "left", cursor: "pointer",
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 3 }}>🚀 No — help me get set up</div>
+                <div style={{ color: "#ffffff55", fontSize: 12 }}>Walk me through forming my entity, getting my EIN, and registering with my state</div>
+              </button>
+
+              {/* Do it later */}
+              <button
+                onClick={() => handleEntityChoice("skip")}
+                style={{
+                  background: "transparent", border: "1px solid #ffffff15", borderRadius: 12,
+                  padding: "14px 16px", color: "#ffffff55", textAlign: "left", cursor: "pointer",
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 3 }}>⏱ I'll do this later</div>
+                <div style={{ color: "#ffffff33", fontSize: 12 }}>Find it anytime under Settings → Business & Legal</div>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 3: Success ───────────────────────────────────────────── */}
+        {step === 3 && (
           <div style={{ background: "#0d0d1a", border: "1px solid #10B98155", borderRadius: 16, padding: 32, textAlign: "center" }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
             <div style={{ color: "#fff", fontSize: 20, fontWeight: 700, marginBottom: 8 }}>{name} is live</div>
