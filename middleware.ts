@@ -4,7 +4,18 @@ import { NextResponse } from "next/server";
 const ADMIN_USER_ID = "user_3KssQdrEnCwzR428Q5nmtYKYqHF";
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
-const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/sign-up(.*)"]);
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/demo",
+  "/demo/(.*)",
+  "/pitch",
+  "/pitch/(.*)",
+  "/pricing",
+  "/pricing/(.*)",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/brevo(.*)",
+]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
