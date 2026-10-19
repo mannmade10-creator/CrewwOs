@@ -2,6 +2,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import AgencyApplyForm from "./AgencyApplyForm";
 
 export const metadata = {
   title: "CrewwOS Agency — White-Label AI Agent Platform for Agencies",
@@ -479,49 +480,7 @@ export default async function AgencyPage() {
             </p>
           </div>
 
-          <div style={{ background: "#0a0a1a", border: `1px solid ${color}22`, borderRadius: 24, padding: 40 }}>
-            {/* This form posts to /api/agency/apply — to be built */}
-            <form action="/api/agency/apply" method="POST">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-                {[
-                  { label: "Your name", name: "name", placeholder: "Kenneth Covington", type: "text" },
-                  { label: "Email", name: "email", placeholder: "you@youragency.com", type: "email" },
-                ].map(f => (
-                  <div key={f.name}>
-                    <label style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.55)", marginBottom: 6, fontWeight: 600 }}>{f.label}</label>
-                    <input name={f.name} type={f.type} placeholder={f.placeholder} required style={{ width: "100%", background: "#060612", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.55)", marginBottom: 6, fontWeight: 600 }}>Agency / company name</label>
-                <input name="company" type="text" placeholder="Made Technologies Inc." required style={{ width: "100%", background: "#060612", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.55)", marginBottom: 6, fontWeight: 600 }}>Your website</label>
-                <input name="website" type="url" placeholder="https://youragency.com" style={{ width: "100%", background: "#060612", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.55)", marginBottom: 6, fontWeight: 600 }}>What tier are you interested in?</label>
-                <select name="tier" required style={{ width: "100%", background: "#060612", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 13, outline: "none", boxSizing: "border-box", appearance: "none" }}>
-                  <option value="">Select a plan</option>
-                  <option value="starter">Agency Starter — $497/mo (up to 5 clients)</option>
-                  <option value="pro">Agency Pro — $1,197/mo (up to 25 clients)</option>
-                  <option value="enterprise">Agency Enterprise — Custom pricing</option>
-                </select>
-              </div>
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.55)", marginBottom: 6, fontWeight: 600 }}>How many clients do you plan to onboard in the first 90 days?</label>
-                <textarea name="clientCount" rows={2} placeholder="e.g. 3–5 clients — mostly local service businesses" style={{ width: "100%", background: "#060612", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 13, outline: "none", boxSizing: "border-box", resize: "vertical", lineHeight: 1.5 }} />
-              </div>
-              <button type="submit" style={{ width: "100%", background: `linear-gradient(135deg, ${color}, ${colorAlt})`, color: "#000", fontWeight: 800, fontSize: 15, padding: "14px", borderRadius: 12, border: "none", cursor: "pointer" }}>
-                Submit Application →
-              </button>
-              <div style={{ textAlign: "center", marginTop: 14, fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
-                We review every application within 48 hours.
-              </div>
-            </form>
-          </div>
+          <AgencyApplyForm />
         </section>
 
       </div>

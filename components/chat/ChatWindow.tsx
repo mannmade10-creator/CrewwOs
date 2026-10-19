@@ -222,7 +222,8 @@ export default function ChatWindow({ agent, workspaceSlug, workspaceName, onClos
       onLog(agent.name, replyText.slice(0, 80));
       onSpeak?.(replyText);
       setIsFresh(false);
-    } catch {
+    } catch (err) {
+  console.error("[ChatWindow] send error:", err);
       setBubbles(b => [...b, { kind: "text", role: "assistant", text: "Connection issue — try again." }]);
     }
     setLoading(false);

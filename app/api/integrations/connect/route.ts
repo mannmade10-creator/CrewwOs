@@ -1,4 +1,4 @@
-// app/api/integrations/connect/route.ts
+﻿// app/api/integrations/connect/route.ts
 // POST { workspaceSlug, provider, credentials }
 //
 // Credentials arrive as plaintext exactly once, in this request body, from
@@ -19,6 +19,10 @@ const KNOWN_PROVIDERS = [
   "supabase", "vercel", "resend", "twilio", "apollo",
   "replyio", "ghl", "retell", "github", "stripe",
   "serpapi", "cjdropshipping", "shopify", "tiktok", "meta", "google_ads",
+  // Outbound marketing + scheduling
+  "brevo", "vapi", "google_calendar",
+  // Direct mail
+  "lob",
 ];
 
 export async function POST(req: NextRequest) {

@@ -184,6 +184,7 @@ export default function VirtualOffice({ workspaceSlug, workspaceName, plan }: {
 
       {activeAgent && (
         <ChatWindow
+          key={activeAgent.slug}
           agent={activeAgent}
           workspaceSlug={workspaceSlug}
           workspaceName={workspaceName}
@@ -196,5 +197,7 @@ export default function VirtualOffice({ workspaceSlug, workspaceName, plan }: {
     </div>
   );
 }
+
+
 
 
