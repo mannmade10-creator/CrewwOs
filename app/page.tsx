@@ -26,6 +26,7 @@ export default async function Home() {
           <li><a href="#how">How it works</a></li>
           <li><a href="#agents">Agents</a></li>
           <li><a href="#white-label">White Label</a></li>
+          <li><Link href="/pricing">Pricing</Link></li>
         </ul>
         <div className="hub-nav-right">
           <Link href="/sign-in" className="hub-login">Log in</Link>
@@ -48,7 +49,7 @@ export default async function Home() {
         </p>
         <div className="hub-actions">
           <a href="#verticals" className="hub-btn-primary">Find your industry</a>
-          <a href="#agents" className="hub-btn-ghost">Explore all 19 agents</a>
+          <Link href="/pricing" className="hub-btn-ghost">See pricing</Link>
         </div>
         <div className="hub-stats">
           {[
@@ -163,9 +164,14 @@ export default async function Home() {
             CrewwOS gives you the same AI workforce that Fortune 500s pay millions for.
             At a price that makes sense.
           </p>
-          <Link href="/sign-up" className="hub-btn-primary" style={{ display: "inline-flex", marginBottom: 32 }}>
-            Choose your industry
-          </Link>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 32 }}>
+            <Link href="/sign-up" className="hub-btn-primary" style={{ display: "inline-flex" }}>
+              Choose your industry
+            </Link>
+            <Link href="/pricing" className="hub-btn-ghost" style={{ display: "inline-flex" }}>
+              See pricing
+            </Link>
+          </div>
           <div className="hub-cta-grid">
             <Link href="/business" className="hub-cta-card">
               <div className="hub-cta-card-label" style={{ color: "#3b82f6" }}>Business</div>
@@ -188,6 +194,7 @@ export default async function Home() {
         <div className="hub-footer-links">
           <Link href="/business">Business</Link>
           <Link href="/artists">Artists</Link>
+          <Link href="/pricing">Pricing</Link>
           <Link href="/sign-in">Login</Link>
         </div>
       </footer>
