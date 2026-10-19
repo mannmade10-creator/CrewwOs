@@ -40,7 +40,6 @@ export async function POST(req: Request) {
 
       const plan = PLAN_MAP[priceKey];
       if (plan) {
-        // Update workspace plan for subscription products
         await supabaseAdmin
           .from("workspaces")
           .update({
@@ -51,7 +50,6 @@ export async function POST(req: Request) {
           .eq("owner_id", userId);
       }
 
-      // Handle Nia credits
       if (priceKey.startsWith("nia_credits_")) {
         const credits = parseInt(priceKey.split("_").pop() ?? "0");
         if (credits > 0) {
@@ -76,7 +74,6 @@ export async function POST(req: Request) {
         }
       }
 
-      // Handle Nia setup
       if (priceKey === "nia_setup") {
         await supabaseAdmin.from("nia_credits").upsert(
           { user_id: userId, credits: 100, monthly_reset: 100 },
@@ -115,7 +112,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ received: true });
 }
-
-export const config = {
-  api: { bodyParser: false },
-};
