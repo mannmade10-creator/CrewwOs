@@ -3,9 +3,12 @@ import { stripe } from "@/lib/stripe";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 
+// Use supabaseAdmin from lib to keep a single client factory.
+// Direct createClient here is fine for webhook-only use, but consistent with lib pattern.
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { persistSession: false } }
 );
 
 const PLAN_MAP: Record<string, string> = {
@@ -33,52 +36,70 @@ export async function POST(req: Request) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      const userId = session.metadata?.userId;
+
+      // The checkout route sets these metadata keys (crewos_workspace_id, crewos_plan).
+      // priceKey and userId are set by the Nia credits checkout (NiaCreditsClient),
+      // which calls POST /api/checkout with { priceKey, mode: "payment" }.
+      const workspaceId = session.metadata?.crewos_workspace_id;
+      const crewosplan = session.metadata?.crewos_plan;
       const priceKey = session.metadata?.priceKey;
+      const userId = session.metadata?.userId; // set by /api/checkout for Nia flows
 
-      if (!userId || !priceKey) break;
-
-      const plan = PLAN_MAP[priceKey];
-      if (plan) {
+      // -- Subscription plan upgrade (billing/checkout route) --
+      if (workspaceId && crewosplan && PLAN_MAP[crewosplan]) {
         await supabaseAdmin
           .from("workspaces")
           .update({
-            plan,
+            plan: PLAN_MAP[crewosplan],
             stripe_subscription_id: session.subscription as string,
             stripe_customer_id: session.customer as string,
           })
-          .eq("owner_id", userId);
+          .eq("id", workspaceId);
       }
 
-      if (priceKey.startsWith("nia_credits_")) {
-        const credits = parseInt(priceKey.split("_").pop() ?? "0");
-        if (credits > 0) {
-          const { data: existing } = await supabaseAdmin
-            .from("nia_credits")
-            .select("credits")
-            .eq("user_id", userId)
-            .single();
+      // -- Nia credit pack purchase (one-time payment, NiaCreditsClient) --
+      // priceKey is like "nia_credits_500" or "nia_setup"
+      if (priceKey && userId) {
+        if (priceKey.startsWith("nia_credits_")) {
+          const credits = parseInt(priceKey.replace("nia_credits_", ""), 10);
+          if (credits > 0) {
+            // Use workspace_id if available, fall back to userId-based lookup
+            const query = workspaceId
+              ? supabaseAdmin.from("nia_credits").select("credits_remaining").eq("workspace_id", workspaceId).single()
+              : supabaseAdmin.from("nia_credits").select("credits_remaining").eq("user_id", userId).single();
 
-          if (existing) {
-            await supabaseAdmin
-              .from("nia_credits")
-              .update({ credits: existing.credits + credits })
-              .eq("user_id", userId);
-          } else {
-            await supabaseAdmin.from("nia_credits").insert({
-              user_id: userId,
-              credits,
-              monthly_reset: 0,
-            });
+            const { data: existing } = await query;
+            const currentCredits = (existing as any)?.credits_remaining ?? 0;
+            const whereClause = workspaceId ? { workspace_id: workspaceId } : { user_id: userId };
+
+            if (existing) {
+              await supabaseAdmin
+                .from("nia_credits")
+                .update({ credits_remaining: currentCredits + credits })
+                .match(whereClause);
+            } else {
+              await supabaseAdmin.from("nia_credits").insert({
+                ...(workspaceId ? { workspace_id: workspaceId } : { user_id: userId }),
+                credits_remaining: credits,
+                credits_used: 0,
+              });
+            }
           }
         }
-      }
 
-      if (priceKey === "nia_setup") {
-        await supabaseAdmin.from("nia_credits").upsert(
-          { user_id: userId, credits: 100, monthly_reset: 100 },
-          { onConflict: "user_id" }
-        );
+        if (priceKey === "nia_setup") {
+          const upsertData: Record<string, unknown> = {
+            credits_remaining: 100,
+            credits_used: 0,
+          };
+          if (workspaceId) upsertData.workspace_id = workspaceId;
+          else upsertData.user_id = userId;
+
+          await supabaseAdmin.from("nia_credits").upsert(
+            upsertData,
+            { onConflict: workspaceId ? "workspace_id" : "user_id" }
+          );
+        }
       }
 
       break;
