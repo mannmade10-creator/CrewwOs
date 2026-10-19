@@ -11,6 +11,7 @@ const TABS = [
   { key: "", label: "Office" },
   { key: "/integrations", label: "Integrations" },
   { key: "/reports", label: "Reports" },
+  { key: "/nia", label: "Nia Credits" },
   { key: "/settings", label: "Settings" },
 ];
 
@@ -120,13 +121,18 @@ export default function DashboardShell({ workspaceName, workspaceSlug, plan, chi
           {TABS.map(t => {
             const href = `/dashboard/${workspaceSlug}${t.key}`;
             const active = currentTab === t.key;
+            const isNia = t.key === "/nia";
             return (
               <Link key={t.key} href={href} style={{
-                background: active ? "#ffffff10" : "transparent",
-                border: "1px solid " + (active ? "#ffffff22" : "transparent"),
-                color: active ? "#fff" : "#ffffff66",
+                background: active ? (isNia ? "#A855F722" : "#ffffff10") : "transparent",
+                border: "1px solid " + (active ? (isNia ? "#A855F744" : "#ffffff22") : "transparent"),
+                color: active ? (isNia ? "#A855F7" : "#fff") : "#ffffff66",
                 borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, textDecoration: "none",
-              }}>{t.label}</Link>
+                display: "flex", alignItems: "center", gap: 5,
+              }}>
+                {isNia && <span style={{ fontSize: 11 }}>👑</span>}
+                {t.label}
+              </Link>
             );
           })}
         </div>
