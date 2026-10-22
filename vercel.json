@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/riley/fire-drips",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 * * * *"
     }
   ]
 }
