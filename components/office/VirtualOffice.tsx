@@ -30,19 +30,19 @@ export default function VirtualOffice({ workspaceSlug, workspaceName, plan }: {
   ]);
   const [viewStyle, setViewStyle] = useState<ViewStyle>("flat");
   const [pickerOpen, setPickerOpen] = useState(false);
-  // Drawer hidden by default — user taps Team button to open
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // Track mobile with JS for drawer logic — but CSS handles the layout switch
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detect mobile with JS so inline styles are fully reactive
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    const mq = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
 
-  // Auto-close drawer when an agent chat opens on mobile
+  // Auto-close drawer when agent chat opens on mobile
   useEffect(() => {
     if (activeAgent && isMobile) setDrawerOpen(false);
   }, [activeAgent, isMobile]);
@@ -91,13 +91,9 @@ export default function VirtualOffice({ workspaceSlug, workspaceName, plan }: {
     onSelect: handleSelect,
   };
 
-  // Shared view style picker JSX
-  const viewPickerBottom = isMobile ? 20 : 24;
-  const viewPickerRight  = isMobile ? 16 : 24;
-
   const ViewPicker = () => (
     <div style={{
-      position: "absolute", bottom: viewPickerBottom, right: viewPickerRight,
+      position: "absolute", bottom: 20, right: 16,
       zIndex: 100, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8,
     }}>
       {pickerOpen && (
@@ -144,19 +140,43 @@ export default function VirtualOffice({ workspaceSlug, workspaceName, plan }: {
     </div>
   );
 
-  // ── MOBILE LAYOUT ────────────────────────────────────────────────
-  if (isMobile) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", position: "relative" }}>
+  return (
+    <>
+      {/* CSS media query controls layout — always correct regardless of SSR/hydration */}
+      <style>{`
+        .vo-root { display: flex; flex: 1; overflow: hidden; position: relative; }
+        .vo-office { flex: 1; position: relative; overflow: hidden; }
+        .vo-panel {
+          width: 300px; overflow: hidden; transition: width 0.3s ease;
+          background: #0a0a1a; border-left: 1px solid #ffffff11;
+          display: flex; flex-direction: column; flex-shrink: 0;
+        }
+        .vo-panel.hidden { width: 0; }
+        .vo-team-btn { display: none; }
+        .vo-drawer {
+          overflow: hidden; transition: height 0.3s ease;
+          background: #0a0a1a; flex-shrink: 0;
+          display: flex; flex-direction: column;
+        }
 
-        {/* Office takes full remaining height */}
-        <div style={{ flex: 1, position: "relative", overflow: "hidden", minHeight: 0 }}>
+        @media (max-width: 768px) {
+          .vo-root { flex-direction: column; }
+          .vo-office { flex: 1; min-height: 0; }
+          .vo-panel { display: none !important; }
+          .vo-team-btn { display: flex !important; }
+        }
+      `}</style>
+
+      <div className="vo-root">
+        {/* Office floor */}
+        <div className="vo-office">
           {viewStyle === "flat"       && <OfficeFlat       {...officeProps} />}
           {viewStyle === "isometric"  && <OfficeIsometric  {...officeProps} />}
           {viewStyle === "skyscraper" && <OfficeSkyscraper {...officeProps} />}
 
-          {/* 👥 Team toggle — bottom left */}
+          {/* Team button — only visible on mobile via CSS */}
           <button
+            className="vo-team-btn"
             onClick={() => setDrawerOpen(o => !o)}
             style={{
               position: "absolute", bottom: 20, left: 16, zIndex: 100,
@@ -165,7 +185,7 @@ export default function VirtualOffice({ workspaceSlug, workspaceName, plan }: {
               borderRadius: 12, padding: "10px 16px",
               color: drawerOpen ? "#00D4FF" : "#fff",
               fontSize: 13, fontWeight: 700, cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 8,
+              alignItems: "center", gap: 8,
               backdropFilter: "blur(12px)", boxShadow: "0 4px 16px #000000aa",
             }}
           >
@@ -176,29 +196,49 @@ export default function VirtualOffice({ workspaceSlug, workspaceName, plan }: {
           <ViewPicker />
         </div>
 
-        {/* Drawer — height driven by React state (fully reactive, no CSS template literal issues) */}
-        <div style={{
-          height: drawerOpen ? "58vh" : 0,
-          overflow: "hidden",
-          transition: "height 0.3s ease",
-          background: "#0a0a1a",
-          borderTop: drawerOpen ? "1px solid #00D4FF22" : "none",
-          display: "flex",
-          flexDirection: "column",
-          flexShrink: 0,
-        }}>
-          <div style={{ display: "flex", justifyContent: "center", padding: "8px 0 4px", flexShrink: 0 }}>
-            <div style={{ width: 40, height: 4, borderRadius: 2, background: "#ffffff22" }} />
-          </div>
-          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
-            <BroadcastBar workspaceSlug={workspaceSlug} onReplies={handleBroadcastReplies} />
-            <ActivityFeed log={taskLog} />
-            <AgentRoster agents={AGENTS} busyIds={busyAgents} onSelect={handleSelect} allowedSlugs={allowedSlugs} plan={plan} />
-          </div>
+        {/* Desktop right panel — hidden via CSS on mobile */}
+        <div className={`vo-panel${activeAgent ? " hidden" : ""}`}>
+          <BroadcastBar workspaceSlug={workspaceSlug} onReplies={handleBroadcastReplies} />
+          <ActivityFeed log={taskLog} />
+          <AgentRoster agents={AGENTS} busyIds={busyAgents} onSelect={handleSelect} allowedSlugs={allowedSlugs} plan={plan} />
         </div>
 
-        {/* Chat window overlays everything on mobile */}
-        {activeAgent && (
+        {/* Desktop chat window */}
+        {activeAgent && !isMobile && (
+          <ChatWindow
+            key={activeAgent.slug}
+            agent={activeAgent}
+            workspaceSlug={workspaceSlug}
+            workspaceName={workspaceName}
+            onClose={handleClose}
+            onLog={addLog}
+            locked={!allowedSlugs.has(activeAgent.slug)}
+            plan={plan}
+          />
+        )}
+
+        {/* Mobile drawer — slides up from bottom */}
+        {isMobile && (
+          <div
+            className="vo-drawer"
+            style={{
+              height: drawerOpen ? "58vh" : 0,
+              borderTop: drawerOpen ? "1px solid #00D4FF22" : "none",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "center", padding: "8px 0 4px", flexShrink: 0 }}>
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: "#ffffff22" }} />
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+              <BroadcastBar workspaceSlug={workspaceSlug} onReplies={handleBroadcastReplies} />
+              <ActivityFeed log={taskLog} />
+              <AgentRoster agents={AGENTS} busyIds={busyAgents} onSelect={handleSelect} allowedSlugs={allowedSlugs} plan={plan} />
+            </div>
+          </div>
+        )}
+
+        {/* Mobile chat overlay */}
+        {activeAgent && isMobile && (
           <div style={{ position: "absolute", inset: 0, zIndex: 200 }}>
             <ChatWindow
               key={activeAgent.slug}
@@ -213,46 +253,6 @@ export default function VirtualOffice({ workspaceSlug, workspaceName, plan }: {
           </div>
         )}
       </div>
-    );
-  }
-
-  // ── DESKTOP LAYOUT (unchanged) ───────────────────────────────────
-  return (
-    <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
-      {/* Office Floor */}
-      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-        {viewStyle === "flat"       && <OfficeFlat       {...officeProps} />}
-        {viewStyle === "isometric"  && <OfficeIsometric  {...officeProps} />}
-        {viewStyle === "skyscraper" && <OfficeSkyscraper {...officeProps} />}
-        <ViewPicker />
-      </div>
-
-      {/* Right Panel — hides when chat is open */}
-      <div style={{
-        width: activeAgent ? 0 : 300,
-        overflow: "hidden",
-        transition: "width 0.3s ease",
-        background: "#0a0a1a",
-        borderLeft: "1px solid #ffffff11",
-        display: "flex", flexDirection: "column", flexShrink: 0,
-      }}>
-        <BroadcastBar workspaceSlug={workspaceSlug} onReplies={handleBroadcastReplies} />
-        <ActivityFeed log={taskLog} />
-        <AgentRoster agents={AGENTS} busyIds={busyAgents} onSelect={handleSelect} allowedSlugs={allowedSlugs} plan={plan} />
-      </div>
-
-      {activeAgent && (
-        <ChatWindow
-          key={activeAgent.slug}
-          agent={activeAgent}
-          workspaceSlug={workspaceSlug}
-          workspaceName={workspaceName}
-          onClose={handleClose}
-          onLog={addLog}
-          locked={!allowedSlugs.has(activeAgent.slug)}
-          plan={plan}
-        />
-      )}
-    </div>
+    </>
   );
 }
