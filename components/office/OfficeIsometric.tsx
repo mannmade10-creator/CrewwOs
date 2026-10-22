@@ -1,8 +1,19 @@
 // components/office/OfficeIsometric.tsx
-// Isometric 3D office view — angled perspective with depth, walls, and tile floors
+// Isometric 3D office view — responsive for desktop & mobile
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { AgentDef, Dept } from "@/types";
+
+function useWindowWidth() {
+  const [w, setW] = useState(1200);
+  useEffect(() => {
+    const update = () => setW(window.innerWidth);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  return w;
+}
 
 const DEPT_COLORS: Record<string, string> = {
   Engineering: "#00D4FF",
@@ -34,12 +45,10 @@ const HAIR_COLORS: Record<string, string> = {
   coo: "#1C1C1C", cfo: "#556B2F", hr: "#C71585", legal: "#191970",
 };
 
-// Convert flat (x,y) to isometric screen coords
 function toIso(x: number, y: number): { sx: number; sy: number } {
   return { sx: (x - y) * 0.6, sy: (x + y) * 0.3 };
 }
 
-// Self-contained animated agent for isometric view
 function IsoAgent({
   agent,
   color,
@@ -49,6 +58,8 @@ function IsoAgent({
   isLocked,
   onSelect,
   scale = 1,
+  nameFontSize = 9,
+  roleFontSize = 7,
 }: {
   agent: AgentDef;
   color: string;
@@ -58,6 +69,8 @@ function IsoAgent({
   isLocked: boolean;
   onSelect: (a: AgentDef) => void;
   scale?: number;
+  nameFontSize?: number;
+  roleFontSize?: number;
 }) {
   const [walkFrame, setWalkFrame] = useState(0);
   const [isWalking, setIsWalking] = useState(false);
@@ -169,11 +182,11 @@ function IsoAgent({
         {isActive && <ellipse cx={20} cy={62} rx={13} ry={3} fill={color} opacity={0.25} />}
       </svg>
       <div style={{ textAlign: "center", marginTop: -2, lineHeight: 1.2 }}>
-        <div style={{ fontSize: 9, fontWeight: 700, color, textShadow: `0 0 8px ${color}`, whiteSpace: "nowrap", fontFamily: "monospace" }}>
+        <div style={{ fontSize: nameFontSize, fontWeight: 700, color, textShadow: `0 0 8px ${color}`, whiteSpace: "nowrap", fontFamily: "monospace" }}>
           {agent.name}
-          {agent.slug === "nia" && <span style={{ marginLeft: 3, fontSize: 8, opacity: 0.8 }}>★</span>}
+          {agent.slug === "nia" && <span style={{ marginLeft: 3, fontSize: roleFontSize, opacity: 0.8 }}>★</span>}
         </div>
-        <div style={{ fontSize: 7, color: "#ffffff55", whiteSpace: "nowrap", fontFamily: "monospace" }}>{agent.role}</div>
+        <div style={{ fontSize: roleFontSize, color: "#ffffff55", whiteSpace: "nowrap", fontFamily: "monospace" }}>{agent.role}</div>
       </div>
       {isLocked && (
         <div style={{ position: "absolute", top: 2, right: -4, background: "#ffffff22", borderRadius: "50%", width: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8 }}>🔒</div>
@@ -182,21 +195,32 @@ function IsoAgent({
   );
 }
 
-// Iso dept positions: each dept is a "lane" with agents spread along X
-// Dept Y offsets in flat space (for iso transform)
-const DEPT_FLAT_Y: Record<string, number> = {
+// Mobile flat-space positions (compact, fits 520px canvas)
+const DEPT_FLAT_Y_MOBILE: Record<string, number> = {
   Engineering: 60,
   Sales: 170,
   Marketing: 275,
   Operations: 375,
 };
+const DEPT_AGENT_FLAT_X_MOBILE: Record<string, number[]> = {
+  Engineering: [60, 110, 160, 210, 260, 310, 360],
+  Sales:       [90, 200, 310],
+  Marketing:   [70, 145, 220, 295, 365],
+  Operations:  [90, 185, 275, 360],
+};
 
-// Agent X positions in flat space per dept — tighter for smaller canvas
-const DEPT_AGENT_FLAT_X: Record<string, number[]> = {
-  Engineering: [60, 110, 160, 210, 260, 310, 360],  // 7 agents — tighter spacing
-  Sales:       [90, 200, 310],                        // 3 agents
-  Marketing:   [70, 145, 220, 295, 365],              // 5 agents
-  Operations:  [90, 185, 275, 360],                   // 4 agents
+// Desktop flat-space positions (larger, fits 1040px canvas)
+const DEPT_FLAT_Y_DESKTOP: Record<string, number> = {
+  Engineering: 120,
+  Sales: 340,
+  Marketing: 550,
+  Operations: 750,
+};
+const DEPT_AGENT_FLAT_X_DESKTOP: Record<string, number[]> = {
+  Engineering: [120, 220, 320, 420, 520, 620, 720],
+  Sales:       [180, 400, 620],
+  Marketing:   [140, 290, 440, 590, 730],
+  Operations:  [180, 370, 550, 720],
 };
 
 const DEPT_AGENT_SLUGS: Record<string, string[]> = {
@@ -206,24 +230,27 @@ const DEPT_AGENT_SLUGS: Record<string, string[]> = {
   Operations:  ["coo", "cfo", "hr", "legal"],
 };
 
-function IsoRoom({ dept, agents, activeAgent, busyAgents, allowedSlugs, onSelect }: {
+function IsoRoom({
+  dept,
+  agents,
+  isMobile,
+}: {
   dept: Dept;
   agents: AgentDef[];
-  activeAgent: AgentDef | null;
-  busyAgents: Set<string>;
-  allowedSlugs: Set<string>;
-  onSelect: (a: AgentDef) => void;
+  isMobile: boolean;
 }) {
   const color = DEPT_COLORS[dept];
   const label = DEPT_LABELS[dept];
-  const flatY = DEPT_FLAT_Y[dept];
-  const agentXs = DEPT_AGENT_FLAT_X[dept];
+  const flatY = isMobile ? DEPT_FLAT_Y_MOBILE[dept] : DEPT_FLAT_Y_DESKTOP[dept];
+  const agentXs = isMobile ? DEPT_AGENT_FLAT_X_MOBILE[dept] : DEPT_AGENT_FLAT_X_DESKTOP[dept];
 
-  // Room bounds
-  const minX = agentXs[0] - 50;
-  const maxX = agentXs[agentXs.length - 1] + 90;
+  const margin = isMobile ? 50 : 100;
+  const endPad = isMobile ? 90 : 180;
+  const minX = agentXs[0] - margin;
+  const maxX = agentXs[agentXs.length - 1] + endPad;
   const roomW = maxX - minX;
-  const roomD = 120;
+  const roomD = isMobile ? 120 : 240;
+  const wallH = isMobile ? 55 : 110;
 
   const corners = [
     { x: minX,        y: flatY },
@@ -233,30 +260,25 @@ function IsoRoom({ dept, agents, activeAgent, busyAgents, allowedSlugs, onSelect
   ].map(c => toIso(c.x, c.y));
 
   const floorPoints = corners.map(c => `${c.sx},${c.sy}`).join(" ");
-  const wallH = 55;
-
   const leftWall = [
     corners[0], corners[3],
     { sx: corners[3].sx, sy: corners[3].sy - wallH },
     { sx: corners[0].sx, sy: corners[0].sy - wallH },
   ].map(c => `${c.sx},${c.sy}`).join(" ");
-
   const frontWall = [
     corners[1], corners[2],
     { sx: corners[2].sx, sy: corners[2].sy - wallH },
     { sx: corners[1].sx, sy: corners[1].sy - wallH },
   ].map(c => `${c.sx},${c.sy}`).join(" ");
-
   const labelPos = { sx: corners[0].sx - 8, sy: corners[0].sy - wallH - 14 };
-
-  // Desk positions in iso
-  const deskPositions = agentXs.map(ax => toIso(ax, flatY + 50));
+  const deskPositions = agentXs.map(ax => toIso(ax, flatY + (isMobile ? 50 : 100)));
+  const deskRx = isMobile ? 15 : 30;
+  const deskRy = isMobile ? 6 : 12;
+  const labelFontSize = isMobile ? 9 : 13;
 
   return (
     <g>
-      {/* Floor */}
       <polygon points={floorPoints} fill={`${color}12`} stroke={`${color}40`} strokeWidth={1} />
-      {/* Grid lines */}
       {[0.25, 0.5, 0.75].map(t => {
         const lx = minX + roomW * t;
         const a = toIso(lx, flatY); const b = toIso(lx, flatY + roomD);
@@ -267,28 +289,25 @@ function IsoRoom({ dept, agents, activeAgent, busyAgents, allowedSlugs, onSelect
         const a = toIso(minX, ly); const b = toIso(minX + roomW, ly);
         return <line key={`h${t}`} x1={a.sx} y1={a.sy} x2={b.sx} y2={b.sy} stroke={`${color}20`} strokeWidth={0.5} />;
       })}
-      {/* Left wall */}
       <polygon points={leftWall} fill={`${color}08`} stroke={`${color}25`} strokeWidth={0.8} />
-      {/* Front wall */}
       <polygon points={frontWall} fill={`${color}05`} stroke={`${color}20`} strokeWidth={0.8} />
-      {/* Desks */}
       {deskPositions.map((dp, i) => (
         <g key={i} transform={`translate(${dp.sx}, ${dp.sy})`}>
-          <ellipse rx={15} ry={6} fill={`${color}22`} stroke={`${color}50`} strokeWidth={0.8} />
+          <ellipse rx={deskRx} ry={deskRy} fill={`${color}22`} stroke={`${color}50`} strokeWidth={0.8} />
           <rect x={-7} y={-16} width={14} height={9} rx={2} fill={`${color}30`} stroke={`${color}55`} strokeWidth={0.7} />
           <rect x={-6} y={-15} width={12} height={7} rx={1} fill={`${color}15`} />
         </g>
       ))}
-      {/* Room label */}
-      <text x={labelPos.sx} y={labelPos.sy} fontSize={9} fill={color} fontWeight={700} fontFamily="monospace" letterSpacing={1} opacity={0.9}>
+      <text x={labelPos.sx} y={labelPos.sy} fontSize={labelFontSize} fill={color} fontWeight={700} fontFamily="monospace" letterSpacing={1} opacity={0.9}>
         {label}
       </text>
     </g>
   );
 }
 
-// Reception area
-function IsoReception({ nia, activeAgent, busyAgents, allowedSlugs, onSelect, isoOffsetX, isoOffsetY }: {
+function IsoReception({
+  nia, activeAgent, busyAgents, allowedSlugs, onSelect, isoOffsetX, isoOffsetY, isMobile,
+}: {
   nia: AgentDef;
   activeAgent: AgentDef | null;
   busyAgents: Set<string>;
@@ -296,15 +315,20 @@ function IsoReception({ nia, activeAgent, busyAgents, allowedSlugs, onSelect, is
   onSelect: (a: AgentDef) => void;
   isoOffsetX: number;
   isoOffsetY: number;
+  isMobile: boolean;
 }) {
   const color = "#F5C842";
-  const rx = 180, ry = -50, rw = 130, rd = 60;
+  const rx = isMobile ? 180 : 360;
+  const ry = isMobile ? -50 : -100;
+  const rw = isMobile ? 130 : 260;
+  const rd = isMobile ? 60 : 120;
+  const wallH = isMobile ? 50 : 100;
+
   const corners = [
     toIso(rx, ry), toIso(rx + rw, ry),
     toIso(rx + rw, ry + rd), toIso(rx, ry + rd),
   ];
   const floorPts = corners.map(c => `${c.sx},${c.sy}`).join(" ");
-  const wallH = 50;
   const backWall = [
     corners[0], corners[1],
     { sx: corners[1].sx, sy: corners[1].sy - wallH },
@@ -312,43 +336,42 @@ function IsoReception({ nia, activeAgent, busyAgents, allowedSlugs, onSelect, is
   ].map(c => `${c.sx},${c.sy}`).join(" ");
   const labelPos = toIso(rx, ry);
 
-  // Nia position in iso space
-  const niaFlat = toIso(rx + 100, ry + 50);
+  const niaFlatX = isMobile ? rx + 100 : rx + 200;
+  const niaFlatY = isMobile ? ry + 50 : ry + 100;
+  const niaFlat = toIso(niaFlatX, niaFlatY);
   const niaScreenX = isoOffsetX + niaFlat.sx;
   const niaScreenY = isoOffsetY + niaFlat.sy;
+  const deskRx = isMobile ? 26 : 52;
+  const deskRy = isMobile ? 10 : 20;
+  const labelFontSize = isMobile ? 9 : 13;
 
-  return { svgEl: (
-    <g>
-      <polygon points={floorPts} fill={`${color}15`} stroke={`${color}50`} strokeWidth={1} />
-      <polygon points={backWall} fill={`${color}08`} stroke={`${color}30`} strokeWidth={0.8} />
-      <g transform={`translate(${toIso(rx + 100, ry + 45).sx}, ${toIso(rx + 100, ry + 45).sy})`}>
-        <ellipse rx={26} ry={10} fill={`${color}28`} stroke={`${color}60`} strokeWidth={1} />
-        <rect x={-9} y={-20} width={18} height={12} rx={2} fill={`${color}35`} stroke={`${color}60`} strokeWidth={0.8} />
-        <rect x={-8} y={-19} width={16} height={10} rx={1} fill={`${color}18`} />
+  return {
+    svgEl: (
+      <g>
+        <polygon points={floorPts} fill={`${color}15`} stroke={`${color}50`} strokeWidth={1} />
+        <polygon points={backWall} fill={`${color}08`} stroke={`${color}30`} strokeWidth={0.8} />
+        <g transform={`translate(${toIso(niaFlatX, niaFlatY - (isMobile ? 5 : 10)).sx}, ${toIso(niaFlatX, niaFlatY - (isMobile ? 5 : 10)).sy})`}>
+          <ellipse rx={deskRx} ry={deskRy} fill={`${color}28`} stroke={`${color}60`} strokeWidth={1} />
+          <rect x={-9} y={-20} width={18} height={12} rx={2} fill={`${color}35`} stroke={`${color}60`} strokeWidth={0.8} />
+          <rect x={-8} y={-19} width={16} height={10} rx={1} fill={`${color}18`} />
+        </g>
+        <text x={labelPos.sx - 8} y={labelPos.sy - wallH - 12} fontSize={labelFontSize} fill={color} fontWeight={700} fontFamily="monospace" letterSpacing={1} opacity={0.9}>
+          ★ RECEPTION
+        </text>
       </g>
-      <text x={labelPos.sx - 8} y={labelPos.sy - wallH - 12} fontSize={9} fill={color} fontWeight={700} fontFamily="monospace" letterSpacing={1} opacity={0.9}>
-        ★ RECEPTION
-      </text>
-    </g>
-  ), niaScreenX, niaScreenY };
+    ),
+    niaScreenX,
+    niaScreenY,
+  };
 }
 
 const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations"];
 
-// Flat coords for each dept agent (must match DEPT_AGENT_SLUGS order)
-function getAgentIsoPos(dept: Dept, slugIndex: number): { sx: number; sy: number } {
-  const flatY = DEPT_FLAT_Y[dept];
-  const xs = DEPT_AGENT_FLAT_X[dept];
-  return toIso(xs[slugIndex] ?? 300, flatY - 10);
+function getAgentIsoPos(dept: Dept, slugIndex: number, isMobile: boolean): { sx: number; sy: number } {
+  const flatY = isMobile ? DEPT_FLAT_Y_MOBILE[dept] : DEPT_FLAT_Y_DESKTOP[dept];
+  const xs = isMobile ? DEPT_AGENT_FLAT_X_MOBILE[dept] : DEPT_AGENT_FLAT_X_DESKTOP[dept];
+  return toIso(xs[slugIndex] ?? 300, flatY - (isMobile ? 10 : 20));
 }
-
-// ISO canvas dimensions: agents span flat X 100–640, Y -70–650
-// After toIso: rightmost point is (640-80)*0.6 = 336 from origin
-// With ISO_OFFSET_X=370, that's 370+336 = 706px. Left edge at 370+(100-530)*0.6 = 370-258 = 112px
-// So effective content center is around (706+112)/2 = 409px — canvas needs ~760px min
-const ISO_CANVAS_WIDTH = 520;
-const ISO_OFFSET_X = 230;
-const ISO_OFFSET_Y = 130;
 
 export default function OfficeIsometric({
   agents,
@@ -366,33 +389,47 @@ export default function OfficeIsometric({
   onSelect: (a: AgentDef) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const w = useWindowWidth();
+  const isMobile = w < 768;
 
-  // Center the canvas horizontally on mount
+  // Canvas and offset dimensions
+  const ISO_CANVAS_WIDTH  = isMobile ? 520  : 1040;
+  const ISO_OFFSET_X      = isMobile ? 230  : 460;
+  const ISO_OFFSET_Y      = isMobile ? 130  : 260;
+  const CANVAS_MIN_HEIGHT = isMobile ? 560  : 1100;
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     const offset = (ISO_CANVAS_WIDTH - el.clientWidth) / 2;
     if (offset > 0) el.scrollLeft = offset;
-  }, []);
+  }, [ISO_CANVAS_WIDTH]);
 
-  const reception = IsoReception({ nia, activeAgent, busyAgents, allowedSlugs, onSelect, isoOffsetX: ISO_OFFSET_X, isoOffsetY: ISO_OFFSET_Y });
+  const reception = IsoReception({
+    nia, activeAgent, busyAgents, allowedSlugs, onSelect,
+    isoOffsetX: ISO_OFFSET_X, isoOffsetY: ISO_OFFSET_Y, isMobile,
+  });
+
+  const agentScale     = isMobile ? 1.0 : 2.0;
+  const niaScale       = isMobile ? 1.15 : 2.3;
+  const nameFontSize   = isMobile ? 9 : 13;
+  const roleFontSize   = isMobile ? 7 : 10;
+  const agentTopOffset = isMobile ? 45 : 90;
+  const agentLeftOff  = isMobile ? 12 : 24;
 
   return (
     <div
       ref={scrollRef}
       style={{ position: "relative", width: "100%", height: "100%", overflow: "auto" }}
     >
-      {/* Fixed-width inner canvas so scroll works correctly */}
-      <div style={{ position: "relative", width: ISO_CANVAS_WIDTH, height: "100%", minHeight: 560 }}>
-        {/* Background grid */}
+      <div style={{ position: "relative", width: ISO_CANVAS_WIDTH, height: "100%", minHeight: CANVAS_MIN_HEIGHT }}>
         <div style={{
-          position: "absolute", inset: 0, minHeight: 560,
+          position: "absolute", inset: 0, minHeight: CANVAS_MIN_HEIGHT,
           background: `repeating-linear-gradient(120deg, transparent, transparent 29px, #ffffff04 29px, #ffffff04 30px),
                        repeating-linear-gradient(60deg, transparent, transparent 29px, #ffffff04 29px, #ffffff04 30px), #060612`,
         }} />
 
-        {/* SVG rooms and desks */}
-        <svg style={{ position: "absolute", left: 0, top: 0, overflow: "visible", pointerEvents: "none", width: "100%", height: "560px" }}>
+        <svg style={{ position: "absolute", left: 0, top: 0, overflow: "visible", pointerEvents: "none", width: "100%", height: `${CANVAS_MIN_HEIGHT}px` }}>
           <g transform={`translate(${ISO_OFFSET_X}, ${ISO_OFFSET_Y})`}>
             {reception.svgEl}
             {DEPTS.map(dept => (
@@ -400,10 +437,7 @@ export default function OfficeIsometric({
                 key={dept}
                 dept={dept}
                 agents={agents.filter(a => a.dept === dept)}
-                activeAgent={activeAgent}
-                busyAgents={busyAgents}
-                allowedSlugs={allowedSlugs}
-                onSelect={onSelect}
+                isMobile={isMobile}
               />
             ))}
           </g>
@@ -412,8 +446,8 @@ export default function OfficeIsometric({
         {/* Nia avatar over reception */}
         <div style={{
           position: "absolute",
-          left: reception.niaScreenX - 12,
-          top: reception.niaScreenY - 48,
+          left: reception.niaScreenX - agentLeftOff,
+          top: reception.niaScreenY - agentTopOffset,
           zIndex: 20,
         }}>
           <IsoAgent
@@ -424,7 +458,9 @@ export default function OfficeIsometric({
             isBusy={busyAgents.has(nia.slug)}
             isLocked={!allowedSlugs.has(nia.slug)}
             onSelect={onSelect}
-            scale={1.15}
+            scale={niaScale}
+            nameFontSize={nameFontSize}
+            roleFontSize={roleFontSize}
           />
         </div>
 
@@ -436,14 +472,14 @@ export default function OfficeIsometric({
           return slugs.map((slug, idx) => {
             const agent = agents.find(a => a.slug === slug);
             if (!agent) return null;
-            const isoPos = getAgentIsoPos(dept, idx);
+            const isoPos = getAgentIsoPos(dept, idx, isMobile);
             return (
               <div
                 key={slug}
                 style={{
                   position: "absolute",
-                  left: ISO_OFFSET_X + isoPos.sx - 12,
-                  top: ISO_OFFSET_Y + isoPos.sy - 45,
+                  left: ISO_OFFSET_X + isoPos.sx - agentLeftOff,
+                  top: ISO_OFFSET_Y + isoPos.sy - agentTopOffset,
                   zIndex: activeAgent?.slug === slug ? 15 : 5,
                 }}
               >
@@ -455,13 +491,16 @@ export default function OfficeIsometric({
                   isBusy={busyAgents.has(slug)}
                   isLocked={!allowedSlugs.has(slug)}
                   onSelect={onSelect}
+                  scale={agentScale}
+                  nameFontSize={nameFontSize}
+                  roleFontSize={roleFontSize}
                 />
               </div>
             );
           });
         })}
 
-        <div style={{ position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)", color: "#ffffff22", fontSize: 10, fontFamily: "monospace", letterSpacing: 2, pointerEvents: "none" }}>
+        <div style={{ position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)", color: "#ffffff22", fontSize: isMobile ? 10 : 13, fontFamily: "monospace", letterSpacing: 2, pointerEvents: "none" }}>
           ISOMETRIC VIEW · Click any agent to chat
         </div>
       </div>
