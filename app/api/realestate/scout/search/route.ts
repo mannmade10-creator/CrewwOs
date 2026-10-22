@@ -1,16 +1,15 @@
 // app/api/realestate/scout/search/route.ts
-// Scout Agent — searches MLS (realtor-search RapidAPI), Zillow FSBO, ATTOM Data
+// Scout Agent — MLS + Zillow FSBO + ATTOM
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAuditEvent } from "@/lib/audit";
 
-// ── Environment variables needed in .env.local ─────────────────────────────
-// RAPIDAPI_KEY          — your key from rapidapi.com (same key for all APIs)
-// MLS_RAPIDAPI_HOST     — realtor-search.p.rapidapi.com
-// ZILLOW_RAPIDAPI_HOST  — zillow-com1.p.rapidapi.com  (optional)
-// ATTOM_API_KEY         — from api.developer.attomdata.com (optional)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── .env.local vars ────────────────────────────────────────────────────────
+// RAPIDAPI_KEY          — your key from rapidapi.com (one key for all APIs below)
+// ZILLOW_RAPIDAPI_HOST  — zillow-com1.p.rapidapi.com  ← MLS + FSBO (primary)
+// ATTOM_API_KEY         — api.developer.attomdata.com (optional distressed deals)
+// ──────────────────────────────────────────────────────────────────────────
 
 const MAX_STR = 200;
 function sanitize(v: unknown): string {
@@ -30,7 +29,7 @@ export interface ScoutDeal {
   baths?: number;
   sqft?: number;
   year_built?: number;
-  list_price?: number;   // dollars for display; save route stores as cents
+  list_price?: number;
   days_on_market?: number;
   is_fsbo: boolean;
   listing_url?: string;
@@ -39,138 +38,97 @@ export interface ScoutDeal {
   priority: "medium";
 }
 
-// ── MLS via realtor-search.p.rapidapi.com ───────────────────────────────────
-async function searchMLS(city: string, state: string, maxPrice: number): Promise<ScoutDeal[]> {
-  const host = process.env.MLS_RAPIDAPI_HOST ?? "realtor-search.p.rapidapi.com";
-  const key  = process.env.RAPIDAPI_KEY;
-  if (!key) return [];
-
-  try {
-    // Try POST body search first (properties/v3/list)
-    const res = await fetch(`https://${host}/properties/v3/list`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-rapidapi-key": key,
-        "x-rapidapi-host": host,
-      },
-      body: JSON.stringify({
-        limit: 20,
-        offset: 0,
-        filters: { list_price: { max: maxPrice }, status: ["for_sale"] },
-        sort_by: "list_date",
-        sort_order: "desc",
-        location: { city, state_code: state },
-      }),
-      signal: AbortSignal.timeout(8000),
-    });
-
-    if (!res.ok) return searchMLSGet(host, key, city, state, maxPrice);
-    const json = await res.json();
-    const results = json?.data?.home_search?.results ?? json?.data?.results ?? [];
-    return mapMLSResults(results);
-  } catch {
-    return searchMLSGet(host, key, city, state, maxPrice);
-  }
+// ── Map Zillow propertyExtendedSearch results → ScoutDeal ─────────────────
+function mapZillowResults(props: Record<string, unknown>[], isFsbo: boolean): ScoutDeal[] {
+  return props.slice(0, 20).map((p): ScoutDeal => ({
+    source: isFsbo ? "fsbo_zillow" : "mls",
+    external_id: String(p.zpid ?? ""),
+    address: String(p.address ?? ""),
+    city:  String(p.city    ?? ""),
+    state: String(p.state   ?? ""),
+    zip:   String(p.zipcode ?? ""),
+    property_type: String(p.propertyType ?? ""),
+    beds:  Number(p.bedrooms   ?? 0) || undefined,
+    baths: Number(p.bathrooms  ?? 0) || undefined,
+    sqft:  Number(p.livingArea ?? 0) || undefined,
+    year_built: Number(p.yearBuilt ?? 0) || undefined,
+    list_price: Number(p.price ?? 0) || undefined,
+    days_on_market: Number(p.daysOnZillow ?? 0) || undefined,
+    is_fsbo: isFsbo,
+    listing_url: p.detailUrl ? `https://www.zillow.com${p.detailUrl}` : undefined,
+    photos: p.imgSrc ? [String(p.imgSrc)] : [],
+    status: "new",
+    priority: "medium",
+  }));
 }
 
-// GET fallback — query-param version
-async function searchMLSGet(host: string, key: string, city: string, state: string, maxPrice: number): Promise<ScoutDeal[]> {
-  try {
-    const params = new URLSearchParams({
-      city, state_code: state,
-      price_max: String(maxPrice),
-      status: "for_sale",
-      limit: "20",
-      sort: "list_date_desc",
-    });
-    const res = await fetch(`https://${host}/properties/v3/list?${params}`, {
-      headers: { "x-rapidapi-key": key, "x-rapidapi-host": host },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!res.ok) return [];
-    const json = await res.json();
-    const results = json?.data?.home_search?.results ?? json?.data?.results ?? [];
-    return mapMLSResults(results);
-  } catch { return []; }
-}
-
-function mapMLSResults(results: Record<string, unknown>[]): ScoutDeal[] {
-  return results.slice(0, 20).map((l): ScoutDeal => {
-    const loc   = (l.location   as Record<string, unknown>) ?? {};
-    const addr  = (loc.address  as Record<string, unknown>) ?? {};
-    const desc  = (l.description as Record<string, unknown>) ?? {};
-    const photo = l.primary_photo as Record<string, unknown> | undefined;
-    return {
-      source: "mls",
-      external_id: String(l.property_id ?? l.listing_id ?? ""),
-      address: [addr.line, addr.city, addr.state_code, addr.postal_code].filter(Boolean).join(", "),
-      city:    String(addr.city       ?? ""),
-      state:   String(addr.state_code ?? ""),
-      zip:     String(addr.postal_code ?? ""),
-      property_type: String(desc.type ?? ""),
-      beds:    Number(desc.beds ?? 0) || undefined,
-      baths:   Number(desc.baths_consolidated ?? desc.baths ?? 0) || undefined,
-      sqft:    Number(desc.sqft ?? 0) || undefined,
-      year_built: Number(desc.year_built ?? 0) || undefined,
-      list_price: Number(l.list_price ?? 0) || undefined,
-      days_on_market: Number(l.list_date_delta ?? l.days_on_market ?? 0) || undefined,
-      is_fsbo: false,
-      listing_url: l.permalink ? `https://www.realtor.com${l.permalink}` : undefined,
-      photos: photo?.href ? [String(photo.href)] : [],
-      status: "new",
-      priority: "medium",
-    };
-  });
-}
-
-// ── Zillow FSBO via RapidAPI ─────────────────────────────────────────────────
-async function searchZillowFSBO(city: string, state: string, maxPrice: number): Promise<ScoutDeal[]> {
+// ── Primary MLS search via Zillow (agent-listed properties) ───────────────
+async function searchMLS(city: string, state: string, zip: string, maxPrice: number): Promise<ScoutDeal[]> {
   const host = process.env.ZILLOW_RAPIDAPI_HOST ?? "zillow-com1.p.rapidapi.com";
   const key  = process.env.RAPIDAPI_KEY;
   if (!key) return [];
 
+  // Use zip code if available, otherwise "City, State"
+  const location = zip || `${city}, ${state}`;
+
   try {
     const params = new URLSearchParams({
-      location: `${city}, ${state}`,
+      location,
       status_type: "ForSale",
       home_type: "Houses,Townhomes,Condos,MultiFamily",
-      isForSaleByOwner: "true",
+      saleByAgent: "1",   // agent-listed = MLS
       maxPrice: String(maxPrice),
       page: "1",
     });
     const res = await fetch(`https://${host}/propertyExtendedSearch?${params}`, {
-      headers: { "x-rapidapi-key": key, "x-rapidapi-host": host },
-      signal: AbortSignal.timeout(8000),
+      headers: {
+        "x-rapidapi-key":  key,
+        "x-rapidapi-host": host,
+      },
+      signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) return [];
     const json = await res.json();
-    return (json?.props ?? []).slice(0, 15).map((p: Record<string, unknown>): ScoutDeal => ({
-      source: "fsbo_zillow",
-      external_id: String(p.zpid ?? ""),
-      address: String(p.address ?? ""),
-      city:  String(p.city     ?? city),
-      state: String(p.state    ?? state),
-      zip:   String(p.zipcode  ?? ""),
-      property_type: String(p.propertyType ?? ""),
-      beds:  Number(p.bedrooms   ?? 0) || undefined,
-      baths: Number(p.bathrooms  ?? 0) || undefined,
-      sqft:  Number(p.livingArea ?? 0) || undefined,
-      list_price: Number(p.price ?? 0) || undefined,
-      days_on_market: Number(p.daysOnZillow ?? 0) || undefined,
-      is_fsbo: true,
-      listing_url: p.detailUrl ? `https://www.zillow.com${p.detailUrl}` : undefined,
-      photos: p.imgSrc ? [String(p.imgSrc)] : [],
-      status: "new",
-      priority: "medium",
-    }));
+    const props: Record<string, unknown>[] = json?.props ?? [];
+    return mapZillowResults(props, false);
   } catch { return []; }
 }
 
-// ── ATTOM Data ───────────────────────────────────────────────────────────────
+// ── Zillow FSBO (owner-listed properties) ─────────────────────────────────
+async function searchZillowFSBO(city: string, state: string, zip: string, maxPrice: number): Promise<ScoutDeal[]> {
+  const host = process.env.ZILLOW_RAPIDAPI_HOST ?? "zillow-com1.p.rapidapi.com";
+  const key  = process.env.RAPIDAPI_KEY;
+  if (!key) return [];
+
+  const location = zip || `${city}, ${state}`;
+
+  try {
+    const params = new URLSearchParams({
+      location,
+      status_type: "ForSale",
+      home_type: "Houses,Townhomes,Condos,MultiFamily",
+      saleByOwner: "1",  // FSBO only
+      maxPrice: String(maxPrice),
+      page: "1",
+    });
+    const res = await fetch(`https://${host}/propertyExtendedSearch?${params}`, {
+      headers: {
+        "x-rapidapi-key":  key,
+        "x-rapidapi-host": host,
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const props: Record<string, unknown>[] = json?.props ?? [];
+    return mapZillowResults(props, true);
+  } catch { return []; }
+}
+
+// ── ATTOM Data (distressed / off-market) ──────────────────────────────────
 async function searchATTOM(zip: string, maxPrice: number): Promise<ScoutDeal[]> {
   const key = process.env.ATTOM_API_KEY;
-  if (!key) return [];
+  if (!key || key === "your_attom_key_here") return [];
 
   try {
     const params = new URLSearchParams({
@@ -212,7 +170,7 @@ async function searchATTOM(zip: string, maxPrice: number): Promise<ScoutDeal[]> 
   } catch { return []; }
 }
 
-// ── Main route ───────────────────────────────────────────────────────────────
+// ── Main route ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
@@ -233,17 +191,17 @@ export async function POST(req: NextRequest) {
   const maxPrice = Math.min(Math.max(Number(body.max_price) || 500_000, 0), 10_000_000);
   const sources  = Array.isArray(body.sources) ? body.sources : ["mls", "fsbo_zillow", "attom"];
 
-  await logAuditEvent({ req, actorId: userId, action: "realestate.scout.search.start", metadata: { city, state, maxPrice, sources } });
+  await logAuditEvent({ req, actorId: userId, action: "realestate.scout.search.start", metadata: { city, state, zip, maxPrice, sources } });
 
   const [mlsDeals, zillowDeals, attomDeals] = await Promise.all([
-    sources.includes("mls")         ? searchMLS(city, state, maxPrice)        : Promise.resolve([]),
-    sources.includes("fsbo_zillow") ? searchZillowFSBO(city, state, maxPrice) : Promise.resolve([]),
-    sources.includes("attom") && zip ? searchATTOM(zip, maxPrice)              : Promise.resolve([]),
+    sources.includes("mls")         ? searchMLS(city, state, zip, maxPrice)         : Promise.resolve([]),
+    sources.includes("fsbo_zillow") ? searchZillowFSBO(city, state, zip, maxPrice)  : Promise.resolve([]),
+    sources.includes("attom") && zip ? searchATTOM(zip, maxPrice)                   : Promise.resolve([]),
   ]);
 
   const deals: ScoutDeal[] = [...mlsDeals, ...zillowDeals, ...attomDeals];
 
-  // FSBO first (better margin), then price ascending
+  // FSBO first (better margins), then price ascending
   deals.sort((a, b) => {
     if (a.is_fsbo !== b.is_fsbo) return a.is_fsbo ? -1 : 1;
     return (a.list_price ?? 0) - (b.list_price ?? 0);
