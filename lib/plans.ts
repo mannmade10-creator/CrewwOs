@@ -19,13 +19,14 @@ export const PLAN_LABELS: Record<string, { name: string; price: string; agents: 
 // has a stable, sensible display order for locked agents too.
 export const AGENT_PRIORITY_ORDER: string[] = [
   "cto", "coo", "vpsales", "cmo", "cfo",              // Starter (5) — one leader per core area
-  "pm", "backend", "sdr", "csm", "content", "email", "devops", // Growth adds these (12 total)
+  "scout",                                              // Vertical agent — always unlocked on Starter
+  "pm", "backend", "sdr", "csm", "content", "email", "devops", // Growth adds these
   "frontend", "qa", "designer", "ads", "hr", "legal", // Enterprise/Agency unlock the rest
 ];
 
 // null = unlimited (all agents / all integrations).
 export const PLAN_AGENT_LIMITS: Record<string, number | null> = {
-  starter: 5, growth: 12, enterprise: null, agency: null,
+  starter: 6, growth: 13, enterprise: null, agency: null,
 };
 export const PLAN_INTEGRATION_LIMITS: Record<string, number | null> = {
   starter: 2, growth: 5, enterprise: null, agency: null,
