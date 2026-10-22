@@ -28,8 +28,11 @@ export default function DashboardShell({ workspaceName, workspaceSlug, plan, chi
   // workspaces keeps you on the same tab instead of always landing on Office.
   const currentTab = pathname.replace(`/dashboard/${workspaceSlug}`, "") || "";
 
+  const [mounted, setMounted] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [workspaces, setWorkspaces] = useState<WorkspaceSummary[] | null>(null);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (!switcherOpen || workspaces) return;
@@ -127,16 +130,18 @@ export default function DashboardShell({ workspaceName, workspaceSlug, plan, chi
             <div key={t} style={{ background: "#ffffff08", border: "1px solid #ffffff11", borderRadius: 20, padding: "3px 10px", fontSize: 10, color: "#ffffff88" }}>{t}</div>
           ))}
 
-          {/* Sign out / profile via Clerk's built-in UserButton */}
-          <div style={{ marginLeft: 8 }}>
-            <UserButton
-              afterSignOutUrl="/sign-in"
-              appearance={{
-                elements: {
-                  avatarBox: { width: 30, height: 30 },
-                },
-              }}
-            />
+          {/* Sign out / profile via Clerk's built-in UserButton — client-only to avoid SSR hydration mismatch */}
+          <div style={{ marginLeft: 8, width: 30, height: 30 }}>
+            {mounted && (
+              <UserButton
+                afterSignOutUrl="/sign-in"
+                appearance={{
+                  elements: {
+                    avatarBox: { width: 30, height: 30 },
+                  },
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
