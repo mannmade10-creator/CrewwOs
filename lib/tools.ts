@@ -934,6 +934,240 @@ export const TOOL_DEFINITIONS: Record<string, any> = {
       required: ["postcard_id"],
     },
   },
+
+  // ── REAL ESTATE / MLS ──────────────────────────────────────────────────────
+  mls_property_search: {
+    name: "mls_property_search",
+    description: "Search active for-sale MLS property listings by location, price range, bedrooms, and property type via Rentcast API. Returns matching listings with address, price, beds/baths, and square footage.",
+    input_schema: {
+      type: "object",
+      properties: {
+        city: { type: "string", description: "City name" },
+        state: { type: "string", description: "Two-letter state abbreviation, e.g. 'TX'" },
+        zip_code: { type: "string", description: "5-digit ZIP code" },
+        min_price: { type: "number", description: "Minimum listing price" },
+        max_price: { type: "number", description: "Maximum listing price" },
+        min_beds: { type: "number", description: "Minimum number of bedrooms" },
+        max_beds: { type: "number", description: "Maximum number of bedrooms" },
+        property_type: { type: "string", enum: ["Single Family", "Condo", "Townhouse", "Multi Family", "Land"], description: "Property type filter" },
+        limit: { type: "number", description: "Max results, default 20" },
+      },
+    },
+  },
+
+  mls_property_detail: {
+    name: "mls_property_detail",
+    description: "Get detailed information about a specific property by address — beds, baths, square footage, year built, lot size, tax assessment, and listing status.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string", description: "Street address, e.g. '123 Main St'" },
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+      },
+      required: ["address"],
+    },
+  },
+
+  property_valuation: {
+    name: "property_valuation",
+    description: "Get an AI-powered automated valuation (AVM) for a property — estimated market value, confidence score, and value range. Uses Rentcast's comparable sales model.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string" },
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+        property_type: { type: "string" },
+        bedrooms: { type: "number" },
+        bathrooms: { type: "number" },
+        square_footage: { type: "number" },
+      },
+      required: ["address"],
+    },
+  },
+
+  rent_estimate: {
+    name: "rent_estimate",
+    description: "Estimate fair market rent for a property based on its characteristics and local comparable rentals. Returns estimated monthly rent, confidence score, and rent range.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string" },
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+        property_type: { type: "string" },
+        bedrooms: { type: "number" },
+        bathrooms: { type: "number" },
+        square_footage: { type: "number" },
+      },
+      required: ["address"],
+    },
+  },
+
+  property_comps: {
+    name: "property_comps",
+    description: "Pull recent comparable sales (comps) near a subject property. Returns sold properties sorted by similarity with sale price, date, and distance.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string" },
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+        radius_miles: { type: "number", description: "Search radius in miles, default 1" },
+        days_old: { type: "number", description: "Only include sales from the last N days, default 180" },
+        limit: { type: "number", description: "Number of comps to return, default 10" },
+      },
+      required: ["address"],
+    },
+  },
+
+  owner_lookup: {
+    name: "owner_lookup",
+    description: "Look up property ownership information — owner name, whether owner-occupied, mailing address, and last sale price/date. Useful for prospecting off-market leads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string" },
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+      },
+      required: ["address"],
+    },
+  },
+
+  mls_rental_listings: {
+    name: "mls_rental_listings",
+    description: "Search active long-term rental listings in a market by location, price range, and property type. Good for comping rent prices and finding tenant leads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+        min_price: { type: "number" },
+        max_price: { type: "number" },
+        min_beds: { type: "number" },
+        property_type: { type: "string" },
+        limit: { type: "number" },
+      },
+    },
+  },
+
+  // ── RESTAURANT ─────────────────────────────────────────────────────────────
+  pos_orders_list: {
+    name: "pos_orders_list",
+    description: "Pull recent orders from the restaurant's Toast POS system — filtered by date range and status. Returns order totals, items, and timestamps.",
+    input_schema: {
+      type: "object",
+      properties: {
+        start_date: { type: "string", description: "ISO 8601 start datetime, e.g. '2025-01-01T00:00:00Z'" },
+        end_date: { type: "string", description: "ISO 8601 end datetime" },
+        status: { type: "string", enum: ["OPEN", "PAID", "VOIDED", "NEEDS_APPROVAL"] },
+        limit: { type: "number" },
+      },
+    },
+  },
+
+  menu_items_list: {
+    name: "menu_items_list",
+    description: "List all menu items from Toast POS, optionally filtered by category. Returns item names, prices, descriptions, and calories.",
+    input_schema: {
+      type: "object",
+      properties: {
+        category: { type: "string", description: "Filter by menu category/group name" },
+        availability: { type: "string" },
+      },
+    },
+  },
+
+  reservation_list: {
+    name: "reservation_list",
+    description: "List upcoming restaurant reservations from Toast. Returns guest name, party size, time, and special requests.",
+    input_schema: {
+      type: "object",
+      properties: {
+        date: { type: "string", description: "Date in YYYY-MM-DD format" },
+        status: { type: "string", enum: ["BOOKED", "ARRIVED", "PARTIALLY_ARRIVED", "SEATED", "DONE", "NO_SHOW", "CANCEL"] },
+        limit: { type: "number" },
+      },
+    },
+  },
+
+  pos_revenue_report: {
+    name: "pos_revenue_report",
+    description: "Generate a revenue/cash report from Toast POS for a date range. Returns gross sales, net sales, tax collected, and tip totals.",
+    input_schema: {
+      type: "object",
+      properties: {
+        start_date: { type: "string", description: "ISO 8601 start datetime" },
+        end_date: { type: "string", description: "ISO 8601 end datetime" },
+      },
+      required: ["start_date", "end_date"],
+    },
+  },
+
+  yelp_reviews_get: {
+    name: "yelp_reviews_get",
+    description: "Fetch Yelp reviews and overall rating for a business. Can look up by Yelp business ID or by business name + location.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_id: { type: "string", description: "Yelp business ID" },
+        business_name: { type: "string", description: "Business name to search for" },
+        location: { type: "string", description: "City or address to narrow the Yelp search" },
+        limit: { type: "number", description: "Number of reviews to return (max 50)" },
+      },
+    },
+  },
+
+  // ── BUSINESS (Google My Business) ──────────────────────────────────────────
+  google_business_reviews: {
+    name: "google_business_reviews",
+    description: "Fetch Google Business Profile reviews for the connected location. Returns average rating, total count, and individual reviews with any existing owner replies.",
+    input_schema: {
+      type: "object",
+      properties: {
+        limit: { type: "number", description: "Reviews per page, max 50" },
+        page_token: { type: "string", description: "Pagination token from a previous result" },
+      },
+    },
+  },
+
+  google_business_reply_review: {
+    name: "google_business_reply_review",
+    description: "Post or update a public reply to a Google Business review on behalf of the business owner.",
+    input_schema: {
+      type: "object",
+      properties: {
+        review_name: { type: "string", description: "Full review resource name from google_business_reviews, e.g. 'accounts/123/locations/456/reviews/789'" },
+        reply_text: { type: "string", description: "The reply text to post publicly" },
+      },
+      required: ["review_name", "reply_text"],
+    },
+  },
+
+  google_business_update_hours: {
+    name: "google_business_update_hours",
+    description: "Update the regular business hours on the Google Business Profile. Specify hours per day as 'HH:MM-HH:MM', e.g. '09:00-21:00'. Omit a day to leave its hours unchanged.",
+    input_schema: {
+      type: "object",
+      properties: {
+        monday: { type: "string" },
+        tuesday: { type: "string" },
+        wednesday: { type: "string" },
+        thursday: { type: "string" },
+        friday: { type: "string" },
+        saturday: { type: "string" },
+        sunday: { type: "string" },
+      },
+    },
+  },
 };
 
 // Returns the tool_use schema array for a given agent, filtered to what they're allowed to call.

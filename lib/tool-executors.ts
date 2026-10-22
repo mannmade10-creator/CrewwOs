@@ -1820,6 +1820,389 @@ export async function execDirectMailTrack(workspaceId: string, input: { postcard
   };
 }
 
+// ── REAL ESTATE / MLS ─────────────────────────────────────────────────────────
+// Uses RapidAPI — Rentcast API (api.rentcast.io via RapidAPI)
+// Requires integration "rentcast" with field: rapidapi_key
+
+async function rentcastFetch(workspaceId: string, path: string) {
+  const creds = await getIntegrationCredentials(workspaceId, "rentcast");
+  const res = await fetch(`https://api.rentcast.io/v1${path}`, {
+    headers: {
+      "X-Api-Key": creds.rapidapi_key,
+      Accept: "application/json",
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.message ?? `Rentcast error: ${res.status}`);
+  return data;
+}
+
+export async function execMlsPropertySearch(
+  workspaceId: string,
+  input: {
+    city?: string;
+    state?: string;
+    zip_code?: string;
+    min_price?: number;
+    max_price?: number;
+    min_beds?: number;
+    max_beds?: number;
+    property_type?: string;
+    limit?: number;
+  }
+) {
+  const params = new URLSearchParams();
+  if (input.city) params.set("city", input.city);
+  if (input.state) params.set("state", input.state);
+  if (input.zip_code) params.set("zipCode", input.zip_code);
+  if (input.min_price) params.set("minListPrice", String(input.min_price));
+  if (input.max_price) params.set("maxListPrice", String(input.max_price));
+  if (input.min_beds) params.set("bedrooms", String(input.min_beds));
+  if (input.property_type) params.set("propertyType", input.property_type);
+  params.set("limit", String(input.limit ?? 20));
+  const data = await rentcastFetch(workspaceId, `/listings/sale?${params}`);
+  return data;
+}
+
+export async function execMlsPropertyDetail(
+  workspaceId: string,
+  input: { address: string; city?: string; state?: string; zip_code?: string }
+) {
+  const params = new URLSearchParams({ address: input.address });
+  if (input.city) params.set("city", input.city);
+  if (input.state) params.set("state", input.state);
+  if (input.zip_code) params.set("zipCode", input.zip_code);
+  const data = await rentcastFetch(workspaceId, `/properties?${params}`);
+  return data;
+}
+
+export async function execPropertyValuation(
+  workspaceId: string,
+  input: { address: string; city?: string; state?: string; zip_code?: string; property_type?: string; bedrooms?: number; bathrooms?: number; square_footage?: number }
+) {
+  const params = new URLSearchParams({ address: input.address });
+  if (input.city) params.set("city", input.city);
+  if (input.state) params.set("state", input.state);
+  if (input.zip_code) params.set("zipCode", input.zip_code);
+  if (input.property_type) params.set("propertyType", input.property_type);
+  if (input.bedrooms) params.set("bedrooms", String(input.bedrooms));
+  if (input.bathrooms) params.set("bathrooms", String(input.bathrooms));
+  if (input.square_footage) params.set("squareFootage", String(input.square_footage));
+  const data = await rentcastFetch(workspaceId, `/avm/value?${params}`);
+  return data;
+}
+
+export async function execRentEstimate(
+  workspaceId: string,
+  input: { address: string; city?: string; state?: string; zip_code?: string; property_type?: string; bedrooms?: number; bathrooms?: number; square_footage?: number }
+) {
+  const params = new URLSearchParams({ address: input.address });
+  if (input.city) params.set("city", input.city);
+  if (input.state) params.set("state", input.state);
+  if (input.zip_code) params.set("zipCode", input.zip_code);
+  if (input.property_type) params.set("propertyType", input.property_type);
+  if (input.bedrooms) params.set("bedrooms", String(input.bedrooms));
+  if (input.bathrooms) params.set("bathrooms", String(input.bathrooms));
+  if (input.square_footage) params.set("squareFootage", String(input.square_footage));
+  const data = await rentcastFetch(workspaceId, `/avm/rent/long-term?${params}`);
+  return data;
+}
+
+export async function execPropertyComps(
+  workspaceId: string,
+  input: { address: string; city?: string; state?: string; zip_code?: string; radius_miles?: number; days_old?: number; limit?: number }
+) {
+  const params = new URLSearchParams({ address: input.address });
+  if (input.city) params.set("city", input.city);
+  if (input.state) params.set("state", input.state);
+  if (input.zip_code) params.set("zipCode", input.zip_code);
+  if (input.radius_miles) params.set("radius", String(input.radius_miles));
+  if (input.days_old) params.set("daysOld", String(input.days_old));
+  params.set("limit", String(input.limit ?? 10));
+  const data = await rentcastFetch(workspaceId, `/sales/comps?${params}`);
+  return data;
+}
+
+export async function execOwnerLookup(
+  workspaceId: string,
+  input: { address: string; city?: string; state?: string; zip_code?: string }
+) {
+  const params = new URLSearchParams({ address: input.address });
+  if (input.city) params.set("city", input.city);
+  if (input.state) params.set("state", input.state);
+  if (input.zip_code) params.set("zipCode", input.zip_code);
+  const data = await rentcastFetch(workspaceId, `/properties?${params}`);
+  // Extract owner fields from property record
+  return {
+    owner_name: data?.ownerName ?? data?.owner?.name ?? null,
+    owner_occupied: data?.ownerOccupied ?? null,
+    mailing_address: data?.ownerAddress ?? null,
+    last_sale_date: data?.lastSaleDate ?? null,
+    last_sale_price: data?.lastSalePrice ?? null,
+    property: {
+      address: data?.formattedAddress ?? data?.address,
+      type: data?.propertyType,
+      bedrooms: data?.bedrooms,
+      bathrooms: data?.bathrooms,
+      square_footage: data?.squareFootage,
+      year_built: data?.yearBuilt,
+    },
+  };
+}
+
+export async function execMlsRentalListings(
+  workspaceId: string,
+  input: { city?: string; state?: string; zip_code?: string; min_price?: number; max_price?: number; min_beds?: number; property_type?: string; limit?: number }
+) {
+  const params = new URLSearchParams();
+  if (input.city) params.set("city", input.city);
+  if (input.state) params.set("state", input.state);
+  if (input.zip_code) params.set("zipCode", input.zip_code);
+  if (input.min_price) params.set("minListPrice", String(input.min_price));
+  if (input.max_price) params.set("maxListPrice", String(input.max_price));
+  if (input.min_beds) params.set("bedrooms", String(input.min_beds));
+  if (input.property_type) params.set("propertyType", input.property_type);
+  params.set("limit", String(input.limit ?? 20));
+  const data = await rentcastFetch(workspaceId, `/listings/rental/long-term?${params}`);
+  return data;
+}
+
+// ── RESTAURANT ────────────────────────────────────────────────────────────────
+// Uses Toast POS API (integration: "toast") + Yelp Fusion API (integration: "yelp")
+
+async function toastFetch(workspaceId: string, path: string, method = "GET", body?: any) {
+  const creds = await getIntegrationCredentials(workspaceId, "toast");
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${creds.api_token}`,
+    "Toast-Restaurant-External-ID": creds.restaurant_guid,
+    Accept: "application/json",
+  };
+  if (body) headers["Content-Type"] = "application/json";
+  const res = await fetch(`https://ws-api.toasttab.com${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.message ?? `Toast API error: ${res.status}`);
+  return data;
+}
+
+export async function execPosOrdersList(
+  workspaceId: string,
+  input: { start_date?: string; end_date?: string; status?: string; limit?: number }
+) {
+  const params = new URLSearchParams();
+  if (input.start_date) params.set("startDate", input.start_date);
+  if (input.end_date) params.set("endDate", input.end_date);
+  if (input.status) params.set("status", input.status);
+  if (input.limit) params.set("pageSize", String(input.limit));
+  const data = await toastFetch(workspaceId, `/orders/v2/orders?${params}`);
+  return data;
+}
+
+export async function execMenuItemsList(
+  workspaceId: string,
+  input: { category?: string; availability?: string }
+) {
+  const data = await toastFetch(workspaceId, "/config/v2/menus");
+  const menus = Array.isArray(data) ? data : [data];
+  // Flatten menu items
+  const items: any[] = [];
+  for (const menu of menus) {
+    for (const group of menu?.menuGroups ?? []) {
+      for (const item of group?.menuItems ?? []) {
+        if (!input.category || group.name?.toLowerCase().includes(input.category.toLowerCase())) {
+          items.push({
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            category: group.name,
+            calories: item.calories,
+            guid: item.guid,
+          });
+        }
+      }
+    }
+  }
+  return { total: items.length, items };
+}
+
+export async function execReservationList(
+  workspaceId: string,
+  input: { date?: string; status?: string; limit?: number }
+) {
+  const params = new URLSearchParams();
+  if (input.date) params.set("date", input.date);
+  if (input.status) params.set("status", input.status);
+  if (input.limit) params.set("pageSize", String(input.limit));
+  // Toast uses different endpoint for reservations
+  const data = await toastFetch(workspaceId, `/reservations/v1/reservations?${params}`);
+  return data;
+}
+
+export async function execPosRevenueReport(
+  workspaceId: string,
+  input: { start_date: string; end_date: string }
+) {
+  const params = new URLSearchParams({ startDate: input.start_date, endDate: input.end_date });
+  const data = await toastFetch(workspaceId, `/reporting/v1/reports/cash?${params}`);
+  return data;
+}
+
+export async function execYelpReviewsGet(
+  workspaceId: string,
+  input: { business_id?: string; business_name?: string; location?: string; limit?: number }
+) {
+  const creds = await getIntegrationCredentials(workspaceId, "yelp");
+  let businessId = input.business_id;
+
+  if (!businessId && input.business_name) {
+    // Search for the business first
+    const searchParams = new URLSearchParams({
+      term: input.business_name,
+      location: input.location ?? "USA",
+      limit: "1",
+    });
+    const searchRes = await fetch(`https://api.yelp.com/v3/businesses/search?${searchParams}`, {
+      headers: { Authorization: `Bearer ${creds.api_key}` },
+    });
+    const searchData = await searchRes.json();
+    if (!searchRes.ok) throw new Error(searchData?.error?.description ?? "Yelp search failed");
+    businessId = searchData?.businesses?.[0]?.id;
+    if (!businessId) throw new Error(`No Yelp business found for "${input.business_name}"`);
+  }
+
+  if (!businessId) throw new Error("Provide business_id or business_name");
+
+  const reviewsRes = await fetch(
+    `https://api.yelp.com/v3/businesses/${businessId}/reviews?limit=${input.limit ?? 10}`,
+    { headers: { Authorization: `Bearer ${creds.api_key}` } }
+  );
+  const reviewsData = await reviewsRes.json();
+  if (!reviewsRes.ok) throw new Error(reviewsData?.error?.description ?? "Yelp reviews failed");
+
+  // Also get business info (rating, review count)
+  const bizRes = await fetch(`https://api.yelp.com/v3/businesses/${businessId}`, {
+    headers: { Authorization: `Bearer ${creds.api_key}` },
+  });
+  const bizData = await bizRes.json();
+
+  return {
+    business_id: businessId,
+    name: bizData?.name,
+    rating: bizData?.rating,
+    review_count: bizData?.review_count,
+    reviews: (reviewsData?.reviews ?? []).map((r: any) => ({
+      id: r.id,
+      rating: r.rating,
+      text: r.text,
+      time_created: r.time_created,
+      user: r.user?.name,
+    })),
+  };
+}
+
+// ── GOOGLE BUSINESS / LOCAL SEO ───────────────────────────────────────────────
+// Uses Google Business Profile API (integration: "google_business")
+
+export async function execGoogleBusinessReviews(
+  workspaceId: string,
+  input: { location_name?: string; page_token?: string; limit?: number }
+) {
+  const creds = await getIntegrationCredentials(workspaceId, "google_business");
+  const params = new URLSearchParams({ pageSize: String(input.limit ?? 20) });
+  if (input.page_token) params.set("pageToken", input.page_token);
+
+  // List all accounts first to find account ID if not stored
+  if (!creds.account_id || !creds.location_id) {
+    throw new Error("Google Business integration requires account_id and location_id to be set in your integration credentials.");
+  }
+  const res = await fetch(
+    `https://mybusiness.googleapis.com/v4/accounts/${creds.account_id}/locations/${creds.location_id}/reviews?${params}`,
+    { headers: { Authorization: `Bearer ${creds.access_token}` } }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message ?? "Google Business API error");
+  return {
+    average_rating: data?.averageRating,
+    total_review_count: data?.totalReviewCount,
+    reviews: (data?.reviews ?? []).map((r: any) => ({
+      name: r.name,
+      reviewer: r.reviewer?.displayName,
+      star_rating: r.starRating,
+      comment: r.comment,
+      create_time: r.createTime,
+      reply: r.reviewReply?.comment,
+    })),
+    next_page_token: data?.nextPageToken,
+  };
+}
+
+export async function execGoogleBusinessReplyReview(
+  workspaceId: string,
+  input: { review_name: string; reply_text: string }
+) {
+  const creds = await getIntegrationCredentials(workspaceId, "google_business");
+  const res = await fetch(
+    `https://mybusiness.googleapis.com/v4/${input.review_name}/reply`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${creds.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ comment: input.reply_text }),
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message ?? "Google Business reply failed");
+  return { success: true, reply: data };
+}
+
+export async function execGoogleBusinessUpdateHours(
+  workspaceId: string,
+  input: { monday?: string; tuesday?: string; wednesday?: string; thursday?: string; friday?: string; saturday?: string; sunday?: string }
+) {
+  const creds = await getIntegrationCredentials(workspaceId, "google_business");
+  if (!creds.account_id || !creds.location_id) {
+    throw new Error("Google Business integration requires account_id and location_id.");
+  }
+  // Build periods
+  const dayMap: Record<string, string> = {
+    monday: "MONDAY", tuesday: "TUESDAY", wednesday: "WEDNESDAY",
+    thursday: "THURSDAY", friday: "FRIDAY", saturday: "SATURDAY", sunday: "SUNDAY",
+  };
+  const periods: any[] = [];
+  for (const [day, hours] of Object.entries(input)) {
+    if (!hours) continue;
+    const [open, close] = (hours as string).split("-").map(t => t.trim());
+    if (!open || !close) continue;
+    const [openH, openM] = open.split(":").map(Number);
+    const [closeH, closeM] = close.split(":").map(Number);
+    periods.push({
+      openDay: dayMap[day],
+      openTime: { hours: openH, minutes: openM ?? 0 },
+      closeDay: dayMap[day],
+      closeTime: { hours: closeH, minutes: closeM ?? 0 },
+    });
+  }
+  const res = await fetch(
+    `https://mybusiness.googleapis.com/v4/accounts/${creds.account_id}/locations/${creds.location_id}?updateMask=regularHours`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${creds.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ regularHours: { periods } }),
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message ?? "Google Business hours update failed");
+  return { success: true, location: data };
+}
+
 // ── EXECUTORS map ─────────────────────────────────────────────────────────────
 
 export const EXECUTORS: Record<string, (workspaceId: string, input: any) => Promise<any>> = {
@@ -1894,4 +2277,22 @@ export const EXECUTORS: Record<string, (workspaceId: string, input: any) => Prom
   direct_mail_estimate: execDirectMailEstimate,
   direct_mail_send: execDirectMailSend,
   direct_mail_track: execDirectMailTrack,
+  // Real Estate / MLS (7)
+  mls_property_search: execMlsPropertySearch,
+  mls_property_detail: execMlsPropertyDetail,
+  property_valuation: execPropertyValuation,
+  rent_estimate: execRentEstimate,
+  property_comps: execPropertyComps,
+  owner_lookup: execOwnerLookup,
+  mls_rental_listings: execMlsRentalListings,
+  // Restaurant (5)
+  pos_orders_list: execPosOrdersList,
+  menu_items_list: execMenuItemsList,
+  reservation_list: execReservationList,
+  pos_revenue_report: execPosRevenueReport,
+  yelp_reviews_get: execYelpReviewsGet,
+  // Business (Google My Business) (3)
+  google_business_reviews: execGoogleBusinessReviews,
+  google_business_reply_review: execGoogleBusinessReplyReview,
+  google_business_update_hours: execGoogleBusinessUpdateHours,
 };
