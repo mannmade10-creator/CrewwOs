@@ -21,14 +21,14 @@ const DEPT_SKIN: Record<string, string> = {
 export const AGENT_POSITIONS: Record<string, { x: number; y: number }> = {
   // Nia — reception desk at the top center
   nia:      { x: 215, y: 30 },
-  // Engineering row (7 agents, spread 60–390)
-  cto:      { x: 60,  y: 145 },
-  pm:       { x: 115, y: 145 },
-  frontend: { x: 170, y: 145 },
-  backend:  { x: 225, y: 145 },
-  devops:   { x: 280, y: 145 },
-  qa:       { x: 335, y: 145 },
-  designer: { x: 390, y: 145 },
+  // Engineering row (7 agents, spread 38–374 — fits within 430px)
+  cto:      { x: 38,  y: 145 },
+  pm:       { x: 96,  y: 145 },
+  frontend: { x: 154, y: 145 },
+  backend:  { x: 212, y: 145 },
+  devops:   { x: 270, y: 145 },
+  qa:       { x: 316, y: 145 },
+  designer: { x: 374, y: 145 },
   // Sales row
   vpsales:  { x: 80,  y: 265 },
   sdr:      { x: 200, y: 265 },

@@ -24,7 +24,7 @@ export default function OfficeFlat({
 }) {
   return (
     <div style={{
-      position: "relative", width: "100%", height: "100%", overflow: "auto",
+      position: "relative", width: "100%", height: "100%", overflow: "auto", minWidth: 430,
       background: `repeating-linear-gradient(0deg, transparent, transparent 29px, #ffffff06 29px, #ffffff06 30px),
                    repeating-linear-gradient(90deg, transparent, transparent 29px, #ffffff06 29px, #ffffff06 30px), #060612`,
     }}>

@@ -193,10 +193,10 @@ const DEPT_FLAT_Y: Record<string, number> = {
 
 // Agent X positions in flat space per dept — tighter for smaller canvas
 const DEPT_AGENT_FLAT_X: Record<string, number[]> = {
-  Engineering: [70, 135, 200, 265, 330, 395, 460],  // 7 agents
-  Sales:       [110, 240, 370],                       // 3 agents
-  Marketing:   [85, 175, 265, 355, 440],              // 5 agents
-  Operations:  [110, 220, 330, 440],                  // 4 agents
+  Engineering: [60, 110, 160, 210, 260, 310, 360],  // 7 agents — tighter spacing
+  Sales:       [90, 200, 310],                        // 3 agents
+  Marketing:   [70, 145, 220, 295, 365],              // 5 agents
+  Operations:  [90, 185, 275, 360],                   // 4 agents
 };
 
 const DEPT_AGENT_SLUGS: Record<string, string[]> = {
@@ -298,7 +298,7 @@ function IsoReception({ nia, activeAgent, busyAgents, allowedSlugs, onSelect, is
   isoOffsetY: number;
 }) {
   const color = "#F5C842";
-  const rx = 250, ry = -50, rw = 140, rd = 65;
+  const rx = 180, ry = -50, rw = 130, rd = 60;
   const corners = [
     toIso(rx, ry), toIso(rx + rw, ry),
     toIso(rx + rw, ry + rd), toIso(rx, ry + rd),
@@ -346,9 +346,9 @@ function getAgentIsoPos(dept: Dept, slugIndex: number): { sx: number; sy: number
 // After toIso: rightmost point is (640-80)*0.6 = 336 from origin
 // With ISO_OFFSET_X=370, that's 370+336 = 706px. Left edge at 370+(100-530)*0.6 = 370-258 = 112px
 // So effective content center is around (706+112)/2 = 409px — canvas needs ~760px min
-const ISO_CANVAS_WIDTH = 600;
-const ISO_OFFSET_X = 260;
-const ISO_OFFSET_Y = 140;
+const ISO_CANVAS_WIDTH = 520;
+const ISO_OFFSET_X = 230;
+const ISO_OFFSET_Y = 130;
 
 export default function OfficeIsometric({
   agents,
@@ -383,16 +383,16 @@ export default function OfficeIsometric({
       style={{ position: "relative", width: "100%", height: "100%", overflow: "auto" }}
     >
       {/* Fixed-width inner canvas so scroll works correctly */}
-      <div style={{ position: "relative", width: ISO_CANVAS_WIDTH, height: "100%", minHeight: 600 }}>
+      <div style={{ position: "relative", width: ISO_CANVAS_WIDTH, height: "100%", minHeight: 560 }}>
         {/* Background grid */}
         <div style={{
-          position: "absolute", inset: 0, minHeight: 600,
+          position: "absolute", inset: 0, minHeight: 560,
           background: `repeating-linear-gradient(120deg, transparent, transparent 29px, #ffffff04 29px, #ffffff04 30px),
                        repeating-linear-gradient(60deg, transparent, transparent 29px, #ffffff04 29px, #ffffff04 30px), #060612`,
         }} />
 
         {/* SVG rooms and desks */}
-        <svg style={{ position: "absolute", left: 0, top: 0, overflow: "visible", pointerEvents: "none", width: "100%", height: "600px" }}>
+        <svg style={{ position: "absolute", left: 0, top: 0, overflow: "visible", pointerEvents: "none", width: "100%", height: "560px" }}>
           <g transform={`translate(${ISO_OFFSET_X}, ${ISO_OFFSET_Y})`}>
             {reception.svgEl}
             {DEPTS.map(dept => (
