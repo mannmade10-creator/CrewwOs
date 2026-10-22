@@ -1,11 +1,14 @@
 // components/office/OfficeFlat.tsx
 // Top-down flat office floor view — the original layout
 "use client";
+import { useEffect, useRef } from "react";
 import type { AgentDef, Dept } from "@/types";
 import AgentAvatar from "./AgentAvatar";
 import DeptZone from "./DeptZone";
 
 const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations"];
+// Canvas is ~880px wide — center scroll on mobile so office appears centered
+const CANVAS_WIDTH = 880;
 
 export default function OfficeFlat({
   agents,
@@ -22,11 +25,22 @@ export default function OfficeFlat({
   allowedSlugs: Set<string>;
   onSelect: (a: AgentDef) => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Center the canvas horizontally on mount (helps mobile)
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const offset = (CANVAS_WIDTH - el.clientWidth) / 2;
+    if (offset > 0) el.scrollLeft = offset;
+  }, []);
+
   return (
-    <div style={{
+    <div ref={scrollRef} style={{
       position: "relative", width: "100%", height: "100%", overflow: "auto",
       background: `repeating-linear-gradient(0deg, transparent, transparent 39px, #ffffff06 39px, #ffffff06 40px),
                    repeating-linear-gradient(90deg, transparent, transparent 39px, #ffffff06 39px, #ffffff06 40px), #060612`,
+      minWidth: CANVAS_WIDTH,
     }}>
       {/* ── Reception Area (Nia) ── */}
       <div style={{
