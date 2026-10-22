@@ -6,13 +6,14 @@ export interface WorkspaceSummary {
   name: string;
   slug: string;
   plan: string;
+  vertical?: string;
 }
 
 export async function listWorkspacesForUser(ownerId: string): Promise<WorkspaceSummary[]> {
   const supabase = supabaseAdmin();
   const { data, error } = await supabase
     .from("workspaces")
-    .select("id, name, slug, plan")
+    .select("id, name, slug, plan, vertical")
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: true });
   if (error) throw error;
@@ -46,7 +47,7 @@ async function uniqueSlug(base: string): Promise<string> {
 // Creates a new workspace for the given Clerk user, seeds it with all
 // agents from lib/agents.ts, and defaults to the Starter plan — the person
 // upgrades via Stripe checkout from Settings once they're ready to pay.
-export async function createWorkspace(ownerId: string, name: string): Promise<WorkspaceSummary> {
+export async function createWorkspace(ownerId: string, name: string, vertical = "general"): Promise<WorkspaceSummary> {
   const trimmed = name.trim();
   if (!trimmed) throw new Error("Workspace name is required");
 
@@ -55,8 +56,8 @@ export async function createWorkspace(ownerId: string, name: string): Promise<Wo
 
   const { data, error } = await supabase
     .from("workspaces")
-    .insert({ name: trimmed, slug, owner_id: ownerId, plan: "starter" })
-    .select("id, name, slug, plan")
+    .insert({ name: trimmed, slug, owner_id: ownerId, plan: "starter", vertical })
+    .select("id, name, slug, plan, vertical")
     .single();
   if (error) throw error;
 

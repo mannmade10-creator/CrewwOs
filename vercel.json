@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/daily-ops",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/riley/fire-drips",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 
-const stripe = new Stripe("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");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const results = {};
 

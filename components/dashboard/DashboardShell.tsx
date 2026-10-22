@@ -7,6 +7,7 @@ import { UserButton } from "@clerk/nextjs";
 import { AGENTS } from "@/lib/agents";
 import { agentsAllowedForPlan, PLAN_LABELS } from "@/lib/plans";
 import type { WorkspaceSummary } from "@/lib/workspaces";
+import { CrewwOSLogo } from "@/components/ui/CrewwOSLogo";
 
 const TABS = [
   { key: "", label: "Office" },
@@ -15,26 +16,6 @@ const TABS = [
   { key: "/nia", label: "Nia Credits" },
   { key: "/settings", label: "Settings" },
 ];
-
-// New CrewwOS mark: three connected nodes inside the same gradient square
-// that was there before — reads as "a crew working together" rather than
-// a plain letterform. Pure inline SVG, no external asset to manage, scales
-// crisp at any size.
-function CrewwOSMark() {
-  return (
-    <div style={{
-      width: 32, height: 32, background: "linear-gradient(135deg, #00D4FF, #A855F7)",
-      borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-    }}>
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="10" cy="4.5" r="2.4" fill="#000" />
-        <circle cx="4.5" cy="15" r="2.4" fill="#000" />
-        <circle cx="15.5" cy="15" r="2.4" fill="#000" />
-        <path d="M10 6.9 L4.9 12.9 M10 6.9 L15.1 12.9 M6.7 15 L13.3 15" stroke="#000" strokeWidth="1.4" strokeLinecap="round" />
-      </svg>
-    </div>
-  );
-}
 
 export default function DashboardShell({ workspaceName, workspaceSlug, plan, children }: {
   workspaceName: string; workspaceSlug: string; plan: string; children: React.ReactNode;
@@ -61,10 +42,11 @@ export default function DashboardShell({ workspaceName, workspaceSlug, plan, chi
   };
 
   return (
-    <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column" }}>
       <div style={{ background: "#0a0a1a", borderBottom: "1px solid #00D4FF33", padding: "8px 20px", display: "flex", alignItems: "center", gap: 20, flexShrink: 0, position: "relative" }}>
+        {/* Creww OS logo mark + wordmark */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <CrewwOSMark />
+          <CrewwOSLogo size={32} />
           <div>
             <div style={{ color: "#fff", fontWeight: 800, fontSize: 14, letterSpacing: 2 }} className="mono">CREWWOS</div>
             <div style={{ color: "#ffffff44", fontSize: 9 }}>Hire the team. Skip the overhead.</div>
@@ -159,7 +141,9 @@ export default function DashboardShell({ workspaceName, workspaceSlug, plan, chi
         </div>
       </div>
 
-      {children}
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        {children}
+      </div>
     </div>
   );
 }
