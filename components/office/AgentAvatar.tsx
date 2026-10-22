@@ -3,6 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import type { AgentDef } from "@/types";
 
+/** Returns viewport width, updating on resize. */
+function useWindowWidth() {
+  const [w, setW] = useState(1200);
+  useEffect(() => {
+    const update = () => setW(window.innerWidth);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  return w;
+}
+
 const DEPT_COLORS: Record<string, string> = {
   Engineering: "#00D4FF",
   Sales: "#FF6B35",
@@ -17,11 +29,9 @@ const DEPT_SKIN: Record<string, string> = {
   Operations: "#A8D5A2",
 };
 
-// Layout positions — tightened for mobile (max ~430px wide)
-export const AGENT_POSITIONS: Record<string, { x: number; y: number }> = {
-  // Nia — reception desk at the top center
+// Mobile (≤767px) positions — fits within 430px wide
+const AGENT_POSITIONS_MOBILE: Record<string, { x: number; y: number }> = {
   nia:      { x: 215, y: 30 },
-  // Engineering row (7 agents, spread 38–374 — fits within 430px)
   cto:      { x: 38,  y: 145 },
   pm:       { x: 96,  y: 145 },
   frontend: { x: 154, y: 145 },
@@ -29,24 +39,52 @@ export const AGENT_POSITIONS: Record<string, { x: number; y: number }> = {
   devops:   { x: 270, y: 145 },
   qa:       { x: 316, y: 145 },
   designer: { x: 374, y: 145 },
-  // Sales row
   vpsales:  { x: 80,  y: 265 },
   sdr:      { x: 200, y: 265 },
   csm:      { x: 320, y: 265 },
-  // Marketing row
   cmo:      { x: 60,  y: 375 },
   content:  { x: 145, y: 375 },
   ads:      { x: 230, y: 375 },
   email:    { x: 315, y: 375 },
   scout:    { x: 390, y: 375 },
-  // Operations row
   coo:      { x: 80,  y: 480 },
   cfo:      { x: 175, y: 480 },
   hr:       { x: 270, y: 480 },
   legal:    { x: 365, y: 480 },
 };
 
-// Deterministic "hair color" per slug so each agent looks unique
+// Desktop (≥768px) positions — spread across ~860px wide
+const AGENT_POSITIONS_DESKTOP: Record<string, { x: number; y: number }> = {
+  nia:      { x: 430, y: 55 },
+  cto:      { x: 75,  y: 290 },
+  pm:       { x: 185, y: 290 },
+  frontend: { x: 295, y: 290 },
+  backend:  { x: 405, y: 290 },
+  devops:   { x: 515, y: 290 },
+  qa:       { x: 625, y: 290 },
+  designer: { x: 735, y: 290 },
+  vpsales:  { x: 155, y: 530 },
+  sdr:      { x: 390, y: 530 },
+  csm:      { x: 625, y: 530 },
+  cmo:      { x: 115, y: 750 },
+  content:  { x: 280, y: 750 },
+  ads:      { x: 445, y: 750 },
+  email:    { x: 610, y: 750 },
+  scout:    { x: 775, y: 750 },
+  coo:      { x: 155, y: 960 },
+  cfo:      { x: 345, y: 960 },
+  hr:       { x: 535, y: 960 },
+  legal:    { x: 725, y: 960 },
+};
+
+export function useAgentPositions() {
+  const w = useWindowWidth();
+  return w >= 768 ? AGENT_POSITIONS_DESKTOP : AGENT_POSITIONS_MOBILE;
+}
+
+// Legacy export for backward compat — returns mobile positions by default
+export const AGENT_POSITIONS = AGENT_POSITIONS_MOBILE;
+
 const HAIR_COLORS: Record<string, string> = {
   nia: "#C8A96E",
   cto: "#1a1a2e", pm: "#8B4513", frontend: "#FFD700", backend: "#2F4F4F",
@@ -56,7 +94,6 @@ const HAIR_COLORS: Record<string, string> = {
   coo: "#1C1C1C", cfo: "#556B2F", hr: "#C71585", legal: "#191970",
 };
 
-// SVG human character — a proper little person
 function HumanCharacter({
   color,
   skinTone,
@@ -89,8 +126,8 @@ function HumanCharacter({
 
   return (
     <svg
-      width={28 * scale}
-      height={44 * scale}
+      width={40 * scale}
+      height={64 * scale}
       viewBox="0 0 40 64"
       style={{
         filter: glowFilter,
@@ -159,8 +196,12 @@ export default function AgentAvatar({
   isBusy: boolean;
   isLocked?: boolean;
 }) {
+  const positions = useAgentPositions();
+  const w = useWindowWidth();
+  const isMobile = w < 768;
+
   const isNia = agent.slug === "nia";
-  const origin = AGENT_POSITIONS[agent.slug] ?? { x: 100, y: 100 };
+  const origin = positions[agent.slug] ?? { x: 100, y: 100 };
   const [pos, setPos] = useState(origin);
   const [dir, setDir] = useState<1 | -1>(1);
   const [walkFrame, setWalkFrame] = useState(0);
@@ -168,9 +209,18 @@ export default function AgentAvatar({
   const moveRef = useRef<ReturnType<typeof setTimeout>>();
   const walkRef = useRef<ReturnType<typeof setInterval>>();
 
+  // Reset position when switching between mobile/desktop
+  useEffect(() => {
+    setPos(positions[agent.slug] ?? { x: 100, y: 100 });
+  }, [isMobile, agent.slug]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const color = isNia ? "#F5C842" : (DEPT_COLORS[agent.dept] ?? "#00D4FF");
   const skinTone = isNia ? "#C68642" : (DEPT_SKIN[agent.dept] ?? "#FFD5A8");
   const hairColor = HAIR_COLORS[agent.slug] ?? "#1a1a2e";
+
+  // SVG scale: desktop gets full 40×64 viewBox, mobile gets 28×44
+  const avatarScale = isMobile ? 0.7 : 1.0;
+  const wanderRange = isMobile ? 20 : 40;
 
   useEffect(() => {
     if (isWalking) {
@@ -187,9 +237,10 @@ export default function AgentAvatar({
   useEffect(() => {
     const wander = () => {
       if (!isBusy && !isActive) {
-        const dx = (Math.random() - 0.5) * (isNia ? 20 : 30);
+        const dx = (Math.random() - 0.5) * (isNia ? wanderRange * 0.67 : wanderRange);
         setPos(p => {
-          const nx = Math.max(origin.x - (isNia ? 20 : 30), Math.min(origin.x + (isNia ? 20 : 30), p.x + dx));
+          const range = isNia ? wanderRange * 0.67 : wanderRange;
+          const nx = Math.max(origin.x - range, Math.min(origin.x + range, p.x + dx));
           const actualDx = nx - p.x;
           if (Math.abs(actualDx) > 3) {
             setDir(actualDx > 0 ? 1 : -1);
@@ -203,15 +254,18 @@ export default function AgentAvatar({
     };
     moveRef.current = setTimeout(wander, Math.random() * 2000);
     return () => clearTimeout(moveRef.current);
-  }, [isBusy, isActive, origin.x, isNia]);
+  }, [isBusy, isActive, origin.x, isNia, wanderRange]);
+
+  const svgW = 40 * avatarScale * (isNia ? 1.2 : 1);
+  const halfW = svgW / 2;
 
   return (
     <div
       onClick={() => onClick(agent)}
       style={{
         position: "absolute",
-        left: pos.x - 14,
-        top: pos.y - 14,
+        left: pos.x - halfW,
+        top: pos.y - halfW,
         cursor: "pointer",
         transition: "left 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94), top 0.9s ease",
         zIndex: isActive ? 30 : isNia ? 20 : 10,
@@ -228,7 +282,7 @@ export default function AgentAvatar({
         isBusy={isBusy}
         walkFrame={walkFrame}
         dir={dir}
-        scale={isNia ? 1.2 : 1}
+        scale={avatarScale * (isNia ? 1.2 : 1)}
       />
 
       {/* Name tag below character */}
@@ -238,7 +292,7 @@ export default function AgentAvatar({
         lineHeight: 1.1,
       }}>
         <div style={{
-          fontSize: isNia ? 9 : 8,
+          fontSize: isMobile ? (isNia ? 9 : 8) : (isNia ? 13 : 11),
           fontWeight: 700,
           color,
           textShadow: `0 0 8px ${color}`,
@@ -246,10 +300,10 @@ export default function AgentAvatar({
           fontFamily: "monospace",
         }}>
           {agent.name}
-          {isNia && <span style={{ marginLeft: 4, fontSize: 7, opacity: 0.8 }}>★</span>}
+          {isNia && <span style={{ marginLeft: 4, fontSize: isMobile ? 7 : 10, opacity: 0.8 }}>★</span>}
         </div>
         <div style={{
-          fontSize: 7,
+          fontSize: isMobile ? 7 : 9,
           color: "#ffffff66",
           whiteSpace: "nowrap",
           fontFamily: "monospace",
@@ -265,12 +319,12 @@ export default function AgentAvatar({
           right: 2,
           background: "#ffffff22",
           borderRadius: "50%",
-          width: 14,
-          height: 14,
+          width: isMobile ? 14 : 20,
+          height: isMobile ? 14 : 20,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: 8,
+          fontSize: isMobile ? 8 : 12,
           backdropFilter: "blur(4px)",
         }}>
           🔒
