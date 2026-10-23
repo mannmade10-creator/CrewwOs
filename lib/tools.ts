@@ -1168,6 +1168,292 @@ export const TOOL_DEFINITIONS: Record<string, any> = {
       },
     },
   },
+
+  // ── Music & Entertainment (18 tools) ────────────────────────────────────
+
+  music_ein_guide: {
+    name: "music_ein_guide",
+    description: "Provide a step-by-step guide to registering an EIN (Employer Identification Number) with the IRS for a music business entity.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string", description: "Legal business name to register" },
+        business_type: { type: "string", enum: ["LLC", "Sole Proprietorship", "Corporation", "Partnership"], description: "Entity type" },
+      },
+    },
+  },
+
+  music_state_registration_guide: {
+    name: "music_state_registration_guide",
+    description: "Guide for registering a music business entity (LLC or Corp) with the appropriate state Secretary of State.",
+    input_schema: {
+      type: "object",
+      properties: {
+        state: { type: "string", description: "Two-letter state abbreviation, e.g. OK, CA, NY" },
+        entity_type: { type: "string", enum: ["LLC", "Corporation", "Sole Proprietorship"], description: "Type of business entity" },
+        business_name: { type: "string", description: "Desired business name" },
+      },
+      required: ["state"],
+    },
+  },
+
+  music_bmi_ascap_guide: {
+    name: "music_bmi_ascap_guide",
+    description: "Guide for registering with a Performing Rights Organization (PRO) — BMI or ASCAP — to collect performance royalties.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        role: { type: "string", enum: ["songwriter", "publisher", "both"], description: "Whether registering as songwriter, publisher, or both" },
+      },
+    },
+  },
+
+  music_sync_license_generate: {
+    name: "music_sync_license_generate",
+    description: "Generate a sync license agreement template for licensing a song for use in a film, TV show, ad, or other visual media.",
+    input_schema: {
+      type: "object",
+      properties: {
+        song_title: { type: "string" },
+        artist_name: { type: "string" },
+        licensee_name: { type: "string", description: "Name of the company or person licensing the song" },
+        use_type: { type: "string", description: "Describe the project: film, commercial, YouTube video, etc." },
+        territory: { type: "string", description: "Geographic scope, e.g. Worldwide or United States" },
+        term: { type: "string", description: "License duration, e.g. 1 year, in perpetuity" },
+        fee: { type: "number", description: "License fee in USD" },
+      },
+      required: ["song_title", "artist_name"],
+    },
+  },
+
+  music_sync_pitch_email: {
+    name: "music_sync_pitch_email",
+    description: "Draft a professional sync licensing pitch email to a music supervisor for a film, TV show, ad, or game.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        genre: { type: "string" },
+        mood: { type: "string", description: "Emotional feel of the track, e.g. uplifting, dark, cinematic" },
+        bpm: { type: "number" },
+        supervisor_name: { type: "string" },
+        project_name: { type: "string", description: "Film/show/ad name if known" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_distribution_setup: {
+    name: "music_distribution_setup",
+    description: "Step-by-step guide to set up music distribution through DistroKid, TuneCore, or CD Baby to get on Spotify, Apple Music, and 70+ platforms.",
+    input_schema: {
+      type: "object",
+      properties: {
+        distributor: { type: "string", enum: ["DistroKid", "TuneCore", "CD Baby"], description: "Distribution platform to use" },
+        artist_name: { type: "string" },
+      },
+    },
+  },
+
+  music_streaming_profile_setup: {
+    name: "music_streaming_profile_setup",
+    description: "Guide to claiming and optimizing artist profiles on Spotify for Artists, Apple Music for Artists, YouTube, and TikTok.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        platforms: {
+          type: "array",
+          items: { type: "string", enum: ["Spotify", "Apple Music", "YouTube", "TikTok"] },
+          description: "Which platforms to set up",
+        },
+      },
+    },
+  },
+
+  music_press_kit_generate: {
+    name: "music_press_kit_generate",
+    description: "Generate a professional Electronic Press Kit (EPK) template with bio, achievements, social links, streaming links, and press contact.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        genre: { type: "string" },
+        hometown: { type: "string" },
+        bio: { type: "string", description: "Artist bio (optional — will provide template if omitted)" },
+        achievements: { type: "string" },
+        social_links: { type: "object", description: "Social handles: {instagram, tiktok, youtube}" },
+        contact_email: { type: "string" },
+        streaming_link: { type: "string" },
+      },
+      required: ["artist_name"],
+    },
+  },
+
+  music_press_release_write: {
+    name: "music_press_release_write",
+    description: "Write a professional press release for a new music release (single, EP, or album) to send to blogs, publications, and radio stations.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        release_title: { type: "string" },
+        release_type: { type: "string", enum: ["single", "EP", "album"], description: "Type of release" },
+        release_date: { type: "string", description: "Release date YYYY-MM-DD" },
+        genre: { type: "string" },
+        quote: { type: "string", description: "Artist quote about the release" },
+        streaming_link: { type: "string" },
+        contact_email: { type: "string" },
+      },
+      required: ["artist_name", "release_title"],
+    },
+  },
+
+  music_radio_pitch_email: {
+    name: "music_radio_pitch_email",
+    description: "Draft a radio airplay submission email to a station music director or DJ.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        genre: { type: "string" },
+        station_name: { type: "string" },
+        dj_name: { type: "string", description: "Name of the music director or DJ (optional)" },
+        streaming_link: { type: "string" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_google_ads_campaign: {
+    name: "music_google_ads_campaign",
+    description: "Generate a Google Ads campaign brief and setup guide for promoting a music release via YouTube TrueView and Display ads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        target_url: { type: "string", description: "Smart link URL for the release" },
+        budget_daily: { type: "number", description: "Daily ad spend in USD" },
+        target_location: { type: "string", description: "Target location, e.g. United States, Atlanta GA" },
+        genre: { type: "string" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_tiktok_ads_campaign: {
+    name: "music_tiktok_ads_campaign",
+    description: "Generate a TikTok Ads campaign brief for promoting a music release via In-Feed and Spark Ads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        budget_daily: { type: "number", description: "Daily ad spend in USD" },
+        target_age_range: { type: "string", description: "Age range, e.g. 18-34" },
+        genre: { type: "string" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_facebook_ads_campaign: {
+    name: "music_facebook_ads_campaign",
+    description: "Generate a Meta (Facebook + Instagram) Ads campaign brief for promoting a music release.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        budget_daily: { type: "number", description: "Daily ad spend in USD" },
+        target_location: { type: "string" },
+        genre: { type: "string" },
+        smart_link: { type: "string", description: "Smart link to streaming platforms" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_social_post_generate: {
+    name: "music_social_post_generate",
+    description: "Generate ready-to-post social media content for Instagram, TikTok, Twitter/X, and Facebook for a music release.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        release_date: { type: "string" },
+        platform: { type: "string", enum: ["instagram", "tiktok", "twitter", "facebook"], description: "Target platform (omit for all)" },
+        post_type: { type: "string", enum: ["announcement", "countdown", "behindthescenes"], description: "Type of post" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_release_calendar: {
+    name: "music_release_calendar",
+    description: "Generate a full release campaign timeline working backwards from the release date, covering distribution, editorial pitch, PR, ads, and social milestones.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        release_date: { type: "string", description: "Release date in YYYY-MM-DD format" },
+      },
+      required: ["release_date"],
+    },
+  },
+
+  music_artist_roster: {
+    name: "music_artist_roster",
+    description: "Manage the label's artist roster — list, add, or update artist records including genre, deal stage, and contact info.",
+    input_schema: {
+      type: "object",
+      properties: {
+        action: { type: "string", enum: ["list", "add", "update"], description: "Operation to perform" },
+        artist_name: { type: "string" },
+        genre: { type: "string" },
+        stage: { type: "string", enum: ["Prospecting", "Signed", "Active", "Alumni"], description: "Relationship stage" },
+        contact: { type: "string", description: "Email or phone" },
+      },
+      required: ["action"],
+    },
+  },
+
+  music_royalty_tracker: {
+    name: "music_royalty_tracker",
+    description: "Guide to tracking and reconciling streaming royalties, PRO performance royalties, and sync fees across all platforms.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        period: { type: "string", description: "Reporting period, e.g. Q3 2026" },
+        platform: { type: "string", description: "Platform to focus on, e.g. Spotify, BMI, or 'all'" },
+      },
+    },
+  },
+
+  music_playlist_pitch: {
+    name: "music_playlist_pitch",
+    description: "Draft a playlist pitch email and provide a list of playlist submission platforms for independent curators and editorial teams.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        genre: { type: "string" },
+        mood: { type: "string" },
+        bpm: { type: "number" },
+        playlist_name: { type: "string", description: "Name of the playlist being pitched to" },
+        curator_name: { type: "string" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
 };
 
 // Returns the tool_use schema array for a given agent, filtered to what they're allowed to call.

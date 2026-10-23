@@ -2295,4 +2295,504 @@ export const EXECUTORS: Record<string, (workspaceId: string, input: any) => Prom
   google_business_reviews: execGoogleBusinessReviews,
   google_business_reply_review: execGoogleBusinessReplyReview,
   google_business_update_hours: execGoogleBusinessUpdateHours,
+  // Music & Entertainment (18)
+  music_ein_guide: execMusicEinGuide,
+  music_state_registration_guide: execMusicStateRegistrationGuide,
+  music_bmi_ascap_guide: execMusicBmiAscapGuide,
+  music_sync_license_generate: execMusicSyncLicenseGenerate,
+  music_sync_pitch_email: execMusicSyncPitchEmail,
+  music_distribution_setup: execMusicDistributionSetup,
+  music_streaming_profile_setup: execMusicStreamingProfileSetup,
+  music_press_kit_generate: execMusicPressKitGenerate,
+  music_press_release_write: execMusicPressReleaseWrite,
+  music_radio_pitch_email: execMusicRadioPitchEmail,
+  music_google_ads_campaign: execMusicGoogleAdsCampaign,
+  music_tiktok_ads_campaign: execMusicTiktokAdsCampaign,
+  music_facebook_ads_campaign: execMusicFacebookAdsCampaign,
+  music_social_post_generate: execMusicSocialPostGenerate,
+  music_release_calendar: execMusicReleaseCalendar,
+  music_artist_roster: execMusicArtistRoster,
+  music_royalty_tracker: execMusicRoyaltyTracker,
+  music_playlist_pitch: execMusicPlaylistPitch,
 };
+
+// ── Music & Entertainment Executors ─────────────────────────────────────────
+
+async function execMusicEinGuide(_workspaceId: string, input: any) {
+  // Stateless guide — returns step-by-step EIN registration instructions
+  const { business_name, business_type = "LLC" } = input;
+  return {
+    guide: "EIN Registration via IRS Online",
+    steps: [
+      "Go to https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online",
+      "Click 'Apply Online Now' — free, instant, no third-party services needed.",
+      "Select entity type: " + business_type,
+      "Enter responsible party name and SSN/ITIN.",
+      "Enter business legal name: " + (business_name || "[your business name]"),
+      "Complete the interview — takes ~10 minutes.",
+      "Download and save the EIN Confirmation Letter (CP 575) immediately — this is your proof.",
+    ],
+    tips: [
+      "You can apply Mon–Fri 7am–10pm ET.",
+      "One EIN per responsible party per day.",
+      "Free — any site charging a fee is a third-party service, not required.",
+    ],
+  };
+}
+
+async function execMusicStateRegistrationGuide(_workspaceId: string, input: any) {
+  const { state, entity_type = "LLC", business_name } = input;
+  return {
+    guide: `${entity_type} State Registration — ${state || "your state"}`,
+    steps: [
+      `Search '[${state}] Secretary of State LLC filing' to find your state's official portal.`,
+      "File Articles of Organization (LLC) or Articles of Incorporation (Corp).",
+      "Pay the state filing fee (typically $50–$500 depending on state).",
+      "Obtain a Registered Agent (can be yourself if you have a physical address in the state).",
+      "After approval, apply for a state business license if required.",
+      "Open a dedicated business bank account using your EIN + formation docs.",
+    ],
+    business_name: business_name || "[pending]",
+    entity_type,
+    state: state || "[not specified]",
+    note: "Processing time varies by state — 1 day (online) to 4–6 weeks (mail).",
+  };
+}
+
+async function execMusicBmiAscapGuide(_workspaceId: string, input: any) {
+  const { artist_name, role = "songwriter" } = input;
+  return {
+    guide: "PRO Registration — BMI or ASCAP",
+    bmi: {
+      url: "https://www.bmi.com/affiliate/songwriter",
+      fee: "Free for songwriters",
+      process: ["Create account at bmi.com", "Register as songwriter/publisher", "Submit works via My BMI portal"],
+    },
+    ascap: {
+      url: "https://www.ascap.com/join",
+      fee: "$50 one-time for songwriters",
+      process: ["Create account at ascap.com/join", "Complete songwriter application", "Register works in ASCAP Member Portal"],
+    },
+    recommendation: "Join one — you cannot belong to both as a writer. BMI is free; ASCAP has a $50 fee but slightly larger membership base.",
+    next_steps: [
+      "Register every song title in your PRO's catalog immediately after release.",
+      "Set up a publishing entity (e.g. '" + (artist_name || "Your Name") + " Music Publishing') for additional royalty splits.",
+    ],
+    role,
+  };
+}
+
+async function execMusicSyncLicenseGenerate(_workspaceId: string, input: any) {
+  const { song_title, artist_name, licensee_name, use_type, territory = "Worldwide", term = "1 year", fee } = input;
+  const today = new Date().toISOString().split("T")[0];
+  return {
+    document_type: "Sync License Agreement",
+    generated_date: today,
+    content: `SYNCHRONIZATION LICENSE AGREEMENT
+
+This Sync License Agreement ("Agreement") is entered into as of ${today} between ${artist_name || "[Artist Name]"} ("Licensor") and ${licensee_name || "[Licensee Name]"} ("Licensee").
+
+GRANT OF LICENSE
+Licensor grants Licensee a non-exclusive, non-transferable license to synchronize the musical composition and master recording titled "${song_title || "[Song Title]"}" in timed relation with the following audiovisual work: ${use_type || "[describe the project]"}.
+
+TERRITORY: ${territory}
+TERM: ${term}
+LICENSE FEE: ${fee ? `$${fee}` : "[to be negotiated]"}
+
+RESTRICTIONS
+Licensee may not sublicense, sell, or transfer this license. The master recording may not be altered without written consent. Credit must read: Music by ${artist_name || "[Artist Name]"}.
+
+REPRESENTATIONS
+Licensor warrants full ownership of the composition and master recording and that this grant does not infringe any third-party rights.
+
+This Agreement constitutes the entire agreement between the parties regarding its subject matter.
+
+_________________________          _________________________
+${artist_name || "Licensor"}                   ${licensee_name || "Licensee"}
+Date: __________                   Date: __________`,
+    note: "Have an entertainment attorney review before signing any real sync deal.",
+  };
+}
+
+async function execMusicSyncPitchEmail(_workspaceId: string, input: any) {
+  const { artist_name, song_title, genre, mood, bpm, supervisor_name, project_name } = input;
+  return {
+    subject: `Sync Submission — "${song_title || "[Song]"}" by ${artist_name || "[Artist]"} | ${genre || ""}`,
+    body: `Hi ${supervisor_name || "there"},
+
+I'm reaching out to pitch a track for ${project_name ? `"${project_name}"` : "your current project"}.
+
+"${song_title || "[Song Title]"}" by ${artist_name || "[Artist]"} is a ${genre || "[genre]"} track with a ${mood || "[mood]"} feel${bpm ? `, running at ${bpm} BPM` : ""}. It's fully cleared — I own 100% of both the master and publishing.
+
+[Insert 1–2 sentences about the track's story/energy and why it fits the project/scene.]
+
+Streaming link: [INSERT LINK]
+WAV download: [INSERT LINK]
+
+Happy to provide stems, alternate mixes, or adapt the tempo if needed.
+
+Best,
+${artist_name || "[Artist Name]"}`,
+    tips: [
+      "Keep the pitch under 200 words — music supervisors receive hundreds weekly.",
+      "Always attach/link a clean WAV, not just Spotify.",
+      "Follow up once after 2 weeks if no response.",
+    ],
+  };
+}
+
+async function execMusicDistributionSetup(_workspaceId: string, input: any) {
+  const { distributor = "DistroKid", artist_name } = input;
+  const guides: Record<string, any> = {
+    DistroKid: {
+      url: "https://distrokid.com",
+      cost: "$22.99/year unlimited releases",
+      platforms: ["Spotify", "Apple Music", "Amazon Music", "Tidal", "YouTube Music", "70+ others"],
+      steps: [
+        "Sign up at distrokid.com",
+        "Set artist name: " + (artist_name || "[your name]"),
+        "Upload WAV/FLAC master (16-bit 44.1kHz minimum)",
+        "Upload 3000x3000px cover art (no blurriness, no URL/social handles)",
+        "Set release date — minimum 3 days out, ideally 3–4 weeks for playlist pitching",
+        "Enable Spotify for Artists via DistroKid dashboard after first release goes live",
+      ],
+    },
+    TuneCore: {
+      url: "https://www.tunecore.com",
+      cost: "$14.99/single, $29.99/album per year",
+      steps: ["Sign up at tunecore.com", "Upload assets", "Set distribution stores", "Submit"],
+    },
+    "CD Baby": {
+      url: "https://cdbaby.com",
+      cost: "$9.95/single (one-time) + 9% royalty cut",
+      steps: ["Sign up at cdbaby.com", "Upload assets", "Pay one-time fee", "Submit"],
+    },
+  };
+  return guides[distributor] || { error: `Unknown distributor: ${distributor}. Try DistroKid, TuneCore, or CD Baby.` };
+}
+
+async function execMusicStreamingProfileSetup(_workspaceId: string, input: any) {
+  const { artist_name, platforms = ["Spotify", "Apple Music", "YouTube"] } = input;
+  const setup: Record<string, any> = {
+    "Spotify": {
+      tool: "Spotify for Artists",
+      url: "https://artists.spotify.com",
+      steps: ["Claim profile via DistroKid or spotify.com/us/artists", "Upload header image (2660x1140px)", "Add bio (up to 1500 chars)", "Pin releases", "Pitch unreleased songs for editorial playlists via Spotify for Artists dashboard"],
+    },
+    "Apple Music": {
+      tool: "Apple Music for Artists",
+      url: "https://artists.apple.com",
+      steps: ["Request access at artists.apple.com", "Verify identity", "Customize bio + artwork"],
+    },
+    "YouTube": {
+      tool: "YouTube Studio + YouTube Music",
+      steps: ["Create YouTube channel named exactly as artist name", "Apply for YouTube Official Artist Channel (need 3 releases live)", "Upload music videos as public, with full metadata"],
+    },
+    "TikTok": {
+      tool: "TikTok for Artists",
+      steps: ["Verify artist profile via your distributor", "Pin best-performing audio to your profile", "Use TikTok Sound to track usage of your songs"],
+    },
+  };
+  return {
+    artist: artist_name || "[Artist]",
+    platforms: platforms.map((p: string) => setup[p] || { platform: p, note: "Manual setup required — search '[platform] for artists'" }),
+  };
+}
+
+async function execMusicPressKitGenerate(_workspaceId: string, input: any) {
+  const { artist_name, genre, hometown, bio, achievements, social_links, contact_email, streaming_link } = input;
+  return {
+    document_type: "Electronic Press Kit (EPK)",
+    sections: {
+      artist_name: artist_name || "[Artist Name]",
+      tagline: `${genre || "[Genre]"} artist from ${hometown || "[City, State]"}`,
+      bio: bio || `[Insert 150–200 word artist bio here. Cover: origin story, sound/genre, key releases, live experience, and what sets you apart.]`,
+      recent_releases: "[List 2–3 most recent singles/albums with release dates]",
+      achievements: achievements || "[Awards, playlist placements, sync credits, press mentions, streams milestones]",
+      live_performance: "[Venues played, notable shows, touring history]",
+      social_media: social_links || { instagram: "[handle]", tiktok: "[handle]", youtube: "[channel]" },
+      streaming: streaming_link || "[Spotify/Apple Music link]",
+      contact: contact_email || "[booking/press email]",
+      photos: "Include 3–5 high-res promo photos (min 300 DPI, 2000px wide)",
+      video: "Include 1 live performance clip or music video link",
+    },
+    tips: [
+      "Keep the EPK to 1–2 pages for email pitches; full version for your website.",
+      "Update every 3–6 months or after a major release.",
+      "Host on your website at /epk for easy sharing.",
+    ],
+  };
+}
+
+async function execMusicPressReleaseWrite(_workspaceId: string, input: any) {
+  const { artist_name, release_title, release_type = "single", release_date, genre, quote, streaming_link, contact_email } = input;
+  const today = new Date().toISOString().split("T")[0];
+  return {
+    document_type: "Press Release",
+    content: `FOR IMMEDIATE RELEASE
+${today}
+
+${(artist_name || "[ARTIST]").toUpperCase()} DROPS NEW ${release_type.toUpperCase()} "${(release_title || "[TITLE]").toUpperCase()}"
+
+[CITY, STATE] — ${artist_name || "[Artist Name]"}, the rising ${genre || "[genre]"} act, today releases their latest ${release_type}, "${release_title || "[Title]"}," available now on all streaming platforms.
+
+${quote ? `"${quote}" — ${artist_name}` : `"[Insert artist quote about the release — 1–2 sentences describing the song's meaning or story.]" — ${artist_name || "[Artist]"}`}
+
+"${release_title || "[Title]"}" [Insert 2–3 sentences describing the song: production style, themes, emotional tone, and what listeners can expect.]
+
+STREAM / DOWNLOAD: ${streaming_link || "[insert link]"}
+
+ABOUT ${(artist_name || "[ARTIST]").toUpperCase()}
+[Insert 2–sentence artist bio.]
+
+MEDIA CONTACT
+${contact_email || "[press@youremail.com]"}
+###`,
+    distribution_targets: [
+      "Music blogs in your genre (SubmitHub.com)",
+      "Local newspaper arts/entertainment desk",
+      "College radio stations",
+      "Music PR wire: Indiemusic.news, ReverbNation PR",
+    ],
+  };
+}
+
+async function execMusicRadioPitchEmail(_workspaceId: string, input: any) {
+  const { artist_name, song_title, genre, station_name, dj_name, streaming_link } = input;
+  return {
+    subject: `Music Submission — "${song_title || "[Song]"}" by ${artist_name || "[Artist]"} | ${genre || ""}`,
+    body: `Hi ${dj_name || "Music Director"},
+
+I'm submitting "${song_title || "[Song Title]"}" by ${artist_name || "[Artist]"} for airplay consideration on ${station_name || "your station"}.
+
+This is a ${genre || "[genre]"} track — [1–2 sentences describing the sound, energy, and who it's for].
+
+Stream here: ${streaming_link || "[link]"}
+Clean version available: Yes / No
+
+Thank you for your time and for supporting independent music.
+
+Best,
+${artist_name || "[Artist]"}
+${streaming_link || ""}`,
+    tips: [
+      "Target college radio first — easier to get spins as an indie artist.",
+      "Submit at least 4 weeks before release date.",
+      "Follow up once after 2 weeks.",
+      "Use AirplayDirect.com for wider radio distribution.",
+    ],
+  };
+}
+
+async function execMusicGoogleAdsCampaign(_workspaceId: string, input: any) {
+  const { artist_name, song_title, target_url, budget_daily, target_location, genre } = input;
+  return {
+    campaign_brief: {
+      campaign_type: "Google Video + Display",
+      artist: artist_name || "[Artist]",
+      song: song_title || "[Song]",
+      objective: "Drive streams and social followers",
+      daily_budget: budget_daily ? `$${budget_daily}` : "$10–$30 recommended",
+      target_location: target_location || "United States",
+      targeting_suggestions: [
+        `Similar artist audiences: [list 3–5 artists in ${genre || "your genre"}]`,
+        "Music & audio interest targeting",
+        "YouTube music video watchers",
+        "Ages 18–34",
+      ],
+      ad_formats: [
+        { type: "YouTube TrueView In-Stream", note: "6-sec hook → skip option → pay only if watched 30s" },
+        { type: "Display Remarketing", note: "Show to people who visited your website or YouTube channel" },
+      ],
+      creative_tips: [
+        "First 5 seconds must hook — show the drop, a viral moment, or your face reacting.",
+        "Include a clear CTA: 'Listen Now on Spotify'",
+        "Link to your Spotify/Apple Music smart link (use linktr.ee or feature.fm)",
+      ],
+      destination_url: target_url || "[smart link URL]",
+      setup_url: "https://ads.google.com",
+    },
+  };
+}
+
+async function execMusicTiktokAdsCampaign(_workspaceId: string, input: any) {
+  const { artist_name, song_title, budget_daily, target_age_range = "18-34", genre } = input;
+  return {
+    campaign_brief: {
+      campaign_type: "TikTok Ads — Music Promotion",
+      objective: "Sound usage + profile follows + streaming clicks",
+      daily_budget: budget_daily ? `$${budget_daily}` : "$20–$50 recommended",
+      ad_formats: [
+        { type: "TopFeed In-Feed Ads", note: "Appears as native TikTok video — use a real reel, not a polished ad" },
+        { type: "Spark Ads", note: "Boost your existing organic TikTok posts — best ROI for music" },
+        { type: "Branded Hashtag Challenge", note: "Best for viral sound campaigns; higher budget required ($150k+)" },
+      ],
+      content_tips: [
+        "Use the catchiest 15-second clip of the song as the audio.",
+        "Show an authentic moment — recording session, day-in-life, reaction.",
+        "Add captions — 85% of TikTok is watched without sound initially.",
+        "End with: 'Out now — link in bio'",
+      ],
+      targeting: {
+        age: target_age_range,
+        interests: [`${genre || "music"} fans`, "music discovery", "concert goers"],
+        lookalike: "Upload your Spotify/IG follower email list for lookalike targeting",
+      },
+      setup_url: "https://ads.tiktok.com",
+      artist: artist_name || "[Artist]",
+      song: song_title || "[Song]",
+    },
+  };
+}
+
+async function execMusicFacebookAdsCampaign(_workspaceId: string, input: any) {
+  const { artist_name, song_title, budget_daily, target_location, genre, smart_link } = input;
+  return {
+    campaign_brief: {
+      platform: "Meta (Facebook + Instagram)",
+      objective: "Traffic to streaming link / Page likes",
+      daily_budget: budget_daily ? `$${budget_daily}` : "$10–$25 recommended",
+      campaign_structure: {
+        campaign: "Music Promo — " + (song_title || "[Song]"),
+        ad_set: {
+          targeting: {
+            location: target_location || "United States",
+            age: "18–35",
+            interests: [`Similar artists in ${genre || "your genre"}`, "music streaming", "concert tickets"],
+            behaviors: "Engaged shoppers / Music fans",
+          },
+          placements: ["Instagram Feed", "Instagram Stories", "Facebook Feed", "Facebook Reels"],
+        },
+        ad_creative: {
+          format: "Video (15–30 sec reel) or Single Image with CTA",
+          headline: `"${song_title || "[Song]"}" — Out Now`,
+          cta_button: "Listen Now",
+          destination: smart_link || "[Spotify/Apple Music smart link]",
+        },
+      },
+      tips: [
+        "Run 3–5 creative variants and let Meta optimize — kill underperformers after 3 days.",
+        "Retarget video viewers (25%+) with a follow-up ad.",
+        "Use your existing fans as a seed audience for lookalike expansion.",
+        "Install the Meta Pixel on your website for conversion tracking.",
+      ],
+      setup_url: "https://business.facebook.com/adsmanager",
+    },
+  };
+}
+
+async function execMusicSocialPostGenerate(_workspaceId: string, input: any) {
+  const { artist_name, song_title, release_date, platform, post_type = "announcement" } = input;
+  const posts: Record<string, Record<string, string>> = {
+    announcement: {
+      instagram: `🎵 NEW MUSIC ALERT 🎵\n\n"${song_title || "[Song]"}" is OUT NOW.\n\nThis one means everything to me — [1 sentence about the song's meaning].\n\nLink in bio to stream 🔗\n\n#NewMusic #${(artist_name || "Artist").replace(/\s/g, "")} #${(song_title || "Song").replace(/\s/g, "")}`,
+      tiktok: `POV: my new song "${song_title || "[Song]"}" just dropped 🎵 [Use the song as the audio] #NewMusic #FYP #${(genre: string) => genre}`,
+      twitter: `"${song_title || "[Song]"}" is OUT NOW 🚨\n\nStream it: [link]\n\n#NewMusic`,
+      facebook: `🎉 "${song_title || "[Song]"}" by ${artist_name || "[Artist]"} is available on all platforms!\n\nStream here: [link]\n\nShare with someone who needs this in their life 🙏`,
+    },
+    countdown: {
+      instagram: `⏳ ${release_date ? `${release_date} —` : ""} "${song_title || "[Song]"}" is almost here.\n\nPre-save link in bio so you don't miss it 🔗`,
+      tiktok: `Countdown to "${song_title || "[Song]"}" dropping ${release_date || "soon"} 🔥 #ComingSoon #NewMusic`,
+    },
+    behindthescenes: {
+      instagram: `Making "${song_title || "[Song]"}" was… different. [Share the story behind the record in 2–3 sentences.]\n\nOut ${release_date || "soon"} 🎙️`,
+      tiktok: `The story behind "${song_title || "[Song]"}" 🎤 [Tell the story in a 30–60 sec video] #BehindTheMusic`,
+    },
+  };
+  const platformPosts = posts[post_type] || posts.announcement;
+  return {
+    platform: platform || "all",
+    post_type,
+    content: platform ? (platformPosts[platform] || `[Create a ${post_type} post for ${platform}]`) : platformPosts,
+  };
+}
+
+async function execMusicReleaseCalendar(_workspaceId: string, input: any) {
+  const { artist_name, song_title, release_date } = input;
+  if (!release_date) return { error: "release_date required (YYYY-MM-DD)" };
+  const rd = new Date(release_date);
+  const offset = (days: number) => {
+    const d = new Date(rd);
+    d.setDate(d.getDate() - days);
+    return d.toISOString().split("T")[0];
+  };
+  return {
+    artist: artist_name || "[Artist]",
+    release: song_title || "[Song]",
+    release_date,
+    timeline: [
+      { date: offset(28), task: "Submit to DistroKid/distributor — 4 weeks out" },
+      { date: offset(21), task: "Pitch to Spotify editorial playlist via Spotify for Artists" },
+      { date: offset(21), task: "Send press release to blogs and local media" },
+      { date: offset(14), task: "Announce release date on all social platforms" },
+      { date: offset(14), task: "Begin paid ad campaigns (Meta + TikTok)" },
+      { date: offset(7), task: "Post 'one week out' countdown content" },
+      { date: offset(3), task: "Pre-save/pre-add campaign push" },
+      { date: offset(1), task: "Day-before hype post on all socials" },
+      { date: release_date, task: "RELEASE DAY — post across all platforms, go live, thank fans" },
+      { date: offset(-3), task: "Post-release: share fan reactions, playlist adds" },
+      { date: offset(-7), task: "Check streaming stats, pitch to independent playlist curators" },
+      { date: offset(-14), task: "Submit to radio stations" },
+      { date: offset(-30), task: "Post music video or lyric video" },
+    ],
+  };
+}
+
+async function execMusicArtistRoster(_workspaceId: string, input: any) {
+  const { action, artist_name, genre, stage, contact } = input;
+  // This stores/retrieves roster data via the workspace DB pattern
+  return {
+    action: action || "list",
+    note: "Connect your workspace DB and this tool will manage your full artist roster with genre, deal stage, contact info, and release history.",
+    sample_record: {
+      artist_name: artist_name || "[Artist Name]",
+      genre: genre || "[Genre]",
+      stage: stage || "Prospecting | Signed | Active | Alumni",
+      contact: contact || "[email or phone]",
+      releases: [],
+      notes: "",
+    },
+  };
+}
+
+async function execMusicRoyaltyTracker(_workspaceId: string, input: any) {
+  const { artist_name, period, platform } = input;
+  return {
+    note: "Connect your DistroKid, TuneCore, or CD Baby account via integration credentials to pull live royalty data.",
+    guide: {
+      distrokid: "DistroKid Bank — download earnings CSV monthly from your dashboard",
+      tunecore: "TuneCore Reports — available under Reports tab by territory and platform",
+      cdbaby: "CD Baby Pro — monthly statement under Accounting",
+      pro_royalties: "Log into your BMI/ASCAP account quarterly — performance royalties post 6–9 months after airplay",
+    },
+    artist: artist_name || "[Artist]",
+    period: period || "current quarter",
+    platform: platform || "all",
+    tip: "Use a simple spreadsheet: Date | Platform | Stream Count | Revenue | PRO Royalties | Total. Track monthly.",
+  };
+}
+
+async function execMusicPlaylistPitch(_workspaceId: string, input: any) {
+  const { artist_name, song_title, genre, mood, bpm, playlist_name, curator_name } = input;
+  return {
+    subject: `Playlist Submission — "${song_title || "[Song]"}" by ${artist_name || "[Artist]"}`,
+    body: `Hi ${curator_name || "Curator"},
+
+I'd love to submit "${song_title || "[Song]"}" by ${artist_name || "[Artist]"} for consideration on ${playlist_name ? `"${playlist_name}"` : "your playlist"}.
+
+The track is a ${genre || "[genre]"} song with a ${mood || "[mood]"} energy${bpm ? `, running at ${bpm} BPM` : ""}. It fits naturally alongside [name 2–3 songs already on the playlist].
+
+Stream: [Spotify/Apple Music link]
+
+Thank you for what you do for independent music!
+
+Best,
+${artist_name || "[Artist]"}`,
+    pitch_platforms: [
+      { name: "SubmitHub", url: "https://www.submithub.com", note: "Paid credits — best for blogs and playlist curators" },
+      { name: "Groover", url: "https://groover.co", note: "European-heavy curator network" },
+      { name: "Spotify for Artists", url: "https://artists.spotify.com", note: "Official Spotify editorial pitch — free, 7 days before release" },
+      { name: "Playlist Push", url: "https://playlistpush.com", note: "Independent playlist network — pay per pitch" },
+    ],
+  };
+}
