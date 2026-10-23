@@ -2312,6 +2312,38 @@ export const EXECUTORS: Record<string, (workspaceId: string, input: any) => Prom
   trades_yelp_nextdoor_setup: execTradesYelpNextdoorSetup,
   trades_review_request_template: execTradesReviewRequestTemplate,
   trades_promo_campaign_generate: execTradesPromoCampaignGenerate,
+  // Restaurant Business Setup (16)
+  restaurant_ein_guide: execRestaurantEinGuide,
+  restaurant_state_registration_guide: execRestaurantStateRegistrationGuide,
+  restaurant_license_permit_guide: execRestaurantLicensePermitGuide,
+  restaurant_health_inspection_guide: execRestaurantHealthInspectionGuide,
+  restaurant_fire_safety_guide: execRestaurantFireSafetyGuide,
+  restaurant_business_email_setup: execRestaurantBusinessEmailSetup,
+  restaurant_business_address_setup: execRestaurantBusinessAddressSetup,
+  restaurant_business_phone_setup: execRestaurantBusinessPhoneSetup,
+  restaurant_business_bank_guide: execRestaurantBusinessBankGuide,
+  restaurant_servsafe_guide: execRestaurantServSafeGuide,
+  restaurant_insurance_guide: execRestaurantInsuranceGuide,
+  restaurant_google_ads_campaign: execRestaurantGoogleAdsCampaign,
+  restaurant_facebook_ads_campaign: execRestaurantFacebookAdsCampaign,
+  restaurant_menu_marketing: execRestaurantMenuMarketing,
+  restaurant_review_request_template: execRestaurantReviewRequestTemplate,
+  restaurant_promo_campaign_generate: execRestaurantPromoCampaignGenerate,
+  // Business Setup (14)
+  business_ein_guide: execBusinessEinGuide,
+  business_state_registration_guide: execBusinessStateRegistrationGuide,
+  business_license_permit_guide: execBusinessLicensePermitGuide,
+  business_email_setup: execBusinessEmailSetup,
+  business_address_setup: execBusinessAddressSetup,
+  business_phone_setup: execBusinessPhoneSetup,
+  business_bank_account_guide: execBusinessBankAccountGuide,
+  business_website_guide: execBusinessWebsiteGuide,
+  business_google_ads_campaign: execBusinessGoogleAdsCampaign,
+  business_facebook_ads_campaign: execBusinessFacebookAdsCampaign,
+  business_brand_guide: execBusinessBrandGuide,
+  business_social_media_strategy: execBusinessSocialMediaStrategy,
+  business_review_request_template: execBusinessReviewRequestTemplate,
+  business_promo_campaign_generate: execBusinessPromoCampaignGenerate,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3402,5 +3434,458 @@ async function execRestaurantPromoCampaignGenerate(_workspaceId: string, input: 
     } : undefined,
     success_metrics: ["New vs. returning customers (POS data)", "Revenue during campaign vs. same period prior year", "Cost per new customer acquired", "Review count growth during campaign"],
     catering_opportunity: "Every promotional campaign is an opportunity to capture catering leads. Include a catering CTA in all materials.",
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Business Setup executor functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function execBusinessEinGuide(_workspaceId: string, input: any) {
+  const { business_name = "your business", business_type = "business", owner_name = "the owner", state = "your state", entity_type = "LLC" } = input ?? {};
+  return {
+    guide: "Business EIN Application Guide",
+    business_name, business_type, state, entity_type,
+    what_is_ein: "An EIN (Employer Identification Number) is your business's federal tax ID — required to open a business bank account, hire employees, set up payroll, apply for business licenses, and file business taxes. It's free and instant from the IRS.",
+    cost: "Free — IRS never charges for an EIN. Any website charging a fee is a third-party middleman. Only use irs.gov.",
+    steps: [
+      { step: 1, action: "Go to IRS.gov/ein", detail: "Navigate to irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online. Available Mon–Fri 7am–10pm ET." },
+      { step: 2, action: "Select your entity type", detail: `Choose: ${entity_type === "LLC" ? "LLC" : entity_type === "Sole Proprietor" ? "Sole Proprietor" : entity_type}. Most new businesses should form an LLC first for liability protection before applying for an EIN.` },
+      { step: 3, action: "Select reason", detail: "Choose 'Started a new business'." },
+      { step: 4, action: "Enter your information", detail: `Business name: ${business_name}. State: ${state}. Responsible party: ${owner_name} (your personal SSN or ITIN — standard and secure on the IRS website). Business address: your office, home, or virtual mailbox address.` },
+      { step: 5, action: "Submit and save your EIN", detail: "Your EIN is issued instantly on screen. Download and save the PDF confirmation letter — you'll need it to open your bank account, apply for business credit, set up payroll, and file taxes." },
+    ],
+    what_you_need: ["Full legal name", "Social Security Number (SSN) or ITIN", "Business name", "Business address", "State of formation or operation", "Entity type (LLC, Sole Proprietor, etc.)"],
+    after_ein: [
+      "Open a business bank account — bring your EIN letter and LLC Articles of Organization",
+      "Register for state taxes if required (sales tax, payroll tax)",
+      "Set up payroll if hiring — Gusto, ADP, or QuickBooks Payroll",
+      "Apply for any required business licenses using your EIN",
+      "Apply for a business credit card to start building business credit",
+    ],
+    entity_tip: entity_type === "Sole Proprietor"
+      ? "Consider forming an LLC before applying for your EIN — it only costs $50–$500 and protects your personal assets from business debts and lawsuits."
+      : `Your ${entity_type} must be formed with your state BEFORE applying for the EIN. The EIN is issued to the entity, not to you personally.`,
+  };
+}
+
+async function execBusinessStateRegistrationGuide(_workspaceId: string, input: any) {
+  const { business_name = "your business", state = "your state", business_type = "business", entity_type = "LLC" } = input ?? {};
+  return {
+    guide: "Business State Registration & Entity Formation Guide",
+    business_name, state, business_type, entity_type,
+    entity_comparison: {
+      LLC: { pros: ["Personal liability protection", "Pass-through taxation (profits taxed once on your personal return)", "Flexible management structure", "Required by most landlords and lenders", "Easiest to form and maintain"], cons: ["State filing fee ($50–$500)", "Annual report fee in most states"], best_for: "Most small businesses, freelancers, service providers, and startups" },
+      Sole_Proprietor: { pros: ["No setup cost or paperwork"], cons: ["Zero liability protection — you are personally liable for all debts and lawsuits", "Cannot open a business bank account at most banks without an LLC or DBA"], best_for: "Only for very low-risk, low-revenue side income before forming an LLC" },
+      S_Corp: { pros: ["Can save on self-employment taxes at higher income levels ($50k+ profit)", "Still has liability protection"], cons: ["More complex to set up and maintain", "Payroll required — you must pay yourself a reasonable salary"], best_for: "Profitable established businesses with $50k+ net profit looking to reduce self-employment taxes" },
+      C_Corp: { pros: ["Best for venture-backed startups", "Can issue multiple classes of stock", "Investors typically require C-Corp structure"], cons: ["Double taxation on profits", "Most complex and expensive to maintain"], best_for: "Startups planning to raise venture capital" },
+    },
+    llc_formation_steps: [
+      { step: 1, action: "Check name availability", detail: `Search ${state}'s Secretary of State business name database to confirm "${business_name} LLC" is available. Also check for trademark conflicts at USPTO.gov.` },
+      { step: 2, action: "File Articles of Organization", detail: `File online at your ${state} Secretary of State website. Cost: $50–$500 depending on state. Approval: 1–10 business days (expedited filing often available for extra fee).` },
+      { step: 3, action: "Appoint a Registered Agent", detail: "Every LLC needs a registered agent to receive legal documents. Options: yourself (must have a physical in-state address), Northwest Registered Agent ($39–$125/yr), ZenBusiness ($49/yr), or your attorney." },
+      { step: 4, action: "Create an Operating Agreement", detail: "Governs how your LLC runs: ownership percentages, decision-making, profit distribution, what happens if a member leaves. Critical for multi-member LLCs. Free templates at your state's SOS site." },
+      { step: 5, action: "Get your EIN from the IRS", detail: "Apply at IRS.gov after your LLC is approved. Free and instant." },
+      { step: 6, action: "Open a business bank account", detail: "Bring Articles of Organization + EIN letter + Operating Agreement. Keeping business and personal money separate is required to maintain LLC protection." },
+      { step: 7, action: "Register for state and local taxes", detail: `Register with ${state}'s Department of Revenue for sales tax (if you sell taxable products/services) and employer taxes (if you have employees).` },
+      { step: 8, action: "Get a local business license", detail: "Most cities and counties require a general business license separate from your LLC. Check your city hall or county clerk's website." },
+    ],
+    dba_note: "If you want to operate under a name different from your LLC name (e.g., LLC name is 'Smith Services LLC' but you do business as 'OKC Cleaning Co'), you'll need to file a DBA (Doing Business As) or fictitious name registration with your county.",
+    timeline: "LLC formation + EIN + bank account: 1–2 weeks total",
+    cost_estimate: `${state} LLC filing: $50–$500 | Registered agent: $39–$125/yr | Operating agreement: Free–$300`,
+  };
+}
+
+async function execBusinessLicensePermitGuide(_workspaceId: string, input: any) {
+  const { state = "your state", business_type = "business", is_home_based = false, is_online_only = false, sells_physical_products = false, requires_professional_license = false } = input ?? {};
+  return {
+    guide: `Business License & Permit Checklist — ${business_type} in ${state}`,
+    state, business_type,
+    universal_requirements: [
+      { permit: "General Business License", issued_by: "City or County Clerk", timeline: "1–2 weeks", cost: "$50–$400/year", notes: "Required in most cities before you can legally operate. Separate from your LLC/state registration." },
+      { permit: "EIN (Federal Tax ID)", issued_by: "IRS (irs.gov)", timeline: "Instant", cost: "Free", notes: "Required to open a bank account, hire employees, and file business taxes." },
+      { permit: "State Business Registration / LLC", issued_by: `${state} Secretary of State`, timeline: "1–10 business days", cost: "$50–$500", notes: "Your legal entity registration. Required before most other licenses." },
+    ],
+    conditional_requirements: [
+      ...(sells_physical_products ? [{ permit: "Seller's Permit / Sales Tax Permit", issued_by: `${state} Department of Revenue`, timeline: "Immediate (online) to 2 weeks", cost: "Usually free", notes: "Required if you sell physical products. Allows you to collect and remit sales tax." }] : []),
+      ...(is_home_based ? [{ permit: "Home Occupation Permit", issued_by: "City/County Zoning Department", timeline: "1–4 weeks", cost: "$25–$200", notes: "Required in most cities if you operate a business from your home. May restrict signage, customer visits, and deliveries." }] : []),
+      ...(requires_professional_license ? [{ permit: "Professional / Occupational License", issued_by: `${state} Licensing Board (varies by profession)`, timeline: "Weeks to months depending on exams/requirements", cost: "Varies widely", notes: `Required for licensed professions: contractors, real estate agents, cosmetologists, electricians, plumbers, accountants, attorneys, healthcare providers, etc. Search "${state} [profession] license" for your specific board.` }] : []),
+      ...(is_online_only ? [{ permit: "Sales Tax Nexus Registration (multiple states)", issued_by: "Each state's Department of Revenue", timeline: "Varies", cost: "Usually free", notes: "If you sell online across state lines and exceed $100k in sales or 200 transactions in a state, you may need to collect and remit that state's sales tax (economic nexus rules post-South Dakota v. Wayfair)." }] : []),
+    ],
+    industry_specific_note: `Search "${state} ${business_type} license requirements" for any industry-specific permits beyond the universal requirements above. Industries with frequent additional requirements include: food service, childcare, healthcare, construction/trades, financial services, transportation, and cannabis.`,
+    recommended_order: ["1. Form LLC and get EIN", "2. Apply for general business license", "3. Register for seller's permit (if selling products)", "4. Apply for any professional licenses", "5. Get home occupation permit (if home-based)", "6. Apply for any industry-specific permits"],
+  };
+}
+
+async function execBusinessEmailSetup(_workspaceId: string, input: any) {
+  const { business_name = "your business", business_type = "business", preferred_domain = "", team_size = 1 } = input ?? {};
+  const slug = business_name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const domainSuggestion = preferred_domain || `${slug}.com`;
+  return {
+    guide: "Business Email Setup Guide",
+    business_name, business_type, team_size,
+    recommended_domain: domainSuggestion,
+    why_professional_email: "A Gmail or Yahoo address signals that you're not serious. A branded email (you@yourbusiness.com) is required for vendor accounts, business bank accounts at some banks, and builds immediate credibility with clients and partners.",
+    domain_setup: {
+      where_to_buy: ["Google Domains ($12/yr) — integrates cleanly with Google Workspace", "Namecheap ($8–$15/yr) — affordable and reliable", "GoDaddy ($10–$20/yr) — most popular, easy to use"],
+      tips: [`Try ${domainSuggestion}. If taken: try get${slug}.com, ${slug}co.com, ${slug}hq.com, or include your city.`, "Always buy the .com if available — .net and .co are fine backups."],
+    },
+    email_providers: [
+      { name: "Google Workspace (Recommended)", cost: "$6/user/month", why: "Gmail interface everyone knows, shared drives, Meet for video calls, Calendar, Sheets — everything a team needs", setup: "workspace.google.com → Get started → enter your domain → verify ownership (add a TXT record to your domain DNS)", best_for: "Any business, especially teams already using Google tools" },
+      { name: "Microsoft 365 Business Basic", cost: "$6/user/month", why: "Outlook + Teams + SharePoint — ideal if your clients or team uses Microsoft", best_for: "Businesses in industries that use Microsoft heavily (legal, finance, healthcare)" },
+      { name: "Zoho Mail", cost: "Free for up to 5 users / $1–$4/user/month", why: "Solid free option for solo operators", best_for: "Solo founder wanting professional email with zero monthly cost" },
+    ],
+    recommended_address_structure: [
+      `you@${domainSuggestion} — your primary email`,
+      `info@${domainSuggestion} — general inquiries and website contact forms`,
+      `hello@${domainSuggestion} — friendly customer-facing alias`,
+      `billing@${domainSuggestion} — invoices and payment correspondence`,
+      `support@${domainSuggestion} — customer service (can be an alias to your main inbox)`,
+      ...(team_size > 3 ? [`team@${domainSuggestion} — internal team distribution list`] : []),
+    ],
+    email_signature_template: `[Your Name]\n[Title] | ${business_name}\n📞 [Phone Number]\n🌐 [Website URL]\n📍 [City, State]\n\n[LinkedIn URL] | [Instagram URL]`,
+    pro_tips: [
+      "Set up email forwarding so all aliases go to one inbox — less to check",
+      "Enable two-factor authentication on your email account immediately — your email is the key to every other account you own",
+      "Use Google Workspace's shared drive from day one — keeps all business files organized and accessible from any device",
+    ],
+  };
+}
+
+async function execBusinessAddressSetup(_workspaceId: string, input: any) {
+  const { business_name = "your business", state = "your state", business_type = "business", has_physical_location = false, is_home_based = false } = input ?? {};
+  return {
+    guide: "Business Address Setup Guide",
+    business_name, state, business_type,
+    why_it_matters: "Your business address appears on your LLC filing, EIN, bank account, business license, website, Google Business Profile, and all marketing materials. Using your personal home address on public business records can create privacy and zoning issues.",
+    options: {
+      physical_office: has_physical_location ? {
+        use: "Use your physical business address for everything — LLC filing, EIN, bank, Google Business Profile, website footer.",
+        google_business: "Verify your Google Business Profile immediately — it's the most important local visibility tool. Google will mail a postcard to verify.",
+        tip: "Make sure your address is formatted identically everywhere (same abbreviations, suite format) — inconsistencies hurt your local SEO.",
+      } : null,
+      home_based: is_home_based ? {
+        privacy_risk: "Your home address becomes public record when used for LLC filing. Anyone can look up your business address and find where you live.",
+        solution: "Use a virtual mailbox or a registered agent address for your LLC filing and EIN — keeps your home address off public records.",
+      } : null,
+      virtual_mailbox: {
+        what_it_is: "A real street address (not a PO Box) where your business mail is received, scanned, and emailed to you.",
+        services: [
+          { name: "PostScan Mail", cost: "$10–$30/month", pros: "Most affordable, real street address, mail scanning" },
+          { name: "Anytime Mailbox", cost: "$10–$30/month", pros: "Large network of locations, choose an address in any city" },
+          { name: "iPostal1", cost: "$10–$40/month", pros: "Many locations including UPS Store addresses (looks professional)" },
+          { name: "Regus / WeWork Address", cost: "$29–$99/month", pros: "Premium business address in a real office building, includes mail handling" },
+        ],
+        works_for: ["LLC filing and EIN", "Bank account applications", "Business license", "Business cards and website"],
+        does_not_work_for: ["Google Business Profile (requires a physical location where customers can visit or you serve from)"],
+      },
+    },
+    google_business_profile: {
+      importance: "The single most important free marketing tool for any local business — shows you in Google Maps and local search results.",
+      eligibility: "You must have a real physical location or serve customers at their location (service-area business). Virtual mailboxes don't qualify.",
+      setup: "business.google.com → Add your business → choose category → verify by postcard or phone",
+    },
+    registered_agent_address: {
+      note: "Your registered agent's address (required for LLC) is for receiving legal documents only — it cannot be your public business address on marketing materials.",
+    },
+  };
+}
+
+async function execBusinessPhoneSetup(_workspaceId: string, input: any) {
+  const { business_name = "your business", business_type = "business", team_size = 1, needs_auto_attendant = false } = input ?? {};
+  return {
+    guide: "Business Phone Setup Guide",
+    business_name, business_type, team_size,
+    why_dedicated_number: "Using your personal cell for business means no separation between work and personal life, no professional voicemail, no way to track business calls, and no way to hand the number to an employee.",
+    options: [
+      { name: "Google Voice", cost: "Free (personal) / $10/user/mo (Google Workspace Business)", pros: ["Free local number", "Voicemail transcription", "Rings on any device"], cons: ["No shared inbox for team", "No auto-attendant on free plan", "Limited business features"], best_for: "Solo founder or very early stage with minimal call volume" },
+      { name: "OpenPhone (Recommended for small teams)", cost: "$15/user/month", pros: ["Shared phone number — entire team sees and answers calls", "Business texting with templates", "Call recording", "Auto-reply for missed calls", "Business hours routing — calls go to voicemail after hours"], best_for: `Teams of ${team_size} — everyone can see call history and respond to missed calls`, setup: "openphone.com → sign up → port your existing number or get a new one" },
+      { name: "RingCentral", cost: "$20–$35/user/month", pros: ["Auto-attendant ('Press 1 for Sales, Press 2 for Support')", "Multiple extensions", "Call queues", "CRM integrations", "Desk phone support"], best_for: "Growing business needing a full phone system with extensions" },
+      { name: "Grasshopper", cost: "$26–$80/month", pros: ["Virtual extensions for a team", "Works on your existing phones", "No desk phone needed"], best_for: "Small team wanting extensions without buying new hardware" },
+    ],
+    auto_attendant_script: needs_auto_attendant ? `"Thank you for calling ${business_name}! For [Department/Service 1], press 1. For [Department/Service 2], press 2. For billing and accounts, press 3. To speak with someone, press 0 or stay on the line. Our hours are [hours]. We look forward to serving you!"` : null,
+    voicemail_script: `"You've reached ${business_name}. We're unable to take your call right now, but your call is important to us. Please leave your name, number, and a brief message and we'll get back to you within [timeframe]. You can also reach us at [email] or visit us at [website]. Thank you!"`,
+    sms_strategy: [
+      "Enable texting on your business number — most customers prefer texting over calling",
+      "Set up auto-reply for missed calls: 'Hi! You reached [Business]. We missed your call — text us here and we'll respond shortly!'",
+      "Use SMS for appointment reminders, order updates, and follow-ups",
+      "Review requests via text get 5x higher response rates than email",
+    ],
+    number_type: "Get a local area code matching your market — local numbers have higher answer rates than toll-free for small businesses.",
+  };
+}
+
+async function execBusinessBankAccountGuide(_workspaceId: string, input: any) {
+  const { business_name = "your business", state = "your state", business_type = "business", monthly_revenue_estimate = "under $10,000", has_employees = false, accepts_payments_online = false } = input ?? {};
+  return {
+    guide: "Business Bank Account Setup Guide",
+    business_name, state, business_type,
+    why_separate_account: "Mixing personal and business finances: voids your LLC liability protection, makes tax time a nightmare, prevents you from tracking real business profitability, and makes you look unprofessional to vendors and clients.",
+    what_to_bring: ["EIN confirmation letter (from IRS.gov)", "LLC Articles of Organization (from your state filing)", "Operating Agreement (if you have one)", "Government-issued photo ID", "Initial deposit ($25–$100 for most business accounts)"],
+    recommended_banks: [
+      { name: "Chase Business Complete Banking", monthly_fee: "$15 (waived with $2k minimum or $2k/mo deposits)", pros: ["Largest branch and ATM network", "Strong business credit card program", "Built-in payment processing (Chase QuickAccept)", "SBA loan partner"], best_for: "Any business that deposits cash or checks regularly" },
+      { name: "Bank of America Business Advantage Fundamentals", monthly_fee: "$16 (waived with $5k avg balance)", pros: ["Strong business credit program", "Preferred SBA lender", "Business line of credit available"], best_for: "Business planning to build credit or apply for a loan" },
+      { name: "Mercury (mercury.com) — Online Only", monthly_fee: "Free", pros: ["No fees or minimums", "API access for fintech integration", "Virtual cards", "Great for tech/online businesses"], best_for: "Online businesses, tech startups, e-commerce" },
+      { name: "Relay (relay.fi) — Online Only", monthly_fee: "Free", pros: ["Up to 20 checking accounts", "Sub-accounts for payroll/taxes/expenses", "Connects to QuickBooks and Xero"], best_for: "Service businesses wanting clean cash flow separation" },
+    ],
+    payment_processing: accepts_payments_online ? {
+      options: [
+        { name: "Stripe", fees: "2.9% + $0.30/transaction", why: "Best for online/e-commerce, subscription billing, and developer-friendly integrations" },
+        { name: "Square", fees: "2.6% + $0.10 (in-person) / 2.9% + $0.30 (online)", why: "Best for in-person retail, easy setup, free POS software" },
+        { name: "PayPal Business", fees: "3.49% + $0.49 (standard)", why: "Good when clients expect PayPal; higher fees than Stripe/Square" },
+      ],
+      tip: "If you process $30k+/month, negotiate your rate directly with the processor — advertised rates are not fixed.",
+    } : null,
+    cash_flow_system: [
+      "Operating account — where revenue comes in and bills are paid",
+      `Tax reserve account — transfer ${business_type.includes("LLC") ? "25–30%" : "30–35%"} of net revenue weekly for quarterly estimated taxes`,
+      "Payroll account — fund before each pay period if you have employees",
+      "Savings/emergency fund — build 3 months of operating expenses",
+    ],
+    accounting: { recommended: "QuickBooks Online ($17.50–$49.50/mo) or Wave (free)", tip: "Connect your bank account to QuickBooks from day one — automated transaction categorization saves hours at tax time and gives you real profit/loss visibility.", bookkeeper_note: "Once you're doing $5k+/month in revenue, hiring a bookkeeper ($200–$500/mo) pays for itself in tax savings alone." },
+  };
+}
+
+async function execBusinessWebsiteGuide(_workspaceId: string, input: any) {
+  const { business_name = "your business", business_type = "business", sells_products_online = false, budget = "under $100/mo" } = input ?? {};
+  return {
+    guide: "Business Website Launch Guide",
+    business_name, business_type, budget,
+    why_website_matters: "Your website is your 24/7 salesperson, credibility signal, and home base for all marketing. Even if you get most business from referrals, everyone Googles you before calling. A missing or poor website loses you business every day.",
+    platform_recommendations: [
+      { name: "Squarespace", cost: "$16–$49/month", difficulty: "Easy", best_for: "Service businesses, portfolios, simple e-commerce. Beautiful templates. No coding required.", link: "squarespace.com" },
+      { name: "Webflow", cost: "$14–$39/month", difficulty: "Medium", best_for: "Professional/agency-quality sites with more design control. No coding but more powerful than Squarespace.", link: "webflow.com" },
+      { name: "WordPress + Elementor", cost: "$10–$25/month (hosting) + free Elementor or $59/yr Pro", difficulty: "Medium", best_for: "Maximum flexibility, strong SEO, thousands of plugins. Most popular platform in the world.", link: "wordpress.org (self-hosted)" },
+      { name: "Shopify", cost: "$29–$79/month", difficulty: "Easy", best_for: "Product-based e-commerce. Best platform for selling physical or digital products online.", link: "shopify.com", recommended_for_ecommerce: sells_products_online },
+    ],
+    must_have_pages: [
+      { page: "Home", purpose: "Clear headline: who you are, what you do, who you serve, and a call to action (Call Now, Get a Quote, Shop Now)" },
+      { page: "About", purpose: "Your story, your team, your mission. People buy from people — make it personal." },
+      { page: "Services / Products", purpose: "What you offer, how it works, and what it costs (or at least a starting price). No pricing loses leads." },
+      { page: "Contact", purpose: "Phone number, email, address, contact form, and business hours. Make it effortless to reach you." },
+      { page: "Testimonials / Reviews", purpose: "Social proof is the #1 conversion driver. Embed Google reviews or add written testimonials with photos." },
+    ],
+    seo_basics: [
+      "Include your city and service in your page titles: 'OKC Cleaning Services | [Business Name]'",
+      "Add your business to Google Business Profile — it feeds your local search visibility",
+      "Write a meta description for every page (the text that shows under your link in Google results)",
+      "Make sure your site loads fast — use Google PageSpeed Insights to check",
+      "Mobile-first: most visitors are on phones. Test your site on a phone before launching.",
+    ],
+    launch_checklist: ["Domain connected and SSL certificate active (https://)", "Contact form tested — make sure submissions reach your email", "Phone number clickable on mobile", "Google Analytics connected", "Google Search Console verified", "Social media links in footer", "Privacy Policy page (required if you collect any data)"],
+  };
+}
+
+async function execBusinessGoogleAdsCampaign(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", business_type = "business", service_area = "local area", monthly_budget = 500, target_customer = "local customers" } = input ?? {};
+  return {
+    campaign: `Google Ads Strategy — ${business_name}`,
+    business_type, service_area, monthly_budget: `$${monthly_budget}`,
+    priority_1_google_business_profile: {
+      title: "Google Business Profile — Do This First (Free)",
+      why: "Local search results show Google Business Profiles before paid ads. This is the most important free marketing step for any local business.",
+      steps: ["Claim/create at business.google.com", "Fill out every field completely", "Upload 10+ high-quality photos", "Set exact hours (including holidays)", "Enable Google Messaging", "Post weekly updates (offers, news, events)", "Respond to every review within 24 hours"],
+    },
+    search_ads: {
+      keywords: [`${business_type} ${service_area}`, `best ${business_type} ${service_area}`, `${business_type} near me`, `hire ${business_type} ${service_area}`, `${business_type} services ${service_area}`],
+      negative_keywords: ["free", "DIY", "how to", "job", "career", "salary", "course", "template"],
+      ad_copy: { headline_1: `${business_name} — ${service_area}`, headline_2: "Trusted | Professional | Results-Driven", headline_3: "Get a Free Quote Today", description: `${business_name} serves ${target_customer} in ${service_area}. Professional service, fast turnaround, satisfaction guaranteed. Contact us today!` },
+      budget: `$${Math.round(monthly_budget * 0.65)}/month`,
+    },
+    remarketing: { description: "Show ads to people who visited your website but didn't convert. 3–5x cheaper than prospecting.", budget: `$${Math.round(monthly_budget * 0.35)}/month` },
+    conversion_tracking: ["Set up conversion tracking in Google Ads before spending a dollar", "Track: phone calls from website, contact form submissions, and direction requests", "Without conversion tracking you're flying blind — you can't tell which keywords make the phone ring"],
+    landing_page_tips: ["Your ad should link to a specific page about what the ad promises — not your homepage", "Include your phone number, a contact form, and a clear call to action above the fold", "Add 3–5 testimonials on the landing page — social proof converts"],
+  };
+}
+
+async function execBusinessFacebookAdsCampaign(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", business_type = "business", service_area = "local area", monthly_budget = 300, target_customer = "local customers", campaign_goal = "Lead generation" } = input ?? {};
+  return {
+    campaign: `Facebook & Instagram Ads Strategy — ${business_name}`,
+    business_type, service_area, monthly_budget: `$${monthly_budget}`, campaign_goal,
+    audience_targeting: {
+      location: `${service_area} — radius around your business location (5–15 miles for local services, broader for online businesses)`,
+      demographics: "Set by your ideal customer profile — age, income level, homeowner status, etc.",
+      interests: [`${business_type}`, "Small business owners", "Homeowners", "Related industry interests"],
+      behaviors: ["Business decision makers (for B2B)", "Recently moved (great for home services)", "Small business owners"],
+      lookalike: "Upload your customer email list — Facebook finds people similar to your best customers in your area. Most powerful targeting available.",
+    },
+    ad_formats: [
+      { format: "Lead Generation Ad", why: "Best for service businesses — customer fills out a form without leaving Facebook. Lower friction = more leads.", fields_to_collect: ["Name", "Phone number", "Email", "Brief description of what they need"] },
+      { format: "Video Ad (15–30 seconds)", why: "Video builds trust faster than any other format. Show your work, your team, your results.", script: `"[Problem your customer has]. At ${business_name}, we [solution you provide]. [Result/outcome]. [Call to action — call now, get a free quote, shop now]."` },
+      { format: "Before/After Carousel", why: "Extremely effective for visual businesses (cleaning, landscaping, construction, design, etc.). Shows proof of results.", tip: "Make the 'before' relatable and the 'after' aspirational" },
+      { format: "Testimonial/Social Proof Ad", why: "A real customer talking about their experience converts better than any ad copy you write.", copy: `"[Customer name]: '[Quote about their experience with ${business_name}]'"` },
+    ],
+    budget_allocation: {
+      prospecting: `$${Math.round(monthly_budget * 0.60)}/month — targeting cold audiences who haven't heard of you`,
+      retargeting: `$${Math.round(monthly_budget * 0.40)}/month — targeting website visitors, video viewers, and people who engaged with your page`,
+    },
+    content_calendar: ["Week 1: Introduction / who you are and what you do", "Week 2: Social proof / testimonial or case study", "Week 3: Offer or promotion", "Week 4: Behind the scenes / team / process content"],
+    instagram_note: "Link your Facebook and Instagram — one campaign runs both. Instagram Stories and Reels have the highest organic reach right now. Post Reels consistently even without paid ads.",
+  };
+}
+
+async function execBusinessBrandGuide(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", business_type = "business", target_customer = "local customers", brand_personality = "professional" } = input ?? {};
+  return {
+    guide: `Brand Identity Guide — ${business_name}`,
+    business_name, business_type, target_customer, brand_personality,
+    brand_foundation: {
+      mission: `What ${business_name} does and why it matters — in one sentence. Example: "We help [target customer] achieve [outcome] so they can [bigger benefit]."`,
+      vision: "What success looks like in 5 years.",
+      values: "3–5 words that describe how you operate: Integrity, Quality, Speed, Innovation, Community, etc.",
+      brand_voice: {
+        professional: "Clear, confident, authoritative. Avoids jargon. Gets to the point.",
+        playful: "Conversational, fun, uses humor. Feels approachable and energetic.",
+        luxury: "Elegant, precise, exclusivity-focused. Every word is intentional.",
+        approachable: "Warm, friendly, community-focused. Like advice from a trusted neighbor.",
+      }[brand_personality] ?? "Clear, confident, and authentic to your industry.",
+    },
+    visual_identity: {
+      logo_direction: {
+        tips: ["Keep it simple — a logo that works at 16px (favicon) and 1600px is a strong logo", "Avoid clip art or overly complex illustrations", "Wordmark (just your name in a distinctive font) is perfectly professional for most businesses"],
+        tools: ["Canva Pro ($13/mo) — good for DIY logos with templates", "Looka ($65–$80 one-time) — AI logo generator with brand kit", "99designs ($299–$1,299) — crowdsourced professional design", "Fiverr ($50–$500) — hire a designer directly"],
+      },
+      color_palette: {
+        structure: "Choose 1 primary color, 1 secondary color, and 2 neutral colors (usually white/light + dark gray/black)",
+        by_personality: {
+          professional: "Navy blue or dark green primary — signals trust and stability",
+          playful: "Bright orange, yellow, or teal primary — signals energy and approachability",
+          luxury: "Black, deep navy, or burgundy primary with gold accent — signals premium",
+          approachable: "Warm orange or sky blue primary — signals friendliness",
+        }[brand_personality] ?? "Choose a color that stands out in your industry while feeling appropriate for your target customer",
+        tools: ["coolors.co — color palette generator", "brandmark.io — see your colors in use"],
+      },
+      typography: { body_font: "Clean and readable: Inter, Lato, Open Sans, or Nunito (all free on Google Fonts)", heading_font: "More distinctive: Playfair Display (classic), Poppins (modern), Raleway (elegant), Montserrat (professional)" },
+    },
+    brand_standards: [
+      "Use the same logo, colors, and fonts on everything — website, business cards, social media, invoices, email signature",
+      "Save your brand assets in a shared folder: logo files (PNG with transparent background, SVG), color hex codes, font files",
+      "Create a simple one-page brand guide you can share with contractors and collaborators",
+    ],
+    naming_tip: `"${business_name}" — make sure it's available as a .com domain and on Instagram/Facebook before fully committing. Run a quick trademark search at USPTO.gov to avoid conflicts.`,
+  };
+}
+
+async function execBusinessSocialMediaStrategy(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", business_type = "business", target_customer = "local customers", team_size = 1, posting_frequency = "3x per week" } = input ?? {};
+  return {
+    guide: `Social Media Strategy — ${business_name}`,
+    business_type, target_customer, team_size, posting_frequency,
+    platform_selection: {
+      choose_based_on_customer: {
+        local_consumers: ["Facebook (35+ audience, community groups)", "Instagram (visual content, under 40)", "Nextdoor (hyper-local, neighbors)"],
+        young_consumers: ["Instagram (primary)", "TikTok (fastest growth, under 35)", "YouTube Shorts"],
+        business_owners: ["LinkedIn (B2B primary)", "Facebook (secondary)", "Instagram (brand awareness)"],
+        visual_industries: ["Instagram (primary)", "Pinterest (home, food, fashion)", "TikTok (behind-the-scenes)"],
+      },
+      recommendation: `For a ${business_type} targeting ${target_customer}: Focus on 2 platforms maximum. Master those before expanding.`,
+    },
+    content_pillars: [
+      { pillar: "Educational (40%)", description: "Teach your audience something valuable about your industry", examples: ["'3 things to look for when choosing a [business type]'", "'Common mistakes [target customer] make'", "'How [your process] works'"] },
+      { pillar: "Social Proof (30%)", description: "Show that real customers trust and love you", examples: ["Customer testimonials and reviews", "Before/after results", "Case studies", "User-generated content"] },
+      { pillar: "Behind the Scenes (20%)", description: "Build personal connection and trust", examples: ["Your team at work", "Your process", "Day in the life", "Meet the team"] },
+      { pillar: "Promotional (10%)", description: "Direct offers and calls to action", examples: ["Special offers", "New service announcements", "Grand opening promos"] },
+    ],
+    posting_schedule: {
+      frequency: posting_frequency,
+      best_times: { Instagram: "Tue–Fri, 9am–11am or 2pm–4pm", Facebook: "Wed–Fri, 1pm–4pm", LinkedIn: "Tue–Thu, 8am–10am or 12pm" },
+      tools: ["Buffer ($15/mo) — schedule posts across platforms", "Later ($18/mo) — best for Instagram scheduling", "Meta Business Suite (free) — Facebook + Instagram scheduling directly from Meta"],
+    },
+    content_creation: {
+      tools: ["Canva Pro ($13/mo) — professional graphics without a designer", "CapCut (free) — best free video editing for Reels/TikTok", "ChatGPT — draft caption copy quickly"],
+      batch_shooting: `${team_size <= 2 ? "Dedicate 2 hours every other week to batch-shoot content for the next 2 weeks. This is faster than creating daily." : "Assign content creation to a team member or hire a part-time social media person ($15–$25/hr)."}`,
+    },
+    growth_tactics: [
+      "Respond to every comment and DM within 24 hours — algorithm rewards engagement",
+      "Engage with 10–20 accounts in your niche daily (comment genuinely, not just emojis)",
+      "Tag your location in every post — massive for local discovery",
+      "Collaborate with complementary businesses for cross-promotion",
+      "Run a monthly giveaway to grow your following — require follow + tag a friend",
+    ],
+  };
+}
+
+async function execBusinessReviewRequestTemplate(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", business_type = "business", review_platform = "Google", service_description = "our services" } = input ?? {};
+  return {
+    templates: {
+      sms: {
+        send_timing: "Send 1–2 hours after service completion or product delivery",
+        message: `Hi [Customer Name]! Thank you for choosing ${business_name}. We hope you're happy with ${service_description}! If you have a moment, a quick review on ${review_platform} would mean a lot to our team: [REVIEW LINK]. Thank you! 🙏`,
+        follow_up: `Hi [Customer Name], just following up — we'd still love to hear about your experience with ${business_name}! [REVIEW LINK] — takes less than 2 minutes. Thank you!`,
+      },
+      email: {
+        subject: `How was your experience with ${business_name}?`,
+        body: `Hi [Customer Name],\n\nThank you for choosing ${business_name}! It was a pleasure working with you.\n\nWe're always looking to improve, and your feedback helps us serve customers like you better. If you have 2 minutes, we'd really appreciate a review on ${review_platform}:\n\n👉 [${review_platform} REVIEW LINK]\n\nYour honest feedback helps other people find a business they can trust — and helps us keep doing what we love.\n\nIf there's anything we could have done better, please reply to this email. We'd love the chance to make it right.\n\nThank you again,\n[Your Name]\n${business_name}\n[Phone] | [Website]`,
+      },
+      in_person_script: `"[Customer Name], we really appreciate your business today. If you're happy with [the service/your purchase], we'd love it if you could leave us a quick Google review — it really helps our small business. I can text you the link right now if that's easier?"`,
+      invoice_footer: `Enjoyed working with us? Leave us a review on ${review_platform}: [SHORT LINK]. It takes 2 minutes and means the world to our team. Thank you! ⭐`,
+    },
+    collection_strategy: [
+      `Ask every customer, every time — make it part of your process (end of job, checkout, invoice sent)`,
+      "Text beats email for review requests — 98% open rate vs. 20% for email",
+      "Make the link as short as possible — use bit.ly or your link-shortener of choice",
+      "Set up a QR code that links to your review page — print it on receipts, business cards, and signs",
+      `${review_platform === "Google" ? "For Google: search your business name on Google, click 'Write a review', copy that URL and shorten it" : `Find your ${review_platform} review link in your business profile settings`}`,
+    ],
+    responding_to_reviews: {
+      five_star: "Thank by name, reference something specific they mentioned, invite them back: 'Thank you so much, [Name]! We're thrilled you had a great experience. We'd love to work with you again!'",
+      one_to_three_star: "Respond within 24 hours. Never be defensive. Acknowledge → Apologize → Offer to resolve: 'We're so sorry your experience wasn't what it should have been. We'd love the opportunity to make this right — please reach out to us at [contact] so we can address this directly.'",
+      golden_rule: "Never argue or be defensive in a public reply — a graceful response to a negative review impresses future customers more than the review itself hurts you.",
+    },
+    review_volume_goals: "0–10 reviews: get to 10 as fast as possible (under 10 looks inactive). 10–50 reviews: builds steady trust. 50+ reviews: strong social proof that drives conversions.",
+    platforms_by_industry: {
+      local_service: "Google first, then Yelp and Facebook",
+      restaurant: "Google, Yelp, TripAdvisor",
+      retail: "Google, Facebook, industry-specific sites",
+      b2b: "Google, LinkedIn, G2 or Clutch (for SaaS/agencies)",
+    },
+  };
+}
+
+async function execBusinessPromoCampaignGenerate(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", business_type = "business", campaign_name = "Promotional Campaign", offer = "Special offer", start_date = "TBD", end_date = "TBD", target_customer = "local customers", channels = ["Google Ads", "Facebook", "Instagram", "Email", "SMS"] } = input ?? {};
+  return {
+    campaign: `${campaign_name} — ${business_name}`,
+    business_type, offer, duration: `${start_date} → ${end_date}`, channels, target_customer,
+    campaign_brief: {
+      objective: `Drive new customer acquisition and revenue for ${business_name} during the campaign period`,
+      target_audience: target_customer,
+      key_message: `${business_name} — ${offer}. Professional service, proven results. [Call to action].`,
+      urgency: `Offer valid through ${end_date} only`,
+    },
+    channel_playbook: channels.map((channel: string) => ({
+      channel,
+      content: channel === "Google Ads"
+        ? { action: "Add promotion extension to all active campaigns", headline: `${offer} — Limited Time at ${business_name}`, note: "Increase bids by 20% during campaign window to capture more impressions" }
+        : channel === "Facebook" || channel === "Instagram"
+        ? { format: "Video or photo ad with offer overlay", caption: `🎉 ${offer} at ${business_name}! ${campaign_name} — valid through ${end_date}. [Link in bio / Shop Now / Contact Us]`, budget: `$${Math.round(300 * 0.50)}/month`, audience: "3–15 mile radius + lookalike of past customers" }
+        : channel === "Email"
+        ? { subject: `[Limited Time] ${offer} — ${campaign_name}`, preview_text: `Don't miss this — ends ${end_date}`, body: `Hi [Name],\n\nFor a limited time, ${business_name} is offering ${offer} as part of our ${campaign_name}.\n\nThis offer is only valid through ${end_date}, so don't wait.\n\n[CTA BUTTON: Claim Your Offer]\n\nThank you for your continued support,\n[Your Name]\n${business_name}`, tip: "Send to your full list on Day 1, then resend to non-openers on Day 4 with a subject line like 'Did you see this?'" }
+        : channel === "SMS"
+        ? { message: `🎉 ${business_name}: ${offer}! ${campaign_name} — valid through ${end_date}. Tap to claim: [link]. Reply STOP to opt out.`, timing: "Send Tuesday–Thursday 10am–noon — highest open rates for promotional SMS" }
+        : channel === "LinkedIn"
+        ? { post: `Excited to announce our ${campaign_name} at ${business_name}! We're offering ${offer} for ${target_customer}. If you know someone who could benefit, please tag them or share this post. Offer valid through ${end_date}. [Contact link]`, note: "Best for B2B businesses — LinkedIn has highest income demographic of any social platform" }
+        : channel === "Flyer/Poster"
+        ? { headline: `${offer}`, subhead: `${campaign_name} | ${business_name}`, body: `Valid ${start_date}–${end_date}`, distribution: "Post in local coffee shops, community boards, apartment lobbies, and partner businesses within your target area", qr_code: "Add a QR code linking to your website or offer landing page" }
+        : channel === "Nextdoor"
+        ? { post: `Hi neighbors! ${business_name} is running a ${campaign_name} — ${offer} for ${target_customer} in our area. We're local and love serving this community. Valid through ${end_date}. Feel free to message me with any questions!`, tip: "Nextdoor posts from real neighbors get much higher engagement than business posts — ask satisfied customers to share the offer on Nextdoor" }
+        : { action: `Promote campaign on ${channel}` },
+    })),
+    grand_opening_extras: campaign_name.toLowerCase().includes("grand opening") ? {
+      ribbon_cutting: "Contact your local Chamber of Commerce — free ceremony, local press coverage, and community credibility",
+      press_release: "Email your local newspaper's business editor 2 weeks before with a press release. Angle: new local business, jobs created, community contribution.",
+      influencer_preview: "Invite 3–5 local micro-influencers (1k–10k followers) to a preview event in exchange for authentic posts",
+      soft_open: "Run 1 week of soft opening to work out operational issues before the public campaign launches",
+    } : undefined,
+    email_sequence: {
+      day_1: "Campaign announcement — full offer details",
+      day_4: "Resend to non-openers with different subject line",
+      day_7: "Midpoint reminder — 'Halfway through [campaign name]'",
+      final_day: "Last chance — 'Today is the last day'",
+    },
+    success_metrics: { track: ["New leads/customers acquired", "Revenue during campaign vs. same period prior", "Cost per new customer by channel", "Best-performing channel by conversion rate", "Social media follower growth"], review_at: "Midpoint check — pause underperforming channels, double budget on what's working" },
+    pro_tip: "Your email list and SMS list are your highest-ROI channels because they're free to send to. Before every paid campaign, blast your existing list first — the best promo spend is always on people who already know you.",
   };
 }
