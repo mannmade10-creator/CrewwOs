@@ -25,6 +25,7 @@ const DEPT_COLORS: Record<string, string> = {
   "Music & Entertainment": "#8B5CF6",
   "E-Commerce": "#EC4899",
   Trades: "#F59E0B",
+  Business: "#6366F1",
 };
 
 const DEPT_ICONS: Record<string, string> = {
@@ -438,7 +439,7 @@ function LobbyFloor({
   );
 }
 
-const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment", "E-Commerce", "Trades"];
+const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment", "E-Commerce", "Trades", "Business"];
 
 export default function OfficeSkyscraper({
   agents,

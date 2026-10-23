@@ -2,7 +2,7 @@
 // Single source of truth for CrewOS's agents (Section 2 of the Master Build Doc).
 // Used to seed the `agents` table per-workspace and to build system prompts.
 
-export type Dept = "Engineering" | "Sales" | "Marketing" | "Operations" | "Real Estate" | "Restaurant" | "Music & Entertainment" | "E-Commerce" | "Trades";
+export type Dept = "Engineering" | "Sales" | "Marketing" | "Operations" | "Real Estate" | "Restaurant" | "Music & Entertainment" | "E-Commerce" | "Trades" | "Business";
 
 export interface AgentDef {
   slug: string;
