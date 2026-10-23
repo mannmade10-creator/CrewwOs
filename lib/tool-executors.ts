@@ -2312,6 +2312,23 @@ export const EXECUTORS: Record<string, (workspaceId: string, input: any) => Prom
   trades_yelp_nextdoor_setup: execTradesYelpNextdoorSetup,
   trades_review_request_template: execTradesReviewRequestTemplate,
   trades_promo_campaign_generate: execTradesPromoCampaignGenerate,
+  // Restaurant Business Setup (16)
+  restaurant_ein_guide: execRestaurantEinGuide,
+  restaurant_state_registration_guide: execRestaurantStateRegistrationGuide,
+  restaurant_license_permit_guide: execRestaurantLicensePermitGuide,
+  restaurant_health_inspection_guide: execRestaurantHealthInspectionGuide,
+  restaurant_fire_safety_guide: execRestaurantFireSafetyGuide,
+  restaurant_business_email_setup: execRestaurantBusinessEmailSetup,
+  restaurant_business_address_setup: execRestaurantBusinessAddressSetup,
+  restaurant_business_phone_setup: execRestaurantBusinessPhoneSetup,
+  restaurant_business_bank_guide: execRestaurantBusinessBankGuide,
+  restaurant_servsafe_guide: execRestaurantServSafeGuide,
+  restaurant_insurance_guide: execRestaurantInsuranceGuide,
+  restaurant_google_ads_campaign: execRestaurantGoogleAdsCampaign,
+  restaurant_facebook_ads_campaign: execRestaurantFacebookAdsCampaign,
+  restaurant_menu_marketing: execRestaurantMenuMarketing,
+  restaurant_review_request_template: execRestaurantReviewRequestTemplate,
+  restaurant_promo_campaign_generate: execRestaurantPromoCampaignGenerate,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3037,5 +3054,845 @@ async function execTradesPromoCampaignGenerate(_workspaceId: string, input: any)
       review_after: "7 days into campaign — pause any channel spending less than 1x ROI, double down on what's working",
     },
     pro_tip: `For ${trade_type} businesses, Google LSAs + SMS to your past customer list is typically the highest-ROI combination for a short-term promo campaign. Start there before spending on Facebook or direct mail.`,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Restaurant Business Setup executor functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function execRestaurantEinGuide(_workspaceId: string, input: any) {
+  const { business_name = "your restaurant", restaurant_type = "restaurant", owner_name = "the owner", state = "your state" } = input ?? {};
+  return {
+    guide: "Restaurant Business EIN Application Guide",
+    business_name,
+    restaurant_type,
+    what_is_ein: "An EIN (Employer Identification Number) is your restaurant's federal tax ID — required to open a business bank account, hire staff, set up payroll, apply for licenses, and file business taxes. Free and instant from the IRS.",
+    cost: "Free — IRS never charges. Any site charging a fee is a middleman. Only use irs.gov.",
+    steps: [
+      { step: 1, action: "Go to IRS.gov/ein", detail: "Navigate to irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online — available Mon–Fri 7am–10pm ET." },
+      { step: 2, action: "Select entity type", detail: `If you've formed an LLC in ${state}, select LLC. If you're a sole proprietor just starting, select Sole Proprietor. Most restaurant owners should have an LLC for liability protection.` },
+      { step: 3, action: "Select reason", detail: "Choose 'Started a new business'." },
+      { step: 4, action: "Enter your info", detail: `Business name: ${business_name}. State: ${state}. Responsible party: ${owner_name} (your personal SSN — standard and secure). Business address: your restaurant location or virtual mailbox.` },
+      { step: 5, action: "Submit and save your EIN", detail: "EIN is issued instantly. Print or PDF the confirmation letter — you'll need it for your bank account, liquor license application, vendor accounts, and state tax registration." },
+    ],
+    what_you_need: ["Full legal name", "Social Security Number (SSN) or ITIN", "Business name", "Restaurant address", "State of formation", "Entity type"],
+    after_ein: [
+      "Open a business bank account — bring EIN letter + LLC Articles of Organization",
+      "Register for state sales tax (restaurants typically collect sales tax on food/beverage)",
+      "Set up payroll if hiring — Gusto, ADP, or QuickBooks Payroll",
+      "Apply for liquor license (if serving alcohol) — requires EIN",
+      "Register with your city/county for business license using your EIN",
+    ],
+    restaurant_specific_tip: `${restaurant_type === "food truck" ? "Food truck operators: register your EIN before applying for your mobile food vendor permit — many cities require it." : "Brick-and-mortar restaurants: your EIN goes on every vendor account, your health department permit application, and your liquor license if applicable."}`,
+  };
+}
+
+async function execRestaurantStateRegistrationGuide(_workspaceId: string, input: any) {
+  const { business_name = "your restaurant", state = "your state", restaurant_type = "restaurant", entity_type = "LLC" } = input ?? {};
+  return {
+    guide: "Restaurant Business State Registration Guide",
+    business_name,
+    state,
+    restaurant_type,
+    why_llc_matters_for_restaurants: "Restaurants face higher liability than most businesses — a customer slipping, a foodborne illness claim, or an employee injury can be catastrophic personally if you have no entity protection. An LLC shields your personal home, savings, and assets.",
+    entity_comparison: {
+      LLC: {
+        pros: ["Personal liability protection — your personal assets are shielded", "Pass-through taxation", "Required by most commercial landlords for a lease", "Easier to get business insurance, loans, and vendor credit", "Investor-friendly if you ever want to scale to multiple locations"],
+        cons: ["State filing fee ($50–$500)", "Annual report fee in most states"],
+        best_for: "Any restaurant with a physical location, employees, or alcohol service — which is almost every restaurant",
+      },
+      Sole_Proprietor: {
+        pros: ["No formation cost or paperwork"],
+        cons: ["Zero liability protection", "Personally liable for lawsuits, debt, and injuries", "Cannot sign most commercial leases as a business entity"],
+        best_for: "Avoid for restaurants — the liability risk is too high",
+      },
+    },
+    llc_formation_steps: [
+      { step: 1, action: "Name check", detail: `Search ${state}'s Secretary of State website to confirm "${business_name} LLC" is available. Also check that the name doesn't conflict with federal trademarks (USPTO.gov).` },
+      { step: 2, action: "File Articles of Organization", detail: `File online at your ${state} Secretary of State website. Cost: $50–$500. Approval: 1–10 business days.` },
+      { step: 3, action: "Get a Registered Agent", detail: "Required in every state — receives legal and official documents. Options: yourself (must have a physical in-state address), Northwest Registered Agent ($39–$125/yr), or your attorney." },
+      { step: 4, action: "Create an Operating Agreement", detail: "Defines ownership percentages, how profits are split, who makes decisions. Critical if you have any partners or investors. Free templates at LegalZoom or your state's SOS website." },
+      { step: 5, action: "Get your EIN", detail: "Apply at IRS.gov after LLC is formed. Instant and free." },
+      { step: 6, action: "Open a business bank account", detail: "Bring Articles of Organization + EIN letter. Never mix personal and restaurant money — it's an accounting nightmare and can void your LLC protection." },
+      { step: 7, action: "Register for state sales tax", detail: `Most states require restaurants to collect sales tax on food and beverage. Register at ${state}'s Department of Revenue website.` },
+      { step: 8, action: "Get your local business license", detail: "Separate from your LLC — your city or county requires a general business license to operate. Apply at your city hall or county clerk's office." },
+    ],
+    restaurant_specific_considerations: [
+      "If you have a partner (co-owner), your Operating Agreement MUST specify ownership % and decision-making authority — verbal agreements cause lawsuits",
+      "If you're signing a commercial lease, your LLC must exist FIRST — landlords sign leases with the entity, not you personally",
+      "Franchise restaurants: the franchisor typically requires an LLC or corporation before granting the franchise agreement",
+    ],
+    timeline: "LLC formation + EIN + bank account: 1–2 weeks total",
+    cost_estimate: "State filing: $50–$500 | Registered agent: $39–$125/yr | Operating agreement: Free–$300",
+  };
+}
+
+async function execRestaurantLicensePermitGuide(_workspaceId: string, input: any) {
+  const { state = "your state", restaurant_type = "restaurant", serves_alcohol = false, has_outdoor_seating = false, is_food_truck = false } = input ?? {};
+  return {
+    guide: `Restaurant License & Permit Checklist — ${state}`,
+    state,
+    restaurant_type,
+    critical_note: "Every permit has its own timeline. Some (especially liquor licenses) take 60–120 days. Start the full permit process at least 3–6 months before your target opening date.",
+    required_permits: [
+      {
+        permit: "Business License",
+        issued_by: "City or County Clerk",
+        timeline: "1–2 weeks",
+        cost: "$50–$400",
+        notes: "General operating permit — required before you can legally operate",
+      },
+      {
+        permit: "Food Service Establishment Permit / Health Permit",
+        issued_by: `${state} Department of Health / County Health Department`,
+        timeline: "2–6 weeks (includes inspection)",
+        cost: "$100–$1,000 depending on seating and menu complexity",
+        notes: "The big one — you cannot open without this. Requires a passed health inspection of your kitchen. Apply after your build-out is complete.",
+      },
+      {
+        permit: "Food Handler Cards (all staff who handle food)",
+        issued_by: "State Health Department or approved program",
+        timeline: "1–3 days per employee",
+        cost: "$10–$30 per employee",
+        notes: "Required for every employee who touches food. Usually a 2–4 hour online or in-person course.",
+      },
+      {
+        permit: "Food Manager Certification (ServSafe)",
+        issued_by: "National Restaurant Association (ServSafe) or state equivalent",
+        timeline: "1–2 days (study + exam)",
+        cost: "$35–$175 for exam + materials",
+        notes: "Most states require at least one certified food protection manager per establishment. Good for 5 years.",
+      },
+      {
+        permit: "Seller's Permit / Sales Tax Permit",
+        issued_by: `${state} Department of Revenue / Taxation`,
+        timeline: "Immediate (online) to 2 weeks",
+        cost: "Usually free",
+        notes: "Required to collect and remit sales tax on food and beverage sales",
+      },
+      {
+        permit: "Employer Identification Number (EIN)",
+        issued_by: "IRS",
+        timeline: "Instant (online)",
+        cost: "Free",
+        notes: "Required before opening a bank account, hiring staff, or applying for most other permits",
+      },
+      {
+        permit: "Certificate of Occupancy (CO)",
+        issued_by: "Local Building Department",
+        timeline: "2–8 weeks after build-out inspection",
+        cost: "$100–$500",
+        notes: "Confirms your space is safe and up to code for its intended use. Required before opening.",
+      },
+      {
+        permit: "Sign Permit",
+        issued_by: "Local Zoning / Planning Department",
+        timeline: "1–4 weeks",
+        cost: "$50–$300",
+        notes: "Required before installing any exterior signage",
+      },
+      ...(serves_alcohol ? [{
+        permit: "Liquor License",
+        issued_by: `${state} Alcoholic Beverage Control (ABC) Board`,
+        timeline: "60–120 days",
+        cost: "$300–$14,000+ depending on state and license type",
+        notes: "Most time-consuming permit — apply FIRST. Types: beer & wine only, full liquor, restaurant beer & wine, etc. Background checks on all owners required.",
+      }] : []),
+      ...(is_food_truck ? [{
+        permit: "Mobile Food Vendor Permit",
+        issued_by: "City / County Health Department",
+        timeline: "2–4 weeks",
+        cost: "$100–$500",
+        notes: "Separate from a brick-and-mortar health permit. Also need: commissary agreement (licensed commercial kitchen where you prep), vehicle health inspection",
+      }] : []),
+      ...(has_outdoor_seating ? [{
+        permit: "Outdoor Dining / Sidewalk Cafe Permit",
+        issued_by: "City Public Works or Planning Department",
+        timeline: "2–6 weeks",
+        cost: "$100–$1,000",
+        notes: "Required to place tables/chairs on a public sidewalk or parking lot. May require liability insurance naming the city.",
+      }] : []),
+    ],
+    recommended_order: [
+      "1. Form your LLC and get your EIN",
+      "2. Apply for liquor license IMMEDIATELY if serving alcohol — longest timeline",
+      "3. Secure your commercial lease (landlord needs your LLC)",
+      "4. Begin build-out / kitchen installation",
+      "5. Apply for business license and seller's permit",
+      "6. Complete build-out and schedule health inspection",
+      "7. Get all staff food handler cards before health inspection",
+      "8. Schedule fire marshal inspection",
+      "9. Receive Certificate of Occupancy",
+      "10. Open!",
+    ],
+    search_tip: `Search "${state} restaurant permits checklist" and "${state} food service establishment permit" for your exact state portal, fees, and inspection scheduling.`,
+  };
+}
+
+async function execRestaurantHealthInspectionGuide(_workspaceId: string, input: any) {
+  const { state = "your state", restaurant_type = "restaurant", kitchen_type = "commercial kitchen" } = input ?? {};
+  return {
+    guide: `Restaurant Health Inspection Prep Guide — ${state}`,
+    state,
+    restaurant_type,
+    kitchen_type,
+    what_inspectors_check: {
+      temperature_control: {
+        title: "Temperature Control (Most Common Violations)",
+        items: [
+          "Cold holding: all refrigerated foods at 41°F or below (meat, dairy, cut produce)",
+          "Hot holding: cooked food kept for service at 135°F or above",
+          "Cooling: cooked food must cool from 135°F to 70°F within 2 hrs, then to 41°F within 4 more hrs",
+          "Cooking temps: poultry 165°F, ground beef 155°F, pork/fish 145°F — verified with calibrated probe thermometer",
+          "Thermometers: every fridge/freezer must have a visible thermometer; probe thermometers must be calibrated",
+        ],
+        prep: "Check ALL fridge temps every morning and log them. Keep a temp log binder — inspectors love documented consistency.",
+      },
+      personal_hygiene: {
+        title: "Personal Hygiene",
+        items: [
+          "Handwashing: sinks must be accessible, stocked with soap and paper towels at all times",
+          "No bare-hand contact with ready-to-eat food — use gloves, tongs, or deli paper",
+          "Hair restraints for all food handlers",
+          "No eating, drinking, or smoking in food prep areas",
+          "Sick employee policy: staff with vomiting, diarrhea, jaundice, or sore throat with fever must be excluded",
+        ],
+        prep: "Post a handwashing reminder at every sink. Have a written sick employee policy visible in the kitchen.",
+      },
+      cross_contamination: {
+        title: "Cross-Contamination Prevention",
+        items: [
+          "Color-coded cutting boards: raw meat (red), poultry (yellow), fish (blue), produce (green), dairy (white)",
+          "Raw meat stored BELOW ready-to-eat foods in all refrigerators — always",
+          "Raw chicken on the BOTTOM shelf of every cooler",
+          "Separate prep areas for raw protein and ready-to-eat foods",
+          "Sanitize prep surfaces between tasks, not just at end of day",
+        ],
+        prep: "Label every shelf in your walk-in cooler. Inspectors will open every door.",
+      },
+      sanitation: {
+        title: "Sanitation & Cleaning",
+        items: [
+          "Three-compartment sink: wash (warm soapy water) → rinse (clean water) → sanitize (100–200 ppm chlorine or 200 ppm quaternary ammonium)",
+          "Sanitizer concentration must be tested with test strips — have them visible",
+          "Food contact surfaces sanitized every 4 hours minimum",
+          "Non-food contact surfaces (walls, floors, equipment exteriors) clean and in good repair",
+          "Mop sink and cleaning supplies stored separately from food storage",
+        ],
+        prep: "Keep test strips at every sanitizer bucket. Document your sanitizer concentration at setup.",
+      },
+      pest_control: {
+        title: "Pest Control",
+        items: [
+          "No evidence of rodents (droppings, gnaw marks, nesting material)",
+          "No evidence of cockroaches (live, dead, egg cases, fecal matter)",
+          "All gaps, cracks, and holes sealed — door sweeps on all exterior doors",
+          "Dumpster area clean and lids closed",
+          "Pest control service contract (monthly is standard) — have the service record on file",
+        ],
+        prep: "Walk the restaurant the night before your inspection looking for any signs of pest activity. Check under equipment and in dry storage.",
+      },
+      facilities: {
+        title: "Facilities & Equipment",
+        items: [
+          "Adequate hot water (at least 120°F at handwashing sinks, 110°F at three-compartment sink)",
+          "Proper ventilation — hood system working, grease filters clean",
+          "Adequate lighting in all prep and storage areas",
+          "Food stored 6 inches off the floor",
+          "All equipment NSF-certified (if required by your state)",
+        ],
+      },
+    },
+    day_before_checklist: [
+      "✅ Check every fridge and freezer temperature — correct anything above 41°F",
+      "✅ Verify date labels on all stored food",
+      "✅ Check sanitizer buckets and test with strips",
+      "✅ Restock all handwashing stations (soap, paper towels)",
+      "✅ Walk the walk-in cooler — raw meat on bottom, produce on top",
+      "✅ Check under all equipment for debris or pest evidence",
+      "✅ Ensure pest control log is current and filed",
+      "✅ Verify probe thermometer is calibrated",
+      "✅ Make sure all staff food handler cards are current and on file",
+    ],
+    inspection_scores: "Most states grade A/B/C or a numeric score. An 'A' (or 90+) is your goal. Critical violations (temperature, contamination, hygiene) cause immediate re-inspection or closure. Non-critical violations give you time to correct.",
+    pro_tip: "Treat every day like an inspection day — not just the week before. Inspectors can and do show up unannounced.",
+  };
+}
+
+async function execRestaurantFireSafetyGuide(_workspaceId: string, input: any) {
+  const { state = "your state", restaurant_type = "restaurant", seating_capacity = 50 } = input ?? {};
+  return {
+    guide: `Restaurant Fire Safety & Code Compliance Guide — ${state}`,
+    state,
+    restaurant_type,
+    seating_capacity,
+    key_systems: [
+      {
+        system: "Commercial Hood & Suppression System",
+        required: true,
+        notes: "Required over ALL cooking equipment (fryers, grills, ranges, woks). The suppression system (Ansul or equivalent) automatically deploys fire suppressant if a fire starts. Must be inspected and tagged by a certified technician every 6 months.",
+        cost: "Installation: $3,000–$10,000+ | Semi-annual inspection: $150–$400",
+      },
+      {
+        system: "Fire Extinguishers",
+        required: true,
+        notes: "Class K extinguisher required in every kitchen (for grease fires). Class ABC extinguisher required in dining areas. All must be mounted, accessible, and inspected annually by a certified company.",
+        placement: "Kitchen: within 30 feet of cooking equipment. Dining: one per floor, accessible without travel through kitchen.",
+        cost: "$50–$150 per extinguisher | Annual inspection: $20–$60 per unit",
+      },
+      {
+        system: "Fire Alarm / Smoke Detection System",
+        required: true,
+        notes: "Commercial-grade system required. Must be connected to the suppression system. Tested annually. Some jurisdictions require connection to the fire department.",
+      },
+      {
+        system: "Sprinkler System",
+        required: seating_capacity > 49,
+        notes: `Required for most restaurants over 49 occupancy. If you're renovating an older space without sprinklers, adding them is often required by the building permit process. Cost: $1–$3/sq ft to install.`,
+      },
+      {
+        system: "Emergency Lighting & Exit Signs",
+        required: true,
+        notes: "All exits must be marked with illuminated exit signs. Emergency lighting must activate automatically if power fails. Battery backup required.",
+      },
+    ],
+    occupancy_and_egress: {
+      occupancy_load: `At ${seating_capacity} seats + staff, your occupancy load likely exceeds 49 — which triggers sprinkler requirements in most states. The fire marshal calculates official occupancy based on sq ft per person.`,
+      exit_requirements: [
+        "At least 2 exits for any occupancy over 49 people",
+        "Exit doors must swing outward (in the direction of travel)",
+        "Minimum 32-inch clear width per exit door",
+        "No obstructions within 5 feet of any exit",
+        "Exit paths must remain clear at all times — no storing inventory in hallways",
+      ],
+    },
+    inspection_process: [
+      { step: 1, action: "Grease duct cleaning", detail: "Before your fire marshal inspection, have your hoods and ducts professionally cleaned. Inspector will check cleaning frequency records — high-volume cooking: quarterly; moderate: semi-annually." },
+      { step: 2, action: "Hood system certification", detail: "Get your suppression system inspected and tagged. The tag on the suppression system must show a current date. Expired tags = failed inspection." },
+      { step: 3, action: "Extinguisher check", detail: "Verify all extinguishers have current annual inspection tags, are mounted and accessible, and the K extinguisher is properly placed near cooking equipment." },
+      { step: 4, action: "Exit walk-through", detail: "Walk every exit path — doors open freely, signs are lit, nothing is blocking the path. Test emergency lighting." },
+      { step: 5, action: "Schedule fire marshal inspection", detail: `Contact your local fire marshal's office to schedule. In most cities, this is required before you receive your Certificate of Occupancy.` },
+    ],
+    grease_management: "Grease buildup in hoods and ducts is the #1 cause of restaurant fires. Keep a cleaning log. Most jurisdictions require quarterly cleaning for high-volume frying, semi-annually for moderate cooking.",
+    cost_to_be_compliant: "Existing compliant space: $500–$2,000/year (inspections, extinguisher service, hood cleaning). New build-out or renovation: $5,000–$25,000+ (hood, suppression, sprinklers, alarm system).",
+  };
+}
+
+async function execRestaurantBusinessEmailSetup(_workspaceId: string, input: any) {
+  const { business_name = "your restaurant", restaurant_type = "restaurant", preferred_domain = "" } = input ?? {};
+  const slug = business_name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const domainSuggestion = preferred_domain || `${slug}.com`;
+  return {
+    guide: "Restaurant Business Email Setup Guide",
+    business_name,
+    recommended_domain: domainSuggestion,
+    why_professional_email: "A Gmail address loses you catering contracts, vendor credit accounts, and credibility with customers. A branded email takes 30 minutes and $6–$12/month.",
+    domain_options: [
+      `${slug}.com — if taken, try ${slug}okc.com, eat${slug}.com, or ${slug}restaurant.com`,
+      "Purchase at: Google Domains ($12/yr), Namecheap ($8–$15/yr), or GoDaddy ($10–$20/yr)",
+    ],
+    email_provider: {
+      recommended: "Google Workspace",
+      cost: "$6/user/month",
+      why: "Gmail interface everyone knows, Google Drive for menus and schedules, Meet for staff calls, Sheets for ordering",
+      setup: "workspace.google.com → Get started → connect your domain → verify with TXT record (your domain registrar will walk you through it)",
+      alternative: "Microsoft 365 Business Basic ($6/user/month) — Outlook + Teams if you prefer Microsoft",
+    },
+    recommended_addresses: [
+      `info@${domainSuggestion} — general inquiries and website contact form`,
+      `reservations@${domainSuggestion} — reservation requests (if you take them)`,
+      `catering@${domainSuggestion} — catering and private events (major revenue opportunity)`,
+      `orders@${domainSuggestion} — online order confirmations (if not using a POS system's auto-email)`,
+      `manager@${domainSuggestion} — internal use, vendor correspondence`,
+    ],
+    email_signature_template: `[Name] | [Title]\n${business_name}\n📞 [Phone] | 🌐 [Website]\n📍 [Address]\n🍽️ Hours: [Hours]\nFollow us: [Instagram] | [Facebook]`,
+    catering_email_tip: "Create a catering@domain email and put it on your menu, website, and Google Business Profile — catering is the highest-margin revenue for most restaurants and most owners miss it by not making it easy to inquire.",
+  };
+}
+
+async function execRestaurantBusinessAddressSetup(_workspaceId: string, input: any) {
+  const { business_name = "your restaurant", state = "your state", restaurant_type = "restaurant", has_physical_location = true } = input ?? {};
+  return {
+    guide: "Restaurant Business Address Setup Guide",
+    business_name,
+    state,
+    restaurant_type,
+    primary_address: has_physical_location
+      ? {
+          use: "Your restaurant location is your primary business address — use it for EVERYTHING: LLC filing, EIN, bank account, health permit, Google Business Profile, website, and marketing.",
+          google_business: "Your Google Business Profile address is what shows on Google Maps. Verify it with the postcard Google mails to your restaurant address. This is the most important local marketing asset you have.",
+          tip: "Make sure your address is formatted EXACTLY the same on every document — Google Business Profile, state LLC filing, and health permit should all match perfectly.",
+        }
+      : {
+          use: "Food truck or virtual restaurant — you need a physical address for your LLC and bank account that is NOT a PO Box.",
+          options: [
+            "Virtual Mailbox (PostScan Mail, Anytime Mailbox, iPostal1) — real street address, mail scanned and emailed, from $10/mo",
+            "Commissary kitchen address — many food trucks use their commissary as their business address",
+            "Registered Agent address — works for LLC filing but NOT for Google Business Profile",
+          ],
+        },
+    registered_agent: {
+      description: "Your LLC needs a registered agent with a physical address in your state to receive legal documents.",
+      options: ["Yourself (at your restaurant address)", "Northwest Registered Agent ($39–$125/yr)", "Your attorney or accountant"],
+      note: "The registered agent address is for legal mail only — your restaurant location is still your operational business address.",
+    },
+    mailing_vs_physical: "If your restaurant address gets a lot of vendor invoices and supplier mail, consider a virtual mailbox for all business correspondence — keeps your restaurant's front counter free of business mail.",
+    multiple_locations: "Planning to scale to multiple locations eventually? Set up your LLC address as a dedicated business address (not tied to one location) from the start — makes future expansion cleaner.",
+  };
+}
+
+async function execRestaurantBusinessPhoneSetup(_workspaceId: string, input: any) {
+  const { business_name = "your restaurant", restaurant_type = "restaurant", takes_reservations = true, team_size = 5 } = input ?? {};
+  return {
+    guide: "Restaurant Business Phone Setup Guide",
+    business_name,
+    restaurant_type,
+    why_dedicated_phone: "Your personal cell number on a restaurant door gets called at 11pm on your day off. A dedicated business number lets you set hours, route calls, and hand it off to staff.",
+    options: [
+      {
+        name: "Google Voice (Free/Basic)",
+        cost: "Free personal / $10/user/mo business",
+        pros: ["Free local number", "Voicemail transcription", "Can forward to multiple phones"],
+        cons: ["No auto-attendant on free tier", "Limited for a restaurant with multiple staff"],
+        best_for: "Food truck or solo operator just starting",
+      },
+      {
+        name: "OpenPhone (Recommended)",
+        cost: "$15/user/month",
+        pros: ["Shared phone number the whole team can answer", "Business texting", "Call recording", "Auto-reply SMS", "Hours-based routing"],
+        best_for: "Small restaurant team (2–10 staff) — everyone can see and answer calls",
+      },
+      {
+        name: "RingCentral",
+        cost: "$20–$35/user/month",
+        pros: ["Auto-attendant ('Press 1 for reservations, Press 2 for catering, Press 3 for hours')", "Hold music", "Multiple extensions", "CRM integration"],
+        best_for: `Restaurant with ${team_size > 10 ? "a front-of-house team" : "growing staff"} and significant phone volume`,
+      },
+    ],
+    voicemail_script: `"Thank you for calling ${business_name}! ${takes_reservations ? "For reservations, press 1 or visit [website]. " : ""}For catering inquiries, press 2 or email catering@[domain]. For hours and location, press 3. To speak with someone, please call back during business hours: [hours]. We look forward to seeing you!"`,
+    sms_strategy: [
+      "Enable SMS on your business number — text reservation confirmations",
+      "Text your VIP customers about daily specials and new menu items",
+      "Send order-ready notifications for takeout (huge customer experience win)",
+      "Text review requests after dine-in experiences",
+    ],
+    restaurant_tip: `${takes_reservations ? "Reservation calls are the most important — make sure your phone is answered or goes to voicemail with clear instructions to book online or text. Missing a reservation call = lost revenue." : "Since you don't take reservations, prioritize catering inquiries — a dedicated 'catering' prompt in your voicemail captures high-value business."}`,
+  };
+}
+
+async function execRestaurantBusinessBankGuide(_workspaceId: string, input: any) {
+  const { business_name = "your restaurant", state = "your state", monthly_revenue_estimate = "$10,000–$50,000", has_employees = false } = input ?? {};
+  return {
+    guide: "Restaurant Business Bank Account Guide",
+    business_name,
+    state,
+    monthly_revenue_estimate,
+    why_separate_account: "Restaurants are high-volume cash businesses. Mixing personal and business money creates a tax nightmare, voids your LLC protection, and makes it impossible to track food cost, labor cost, and profit. Separate accounts from day one.",
+    what_to_bring: [
+      "EIN confirmation letter (from IRS.gov)",
+      "LLC Articles of Organization (from state filing)",
+      "Operating Agreement (if you have one)",
+      "Government-issued ID",
+      "Initial deposit ($25–$100 for most business accounts)",
+    ],
+    recommended_banks: [
+      {
+        name: "Chase Business Complete Banking",
+        monthly_fee: "$15 (waived with $2k minimum balance or $2k monthly deposits)",
+        pros: ["Largest branch network", "Strong business credit cards", "Chase QuickAccept (built-in card reader)", "Restaurant-friendly lending programs"],
+        best_for: "Full-service restaurant with regular cash deposits",
+      },
+      {
+        name: "Bank of America Business Advantage",
+        monthly_fee: "$16 (waived with $5k average balance)",
+        pros: ["Strong merchant services integration", "Business credit cards with restaurant category rewards", "SBA loan partner"],
+        best_for: "Restaurant planning to get an SBA loan or line of credit",
+      },
+      {
+        name: "Relay (relay.fi) — Online Only",
+        monthly_fee: "Free",
+        pros: ["Multiple sub-accounts (operating, payroll, tax reserve, food cost reserve)", "No fees or minimums", "Connects to QuickBooks and accounting software"],
+        best_for: "Lean operation that wants zero fees and great cash flow visibility",
+      },
+    ],
+    merchant_processing: {
+      description: "Your bank account needs a way to accept credit cards — this is separate from your bank account.",
+      options: [
+        { name: "Toast (toastpos.com)", cost: "0%–2.49% + $0.15/transaction", why: "Restaurant-specific POS — built for your industry, integrates with online ordering, loyalty, and payroll" },
+        { name: "Square for Restaurants", cost: "2.6% + $0.10/swipe", why: "Easy to set up, free POS software, good for counter service and food trucks" },
+        { name: "Clover", cost: "2.3%–2.6% + $0.10", why: "Full-featured POS with table management, often available through your bank" },
+      ],
+      tip: "Negotiate your processing rate — if you're processing $30k+/month, most processors will negotiate down from their advertised rate.",
+    },
+    cash_flow_tips: [
+      "Set up a 'Tax Reserve' sub-account — transfer 25–30% of net revenue every week",
+      "Set up a 'Payroll' sub-account — fund it before each pay period",
+      "Set up a 'Food Cost Reserve' sub-account — fund it weekly to cover next week's food orders",
+      "Review your bank balance EVERY morning — restaurants fail from cash flow problems, not bad food",
+    ],
+    accounting: {
+      recommended: "QuickBooks Online (Simple Start $17.50/mo, Plus $49.50/mo)",
+      why: "Integrates with Toast, Square, and your bank. Restaurant-specific chart of accounts. Essential for tracking food cost %, labor cost %, and actual profit.",
+      alternative: "Wave (free) — good for a very small operation; no restaurant-specific features",
+    },
+    restaurant_specific_note: "If you're doing $10k+ monthly cash sales, your bank may flag large cash deposits. Let them know you're a restaurant when you open the account — it's a known cash-heavy business type and should prevent account flags.",
+  };
+}
+
+async function execRestaurantServSafeGuide(_workspaceId: string, input: any) {
+  const { state = "your state", number_of_staff = 5, is_manager = true } = input ?? {};
+  return {
+    guide: `ServSafe Food Safety Certification Guide — ${state}`,
+    state,
+    number_of_staff,
+    two_levels: {
+      food_handler: {
+        name: "Food Handler Card / Certificate",
+        who_needs_it: "Every employee who handles food — cooks, prep cooks, servers (who handle food), bartenders (who handle garnishes/fruit)",
+        how_to_get: [
+          "ServSafe Food Handler (servsafe.com/food-handlers) — online course, ~2 hrs, $15",
+          "StateFoodSafety.com — online, often state-specific, $10–$20",
+          "In-person classes through your local health department (sometimes free)",
+        ],
+        cost: "$10–$30 per employee",
+        valid_for: "3 years in most states",
+        state_note: `Search "${state} food handler card requirement" — some states have their own approved program instead of ServSafe`,
+      },
+      food_manager: {
+        name: "Food Protection Manager Certification (ServSafe Manager)",
+        who_needs_it: "At least one certified manager per establishment in most states — the owner, head chef, or kitchen manager",
+        how_to_get: [
+          "Study: servsafe.com/managers — online or in-person course, $179 (includes study materials + exam)",
+          "Exam: 90 multiple-choice questions, 70% passing score",
+          "Proctored exam required — available at approved testing centers or through a proctor at your location",
+        ],
+        cost: "$35–$175 for exam; $179 for full package with study materials",
+        valid_for: "5 years",
+        exam_topics: ["Foodborne illness causes and prevention", "Personal hygiene", "Temperature control", "Cross-contamination", "Cleaning and sanitizing", "Pest control", "HACCP principles"],
+        study_tip: "The ServSafe Manager textbook is the exam — if you know the book, you pass the exam. The online course + practice tests take about 8–12 hours of study.",
+      },
+    },
+    haccp_plan: {
+      what_it_is: "Hazard Analysis Critical Control Points — a food safety management system identifying where contamination risks exist and how to control them",
+      required_in: "Most states require a HACCP plan for restaurants serving high-risk foods (raw proteins, sushi, etc.)",
+      basics: [
+        "Identify Critical Control Points (CCPs) — cooking temps, cooling, cold storage",
+        "Set critical limits (e.g., chicken cooked to 165°F)",
+        "Monitor and log at each CCP",
+        "Corrective actions when limits aren't met",
+        "Keep records (temp logs are your evidence)",
+      ],
+    },
+    training_plan: {
+      new_hire_orientation: [
+        "Day 1: personal hygiene, handwashing, gloves policy",
+        "Day 1: proper food storage (raw below ready-to-eat, FIFO labeling)",
+        "Day 1: temperature requirements for their role",
+        "Week 1: cross-contamination prevention",
+        "Before solo shifts: cleaning and sanitizing procedures",
+      ],
+      ongoing: "Monthly 10-minute food safety refresher at staff meetings — covers most common violations found in recent inspections",
+    },
+    staff_cards_on_file: `For ${number_of_staff} staff members, budget approximately $${number_of_staff * 20}–$${number_of_staff * 30} for food handler cards. Keep physical or scanned copies on file — inspectors will ask for them.`,
+  };
+}
+
+async function execRestaurantInsuranceGuide(_workspaceId: string, input: any) {
+  const { restaurant_type = "restaurant", state = "your state", serves_alcohol = false, has_employees = false, annual_revenue_estimate = "under $500k" } = input ?? {};
+  return {
+    guide: `Restaurant Insurance Guide — ${state}`,
+    restaurant_type,
+    state,
+    serves_alcohol,
+    critical_coverages: [
+      {
+        type: "General Liability Insurance",
+        required: true,
+        description: "Covers bodily injury and property damage to customers and third parties — a customer slips on a wet floor, or your staff accidentally breaks a client's property during catering.",
+        minimum_recommended: "$1,000,000 per occurrence / $2,000,000 aggregate",
+        typical_cost: "$800–$3,000/year depending on size and revenue",
+        note: "Your commercial landlord will require proof of GL insurance before you sign the lease. Get this first.",
+      },
+      {
+        type: "Commercial Property Insurance",
+        required: true,
+        description: "Covers your building (if you own), equipment, furniture, and inventory against fire, theft, and vandalism. A kitchen fire can wipe out $50,000–$200,000 in equipment.",
+        typical_cost: "$1,000–$5,000/year",
+        note: "Make sure your policy covers food spoilage — a refrigerator failure losing $5,000 in inventory is common and usually coverable.",
+      },
+      {
+        type: "Workers' Compensation",
+        required: has_employees,
+        description: "Required by law in almost every state if you have employees. Covers medical bills and lost wages for staff injured on the job. Kitchen injuries (burns, cuts, slips) are frequent.",
+        typical_cost: "$3–$8 per $100 of payroll, varies by job type",
+        note: `${has_employees ? "REQUIRED — you have employees. Restaurants are high-risk workplaces." : "Not legally required if you're truly a solo operator with no W-2 employees, but verify in " + state + "."}`,
+      },
+      ...(serves_alcohol ? [{
+        type: "Liquor Liability Insurance",
+        required: true,
+        description: "Covers claims arising from serving alcohol — if a customer gets into an accident after drinking at your restaurant. Most states require this as part of the liquor license process.",
+        typical_cost: "$500–$3,000/year depending on alcohol sales volume",
+        note: "Your liquor license application in most states requires proof of liquor liability coverage. Get this BEFORE applying.",
+      }] : []),
+      {
+        type: "Business Interruption Insurance",
+        required: false,
+        description: "Replaces lost income if you have to close due to a covered event (fire, flood, equipment failure). A restaurant closed for 6 weeks for repairs loses its income entirely — this covers that gap.",
+        typical_cost: "$500–$2,000/year",
+        note: "COVID taught the restaurant industry this is critical. Check if your policy covers pandemics and utility outages.",
+      },
+    ],
+    restaurant_package: {
+      name: "Business Owner's Policy (BOP) — Restaurant Package",
+      description: "Most insurers offer a restaurant-specific BOP that bundles GL + property + business interruption at a discount. Start here before pricing coverages separately.",
+      typical_cost: "$2,000–$8,000/year for a small restaurant",
+    },
+    where_to_get_quotes: [
+      "Next Insurance (nextinsurance.com) — online quotes for restaurants in minutes",
+      "Hiscox (hiscox.com) — strong restaurant policies",
+      "The Hartford (thehartford.com) — restaurant-specific BOP",
+      "Local independent insurance agent — best for customizing and bundling multiple policies",
+    ],
+    pro_tip: "Get your GL certificate of insurance before signing your commercial lease. The landlord will name themselves as 'Additional Insured' — this is standard and you should agree to it.",
+  };
+}
+
+async function execRestaurantGoogleAdsCampaign(_workspaceId: string, input: any) {
+  const { business_name = "Your Restaurant", restaurant_type = "restaurant", service_area = "local area", monthly_budget = 400, cuisine_type = "food" } = input ?? {};
+  return {
+    campaign: `Google Ads Strategy — ${business_name}`,
+    restaurant_type,
+    service_area,
+    monthly_budget: `$${monthly_budget}`,
+    priority_1_google_business_profile: {
+      title: "Google Business Profile — Do This First (Free)",
+      why: "'Restaurants near me' searches show Google Business Profiles before any ads. This is the highest-ROI thing you can do and it's free.",
+      steps: [
+        "Go to business.google.com and claim/create your listing",
+        "Upload 10+ high-quality food photos — food photos drive clicks",
+        "Set exact hours (including holiday hours)",
+        "Enable Google Messaging — customers can text you directly from search",
+        "Add your menu (via the menu section or a link to your online menu)",
+        "Respond to EVERY review within 24 hours",
+        "Post weekly using Google Business Profile posts (specials, events, new menu items)",
+      ],
+    },
+    priority_2_google_ads: {
+      title: "Google Search Ads",
+      keywords: [
+        `${cuisine_type} restaurant ${service_area}`,
+        `best ${cuisine_type} ${service_area}`,
+        `${cuisine_type} near me`,
+        `${restaurant_type} ${service_area}`,
+        `where to eat ${service_area}`,
+        `${cuisine_type} delivery ${service_area}`,
+        `catering ${service_area}`,
+        `private dining ${service_area}`,
+      ],
+      negative_keywords: ["recipe", "how to make", "cook at home", "job", "employment", "franchise"],
+      ad_copy_example: {
+        headline_1: `${cuisine_type} in ${service_area} — ${business_name}`,
+        headline_2: "Fresh | Flavorful | Open Now",
+        headline_3: "Book a Table or Order Online",
+        description: `${business_name} — serving ${service_area}'s best ${cuisine_type}. Dine in, take out, or catering. See our menu and reserve your table today!`,
+      },
+      budget_allocation: `$${Math.round(monthly_budget * 0.60)}/month on search ads`,
+    },
+    priority_3_remarketing: {
+      title: "Remarketing — Target Website Visitors",
+      description: "Show ads to people who visited your website but didn't order or reserve. Highest ROI because they already know you.",
+      budget_allocation: `$${Math.round(monthly_budget * 0.40)}/month`,
+    },
+    catering_campaign: {
+      note: "Catering is the highest-margin revenue for most restaurants. Run a dedicated 'catering' campaign targeting local businesses, event planners, and venues.",
+      keywords: [`catering ${service_area}`, `corporate catering ${service_area}`, `event catering ${service_area}`, `wedding catering ${service_area}`],
+    },
+    landing_page_must_haves: [
+      "Menu with prices (Google penalizes restaurant sites without a menu)",
+      "Online ordering or OpenTable/Resy reservation link",
+      "Your phone number clickable on mobile",
+      "Hours and address above the fold",
+      "Real food photos — not stock photos",
+    ],
+  };
+}
+
+async function execRestaurantFacebookAdsCampaign(_workspaceId: string, input: any) {
+  const { business_name = "Your Restaurant", restaurant_type = "restaurant", service_area = "local area", monthly_budget = 250, cuisine_type = "food", campaign_goal = "Drive foot traffic" } = input ?? {};
+  return {
+    campaign: `Facebook & Instagram Ads Strategy — ${business_name}`,
+    restaurant_type,
+    service_area,
+    monthly_budget: `$${monthly_budget}`,
+    campaign_goal,
+    audience_targeting: {
+      location: `${service_area} — 3–5 mile radius around your restaurant (dining is hyper-local)`,
+      demographics: "Adults 25–55 — highest dining frequency demographic",
+      interests: ["Food & dining", "Local restaurants", cuisine_type, "Yelp", "OpenTable", "Food Network", "Top Chef"],
+      behaviors: ["Frequent restaurant-goers", "Fine dining interest (if applicable)", "People who recently moved (new residents are actively finding their new local spots)"],
+      lookalike: "Upload your email/phone customer list — Facebook finds similar people in your area",
+    },
+    ad_formats: [
+      {
+        format: "Food Photo Carousel",
+        why: "Your food IS your ad. Beautiful food photos stop the scroll. Show 4–6 dishes with prices.",
+        caption: `🍽️ [Dish name] — only at ${business_name}. [Neighborhood], ${service_area}. Open [hours]. Order online: [link]`,
+      },
+      {
+        format: "Video — Kitchen/Behind the Scenes",
+        why: "30-second kitchen video builds connection and authenticity — 'this is how we make our [signature dish]'",
+        script: `"[15 seconds of plating or cooking your most visual dish]. This is why we do what we do. Come see us at ${business_name} — [address]. [Hours]."`,
+      },
+      {
+        format: "Offer Ad / Coupon",
+        why: "Drives first-time visits. People try a new restaurant when there's a low-risk offer.",
+        examples: ["'Free appetizer with your first visit — show this ad'", "'Lunch special: $12 for [dish] + drink'", "'Happy hour: 50% off appetizers 3–6pm'"],
+      },
+      {
+        format: "Event Promotion",
+        why: "Restaurant events (trivia night, live music, wine dinner, brunch launch) drive weekday traffic and new customer acquisition.",
+        tip: "Create a Facebook Event for every event — the Event algorithm gives free organic reach beyond your followers",
+      },
+    ],
+    seasonal_content_calendar: [
+      { month: "January", theme: "New Year, New Flavors — new menu items or health-focused specials" },
+      { month: "February", theme: "Valentine's Day — prix fixe dinner, reservation push" },
+      { month: "May", theme: "Mother's Day — biggest restaurant day of the year, promote early" },
+      { month: "June–August", theme: "Summer specials, outdoor dining, cocktails" },
+      { month: "September", theme: "Back to business — corporate lunch and catering push" },
+      { month: "November–December", theme: "Holiday parties and catering — biggest catering season" },
+    ],
+    budget_allocation: {
+      foot_traffic_ads: `$${Math.round(monthly_budget * 0.50)}/month`,
+      event_and_offer_ads: `$${Math.round(monthly_budget * 0.30)}/month`,
+      retargeting_website_visitors: `$${Math.round(monthly_budget * 0.20)}/month`,
+    },
+    instagram_tip: "Link your Facebook and Instagram ad accounts — one campaign runs on both platforms simultaneously. Instagram Stories ads and Reels are the highest-reach formats for restaurants right now.",
+  };
+}
+
+async function execRestaurantMenuMarketing(_workspaceId: string, input: any) {
+  const { business_name = "Your Restaurant", restaurant_type = "restaurant", cuisine_type = "food", price_point = "Mid-range ($$)" } = input ?? {};
+  return {
+    guide: `Menu Marketing Guide — ${business_name}`,
+    restaurant_type,
+    cuisine_type,
+    price_point,
+    menu_engineering: {
+      description: "Menu engineering categorizes every item by profitability and popularity to maximize revenue per customer visit.",
+      categories: {
+        Stars: { definition: "High profitability + High popularity", strategy: "Feature prominently — top of page, boxes, photos, server recommendations. These make you money and sell themselves.", examples: "Your best-selling high-margin items" },
+        Plowhorses: { definition: "Low profitability + High popularity", strategy: "Customers love them but they're expensive to make. Consider: raising price slightly, reducing portion, or bundling with higher-margin add-ons (add a drink, double protein for $4 more).", examples: "Often proteins: steaks, salmon" },
+        Puzzles: { definition: "High profitability + Low popularity", strategy: "These make money but don't sell — rename them, move their position on the menu, add a photo, or have servers suggest them more.", examples: "Often vegetarian or unfamiliar dishes" },
+        Dogs: { definition: "Low profitability + Low popularity", strategy: "Remove them. They're not making you money and not delighting customers. Simplify your menu — fewer items = fresher food, faster service, lower food cost." },
+      },
+    },
+    menu_design_principles: [
+      "The 'sweet spot' — top right of the menu or top of a column — is where customers look first. Put your most profitable items there.",
+      "Avoid dollar signs ($) — studies show removing '$' increases average check by 8%",
+      "Anchor pricing — place a high-price item at the top so everything else looks reasonable",
+      "Limit items per category to 7 (±2) — too many choices cause decision paralysis",
+      "Use descriptive language that evokes flavor: 'slow-roasted' beats 'roasted', 'house-made' beats 'homemade'",
+      "Photos increase sales of photographed items by 30% — only photo your Stars and Puzzles",
+      "Highlight with boxes, bold, or color — draws the eye to high-margin items",
+    ],
+    qr_code_menu: {
+      why: "QR code menus reduce printing costs, allow real-time updates (price changes, 86'd items), and collect customer data",
+      tools: ["Square Online (free with Square POS)", "Canva + a PDF hosted on your website", "MustHaveMenus.com — restaurant-specific menu builder"],
+      tip: "Keep a printed backup menu — some guests (older diners especially) prefer physical menus",
+    },
+    pricing_psychology: [
+      `At ${price_point}: customers expect quality and consistency — price increases of 5–10% are accepted if food quality holds`,
+      "Bundle pricing (combo meals, prix fixe) increases average check without customers feeling upsold",
+      "Odd pricing ($14.95 vs $15) signals value; round pricing ($15) signals quality/premium",
+      "Add a high-price 'splurge' item — not to sell it, but to make your mid-tier items look reasonable",
+    ],
+    seasonal_menu_strategy: [
+      "Rotate 20–30% of the menu seasonally — gives regulars a reason to return and lets you feature locally-sourced ingredients",
+      "Feature seasonal specials as daily/weekly specials with signage and server scripts",
+      "LTO (Limited Time Only) items drive urgency — 'only available through [date]'",
+    ],
+    upsell_training: [
+      "Train servers to suggest: 'Would you like to add a [side/drink/dessert]?' for every table",
+      "The most profitable upsell in most restaurants: dessert. Train servers to describe it, not just offer it.",
+      "Wine pairing suggestions per dish increase beverage revenue by 20–40%",
+    ],
+  };
+}
+
+async function execRestaurantReviewRequestTemplate(_workspaceId: string, input: any) {
+  const { business_name = "Your Restaurant", restaurant_type = "restaurant", review_platform = "Google" } = input ?? {};
+  return {
+    templates: {
+      sms: {
+        send_timing: "30–60 minutes after a dine-in experience, OR at payment for takeout/delivery",
+        message: `Hi! Thanks for dining at ${business_name} tonight 🍽️ If you enjoyed your experience, would you take 2 minutes to leave us a review? It helps our small team more than you know. Here's the link: [REVIEW LINK] — thank you!`,
+        follow_up: "(If no review after 3 days): Hi again! We hope you're still enjoying that meal 😊 If you have a moment, your review on ${review_platform} would mean a lot to our team. [REVIEW LINK]",
+      },
+      email: {
+        subject: `How was your experience at ${business_name}?`,
+        body: `Hi [Guest Name],\n\nThank you so much for choosing ${business_name}! We hope you enjoyed everything.\n\nIf you have a moment, we'd love to hear your feedback on ${review_platform}. Reviews from guests like you help other food lovers discover us — and help our small team continue doing what we love.\n\n👉 Leave a review: [${review_platform} REVIEW LINK]\n\nIf anything wasn't perfect, please reply to this email — we'd love the chance to make it right.\n\nThank you again,\n[Your Name]\n${business_name}`,
+      },
+      table_tent_card: `Enjoying your meal? 📱 Scan the QR code below to leave us a Google review — it takes 2 minutes and means the world to our team. Thank you for dining with us!`,
+      receipt_note: `Love your meal? Leave us a review on Google! [short.link/to/review] — thank you! 🙏`,
+    },
+    collection_strategy: [
+      "Train servers to verbally ask: 'If everything was great tonight, we'd really appreciate a Google review — I'll send you a quick text link. Is that okay?'",
+      "Use your POS system to send automated post-visit emails to customers who provide their email",
+      "Place a QR code card on every table linking to your Google review page",
+      "Print the QR code on receipts",
+    ],
+    responding_to_reviews: {
+      positive: "Thank them by name, reference something specific from their review, invite them back: 'Thank you so much, [Name]! We're so glad you loved the [dish]. Can't wait to see you again!'",
+      negative: "Respond within 24 hours. Never be defensive. Acknowledge, apologize, and offer to make it right: 'We're so sorry your experience wasn't what it should have been. Please reach out to us directly at [email] and we'd love the opportunity to make it right.'",
+      rule: "Never argue with a reviewer in public. A gracious response to a 1-star review impresses future customers MORE than 5-star reviews.",
+    },
+    review_volume_goals: "Target: 10 Google reviews in first 30 days, 25 by 60 days, 50 by 90 days. A restaurant with 50+ Google reviews converts searchers to diners at 3x the rate of one with fewer than 10.",
+    platforms_priority: ["1. Google (highest SEO impact and most read)", "2. Yelp (high-intent diners)", "3. Facebook (social proof for your page)", "4. TripAdvisor (for tourist-heavy markets)"],
+  };
+}
+
+async function execRestaurantPromoCampaignGenerate(_workspaceId: string, input: any) {
+  const { business_name = "Your Restaurant", restaurant_type = "restaurant", campaign_name = "Seasonal Promo", offer = "20% off", start_date = "TBD", end_date = "TBD", channels = ["Google Ads", "Facebook", "Instagram", "Email", "SMS"] } = input ?? {};
+  return {
+    campaign: `${campaign_name} — ${business_name}`,
+    restaurant_type,
+    offer,
+    duration: `${start_date} → ${end_date}`,
+    channels,
+    campaign_brief: {
+      objective: `Drive dine-in visits, online orders, and reservations for ${business_name} during the campaign period`,
+      target_audience: "Local diners within 3–5 miles, event planners, and past customers",
+      key_message: `${business_name} — ${offer}. [cuisine_type] at its best. Dine in, take out, or book a private event.`,
+      urgency: `Offer valid through ${end_date} only`,
+    },
+    channel_playbook: channels.map((channel: string) => ({
+      channel,
+      content: channel === "Google Ads"
+        ? { action: "Add promotion extension", headline: `${offer} — ${campaign_name} at ${business_name}`, note: "Target 'restaurants near me' and cuisine-specific keywords" }
+        : channel === "Facebook" || channel === "Instagram"
+        ? { format: "Food photo carousel with offer overlay", caption: `🍽️ ${offer} at ${business_name}! ${campaign_name} — don't miss it. Valid through ${end_date}. Dine in or order online. [Link in bio]`, budget: `$${Math.round(250 * 0.60)}/month` }
+        : channel === "Email"
+        ? { subject: `[Limited Time] ${offer} at ${business_name} — ${campaign_name}`, preview: `Don't miss this — ends ${end_date}`, cta: "Reserve Your Table", body: `Hi [Name],\n\nWe're excited to offer ${offer} as part of our ${campaign_name}! Whether you're joining us for dinner, ordering takeout, or planning a private event — now is the perfect time.\n\nOffer valid through ${end_date}. [CTA BUTTON: Order Now / Reserve a Table]\n\nSee you soon,\n${business_name}` }
+        : channel === "SMS"
+        ? { message: `🍽️ ${business_name}: ${offer} — ${campaign_name}! Valid through ${end_date}. Dine in, take out, or book an event. Reply STOP to opt out. [link]`, timing: "Send at 11am (before lunch) or 4pm (before dinner)" }
+        : channel === "Flyer/Poster"
+        ? { headline: `${offer} — ${campaign_name}`, subhead: `${business_name} | Valid ${start_date}–${end_date}`, distribution: "Post in local coffee shops, community boards, apartment buildings, and office lobbies within 3 miles" }
+        : channel === "Nextdoor"
+        ? { action: "Post a Local Deal on Nextdoor Business page", copy: `Hi neighbors! We're offering ${offer} at ${business_name} for ${campaign_name}. Come see us — we'd love to be your neighborhood spot. Valid through ${end_date}.` }
+        : { action: `Promote campaign on ${channel}`, timing: "Launch day and midpoint reminder" },
+    })),
+    grand_opening_extras: campaign_name.toLowerCase().includes("grand opening") ? {
+      ribbon_cutting: "Contact your local Chamber of Commerce — they often provide ribbon-cutting ceremonies for new businesses, which gets you press coverage",
+      local_press: "Email your local newspaper's food/lifestyle editor with a press release 2 weeks before opening",
+      influencer_invite: "Invite 5–10 local food bloggers/Instagram foodies to a pre-opening tasting in exchange for posts",
+      soft_opening: "Run a soft opening 1 week before grand opening — work out operational kinks without full marketing pressure",
+    } : undefined,
+    success_metrics: {
+      track: ["New customers vs. returning customers (POS data)", "Revenue during campaign vs. same period prior year", "Cost per new customer acquired", "Online order volume lift", "Review count growth during campaign period"],
+      review_after: "Mid-campaign check at day 7 — if foot traffic isn't up, pause Facebook and double spend on Google",
+    },
+    catering_opportunity: "Every promotional campaign is an opportunity to capture catering leads. Include a catering CTA in all materials: 'Planning an event? Ask about our catering packages.'",
   };
 }
