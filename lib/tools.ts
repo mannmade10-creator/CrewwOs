@@ -1454,6 +1454,250 @@ export const TOOL_DEFINITIONS: Record<string, any> = {
       required: ["artist_name", "song_title"],
     },
   },
+
+  // ── Trades (16 tools) ────────────────────────────────────────────────────────
+
+  trades_ein_guide: {
+    name: "trades_ein_guide",
+    description: "Step-by-step guide to apply for an EIN (Employer Identification Number) for a trades business via IRS.gov — free, instant, and required before opening a business bank account or hiring employees.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string", description: "e.g. Plumbing, Electrical, HVAC, Roofing, Carpentry" },
+        owner_name: { type: "string" },
+        state: { type: "string" },
+      },
+    },
+  },
+
+  trades_state_registration_guide: {
+    name: "trades_state_registration_guide",
+    description: "Walk-through for registering a trades business with the state — LLC vs sole proprietor comparison, Articles of Organization, registered agent, operating agreement, and state-specific contractor registration requirements.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        trade_type: { type: "string" },
+        entity_type: { type: "string", enum: ["LLC", "Sole Proprietor", "Corporation", "Partnership"], description: "Preferred business structure" },
+      },
+    },
+  },
+
+  trades_license_certification_guide: {
+    name: "trades_license_certification_guide",
+    description: "State-by-state guide to getting licensed and certified in a specific trade — contractor license boards, exam requirements, apprenticeship programs, bonding, and insurance minimums.",
+    input_schema: {
+      type: "object",
+      properties: {
+        trade_type: { type: "string", description: "e.g. Electrician, Plumber, HVAC Tech, Roofer, Welder, Carpenter, General Contractor" },
+        state: { type: "string" },
+        experience_level: { type: "string", enum: ["Apprentice", "Journeyman", "Master", "General Contractor"], description: "Current experience level" },
+      },
+      required: ["trade_type", "state"],
+    },
+  },
+
+  trades_business_email_setup: {
+    name: "trades_business_email_setup",
+    description: "Guide to creating a professional business email address for a trades company — domain purchase, Google Workspace or Microsoft 365 setup, and email signature best practices.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        preferred_domain: { type: "string", description: "Desired domain name, e.g. smithelectrical.com" },
+      },
+    },
+  },
+
+  trades_business_address_setup: {
+    name: "trades_business_address_setup",
+    description: "Guide to establishing a professional business address for a trades company — virtual mailbox services, registered agent address, home address considerations, and PO Box options.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        use_home_address: { type: "boolean", description: "Whether owner is considering using their home address" },
+      },
+    },
+  },
+
+  trades_business_phone_setup: {
+    name: "trades_business_phone_setup",
+    description: "Guide to setting up a dedicated business phone number for a trades company — VoIP options (Google Voice, RingCentral, OpenPhone), call routing, voicemail scripts, and after-hours handling.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        team_size: { type: "number", description: "Number of employees or contractors" },
+      },
+    },
+  },
+
+  trades_business_bank_guide: {
+    name: "trades_business_bank_guide",
+    description: "Guide to opening a business bank account for a trades company — best banks for contractors, required documents (EIN, LLC docs, ID), business credit card options, and QuickBooks/Wave accounting setup.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        annual_revenue_estimate: { type: "string", description: "Estimated annual revenue range, e.g. $50k-$150k" },
+      },
+    },
+  },
+
+  trades_insurance_guide: {
+    name: "trades_insurance_guide",
+    description: "Guide to getting properly insured as a trades contractor — general liability, workers' comp, commercial auto, tools & equipment coverage, and surety bonds by trade type.",
+    input_schema: {
+      type: "object",
+      properties: {
+        trade_type: { type: "string" },
+        state: { type: "string" },
+        has_employees: { type: "boolean" },
+        has_vehicles: { type: "boolean" },
+      },
+      required: ["trade_type", "state"],
+    },
+  },
+
+  trades_estimate_template: {
+    name: "trades_estimate_template",
+    description: "Generate a professional job estimate template for a trades business — line items for labor, materials, markup, taxes, and terms. Customized by trade type and job scope.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        job_type: { type: "string", description: "e.g. Bathroom remodel, HVAC install, Roof replacement, Electrical panel upgrade" },
+        client_name: { type: "string" },
+        labor_hours: { type: "number" },
+        hourly_rate: { type: "number" },
+        materials_cost: { type: "number" },
+      },
+    },
+  },
+
+  trades_invoice_template: {
+    name: "trades_invoice_template",
+    description: "Generate a professional invoice for a completed trades job — with payment terms, deposit tracking, late fee language, and accepted payment methods.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        client_name: { type: "string" },
+        job_description: { type: "string" },
+        total_amount: { type: "number" },
+        deposit_paid: { type: "number" },
+        payment_due_days: { type: "number", description: "Days until payment is due, e.g. 15 or 30" },
+      },
+    },
+  },
+
+  trades_google_ads_campaign: {
+    name: "trades_google_ads_campaign",
+    description: "Generate a complete Google Local Services Ads and Google Search Ads strategy for a trades business — targeting local zip codes, keywords by trade, ad copy, and budget recommendations.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        service_area: { type: "string", description: "City, state or zip codes served" },
+        monthly_budget: { type: "number" },
+        services: { type: "array", items: { type: "string" }, description: "Specific services to advertise, e.g. ['drain cleaning', 'water heater install']" },
+      },
+      required: ["trade_type", "service_area"],
+    },
+  },
+
+  trades_facebook_ads_campaign: {
+    name: "trades_facebook_ads_campaign",
+    description: "Generate a Facebook and Instagram ads campaign strategy for a trades business — targeting homeowners by zip code, ad creative briefs, offer ideas, and seasonal campaign calendar.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        service_area: { type: "string" },
+        monthly_budget: { type: "number" },
+        campaign_goal: { type: "string", enum: ["Lead Generation", "Brand Awareness", "Seasonal Promotion"], description: "Primary campaign objective" },
+      },
+      required: ["trade_type", "service_area"],
+    },
+  },
+
+  trades_direct_mail_campaign: {
+    name: "trades_direct_mail_campaign",
+    description: "Generate a direct mail postcard campaign strategy for a trades business — targeting homeowner zip codes, seasonal offers, postcard copy, and EDDM (Every Door Direct Mail) setup guide.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        service_area: { type: "string" },
+        offer: { type: "string", description: "Promotional offer, e.g. '$50 off first service call', 'Free estimate'" },
+        season: { type: "string", enum: ["Spring", "Summer", "Fall", "Winter", "Year-round"] },
+      },
+      required: ["trade_type"],
+    },
+  },
+
+  trades_yelp_nextdoor_setup: {
+    name: "trades_yelp_nextdoor_setup",
+    description: "Step-by-step guide to claiming and optimizing a trades business on Yelp and Nextdoor — the two highest-converting local platforms for home service contractors.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        service_area: { type: "string" },
+        phone_number: { type: "string" },
+        website: { type: "string" },
+      },
+    },
+  },
+
+  trades_review_request_template: {
+    name: "trades_review_request_template",
+    description: "Generate SMS and email templates for requesting Google, Yelp, and Facebook reviews from completed trades jobs — timing, tone, and direct review link instructions.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        client_name: { type: "string" },
+        job_type: { type: "string" },
+        review_platform: { type: "string", enum: ["Google", "Yelp", "Facebook", "All"], description: "Platform to request review on" },
+      },
+    },
+  },
+
+  trades_promo_campaign_generate: {
+    name: "trades_promo_campaign_generate",
+    description: "Generate a full promotional campaign for a trades business — including offer, ad copy, social posts, email/SMS sequence, and follow-up schedule. Seasonal or event-based.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        campaign_name: { type: "string" },
+        offer: { type: "string", description: "The promotion, e.g. '20% off AC tune-up'" },
+        start_date: { type: "string" },
+        end_date: { type: "string" },
+        channels: {
+          type: "array",
+          items: { type: "string", enum: ["Google Ads", "Facebook", "Instagram", "Email", "SMS", "Direct Mail", "Nextdoor"] },
+        },
+      },
+      required: ["trade_type", "offer"],
+    },
+  },
 };
 
 // Returns the tool_use schema array for a given agent, filtered to what they're allowed to call.

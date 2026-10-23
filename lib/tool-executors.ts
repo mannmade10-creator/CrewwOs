@@ -2295,4 +2295,747 @@ export const EXECUTORS: Record<string, (workspaceId: string, input: any) => Prom
   google_business_reviews: execGoogleBusinessReviews,
   google_business_reply_review: execGoogleBusinessReplyReview,
   google_business_update_hours: execGoogleBusinessUpdateHours,
+  // Trades (16)
+  trades_ein_guide: execTradesEinGuide,
+  trades_state_registration_guide: execTradesStateRegistrationGuide,
+  trades_license_certification_guide: execTradesLicenseCertificationGuide,
+  trades_business_email_setup: execTradesBusinessEmailSetup,
+  trades_business_address_setup: execTradesBusinessAddressSetup,
+  trades_business_phone_setup: execTradesBusinessPhoneSetup,
+  trades_business_bank_guide: execTradesBusinessBankGuide,
+  trades_insurance_guide: execTradesInsuranceGuide,
+  trades_estimate_template: execTradesEstimateTemplate,
+  trades_invoice_template: execTradesInvoiceTemplate,
+  trades_google_ads_campaign: execTradesGoogleAdsCampaign,
+  trades_facebook_ads_campaign: execTradesFacebookAdsCampaign,
+  trades_direct_mail_campaign: execTradesDirectMailCampaign,
+  trades_yelp_nextdoor_setup: execTradesYelpNextdoorSetup,
+  trades_review_request_template: execTradesReviewRequestTemplate,
+  trades_promo_campaign_generate: execTradesPromoCampaignGenerate,
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Trades executor functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function execTradesEinGuide(_workspaceId: string, input: any) {
+  const { business_name = "your trades business", trade_type = "your trade", owner_name = "the owner", state = "your state" } = input ?? {};
+  return {
+    guide: "Trades Business EIN Application Guide",
+    business_name,
+    trade_type,
+    owner_name,
+    state,
+    what_is_ein: "An EIN (Employer Identification Number) is your business's federal tax ID — like a Social Security Number for your company. Required to open a business bank account, hire employees, and file business taxes.",
+    cost: "Free — the IRS never charges for EINs. Any site charging a fee is a third-party middleman.",
+    steps: [
+      { step: 1, action: "Go to IRS.gov/ein", detail: "Navigate to irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online" },
+      { step: 2, action: "Click 'Apply Online Now'", detail: "Available Mon–Fri 7am–10pm ET. The session expires after 15 minutes of inactivity, so have your info ready." },
+      { step: 3, action: "Select entity type", detail: `Most trade businesses choose LLC or Sole Proprietor. If you've already formed your LLC in ${state}, select LLC. If not yet formed, select Sole Proprietor for now.` },
+      { step: 4, action: "Select reason for applying", detail: "Choose 'Started a new business'." },
+      { step: 5, action: "Enter business information", detail: `Business name: ${business_name}. State: ${state}. Responsible party: ${owner_name} (use your personal SSN — this is standard and secure).` },
+      { step: 6, action: "Confirm and submit", detail: "Review all info, submit, and your EIN is issued instantly on screen. Print or save the EIN confirmation letter (PDF)." },
+      { step: 7, action: "Save your EIN confirmation", detail: "You'll need this letter to open your business bank account and for your state business registration." },
+    ],
+    what_you_need: ["Full legal name (owner)", "SSN or ITIN", "Business name", "Business address", "State of formation", "Type of business entity"],
+    after_ein: [
+      "Open a business bank account (bring EIN letter + state LLC docs)",
+      "Apply for your state contractor license using your EIN",
+      "Register for state and local business taxes if required",
+      "Set up payroll (if hiring) — QuickBooks, Gusto, or ADP",
+    ],
+    tip: "The IRS online EIN application is the only official free method. Complete it in one sitting — the session cannot be saved mid-way.",
+  };
+}
+
+async function execTradesStateRegistrationGuide(_workspaceId: string, input: any) {
+  const { business_name = "your trades business", state = "your state", trade_type = "your trade", entity_type = "LLC" } = input ?? {};
+  return {
+    guide: "Trades Business State Registration Guide",
+    business_name,
+    state,
+    trade_type,
+    recommended_entity: entity_type,
+    entity_comparison: {
+      LLC: {
+        pros: ["Personal liability protection — your home and personal assets are protected if sued", "Pass-through taxation (profits taxed once on your personal return)", "Credibility with commercial clients", "Required by many general contractors to sub to you"],
+        cons: ["State filing fee ($50–$500 depending on state)", "Annual report/renewal fee in most states", "Minor additional paperwork"],
+        best_for: "Most trade contractors — especially once you have employees or are doing commercial work",
+      },
+      Sole_Proprietor: {
+        pros: ["No formation cost or paperwork", "Simplest tax filing"],
+        cons: ["Zero liability protection — you are personally liable for all business debts and lawsuits", "Harder to get commercial contracts", "No separation between personal and business credit"],
+        best_for: "Very early stage only — upgrade to LLC as soon as possible",
+      },
+    },
+    llc_formation_steps: [
+      { step: 1, action: "Choose a business name", detail: `Search ${state}'s Secretary of State website to confirm "${business_name}" is available. Add LLC to the end: "${business_name} LLC"` },
+      { step: 2, action: "File Articles of Organization", detail: `Go to your state's Secretary of State website and file online. Cost: $50–$500. Most states approve in 1–5 business days.` },
+      { step: 3, action: "Get a Registered Agent", detail: "Every LLC needs a registered agent — a person or service with a physical address in the state to receive legal documents. Options: yourself, a family member, or a service like Northwest Registered Agent ($39–$125/yr)." },
+      { step: 4, action: "Create an Operating Agreement", detail: "Not required in all states but strongly recommended. Outlines ownership, how profits are split, and what happens if a member leaves. Free templates at LegalZoom or Rocket Lawyer." },
+      { step: 5, action: "Get your EIN", detail: "Apply at IRS.gov after your LLC is formed. Instant and free." },
+      { step: 6, action: "Open a business bank account", detail: "Bring your Articles of Organization + EIN confirmation letter to your bank." },
+      { step: 7, action: "Register for state taxes", detail: `Visit ${state}'s Department of Revenue website to register for state income tax withholding (if hiring) and sales tax (if selling materials in taxable states).` },
+      { step: 8, action: "Get your contractor license", detail: `Apply for your ${state} ${trade_type} contractor license through the state contractor board. Requirements vary — see the trades_license_certification_guide tool for details.` },
+    ],
+    state_resources: `Search "${state} Secretary of State LLC filing" and "${state} ${trade_type} contractor license board" for your state's exact portal and fee schedule.`,
+    timeline: "Typical formation: 1–2 weeks start to finish (LLC approval + EIN + bank account)",
+    cost_estimate: "State LLC filing: $50–$500 | Registered agent (if using a service): $39–$125/yr | Operating agreement: Free–$150",
+  };
+}
+
+async function execTradesLicenseCertificationGuide(_workspaceId: string, input: any) {
+  const { trade_type = "General Contractor", state = "your state", experience_level = "Journeyman" } = input ?? {};
+  const tradeInfo: Record<string, any> = {
+    Electrician: {
+      levels: ["Apprentice (4–5 yr apprenticeship)", "Journeyman Electrician", "Master Electrician", "Electrical Contractor (business license)"],
+      national_cert: "IBEW (International Brotherhood of Electrical Workers) apprenticeship or NJATC program",
+      exam: "Journeyman exam based on NEC (National Electrical Code) — state-specific",
+      bonding: "Typically $10k–$25k surety bond required for contractor license",
+      insurance: "General liability minimum $500k–$1M; workers' comp if employees",
+    },
+    Plumber: {
+      levels: ["Apprentice (4–5 yr)", "Journeyman Plumber", "Master Plumber", "Plumbing Contractor"],
+      national_cert: "UA (United Association) apprenticeship or PHCC programs",
+      exam: "State plumbing board exam — covers IPC or UPC code depending on state",
+      bonding: "$5k–$25k surety bond",
+      insurance: "General liability minimum $500k–$1M",
+    },
+    HVAC: {
+      levels: ["Apprentice", "HVAC Technician", "HVAC Mechanic", "HVAC Contractor"],
+      national_cert: "EPA 608 Certification (required federally to handle refrigerants) — North American Technician Excellence (NATE) certification highly valued",
+      exam: "EPA 608 exam + state HVAC contractor exam",
+      bonding: "$5k–$15k",
+      insurance: "General liability + EPA compliance bond",
+    },
+    Roofer: {
+      levels: ["Laborer", "Roofer", "Roofing Contractor"],
+      national_cert: "NRCA (National Roofing Contractors Association) certifications; manufacturer certifications (GAF, CertainTeed) add premium job eligibility",
+      exam: "Most states require roofing contractor exam; some only require business registration",
+      bonding: "$10k–$50k depending on state",
+      insurance: "General liability minimum $1M; workers' comp critical for fall risk",
+    },
+    Carpenter: {
+      levels: ["Apprentice", "Carpenter", "Master Carpenter", "General Contractor"],
+      national_cert: "UBC (United Brotherhood of Carpenters) apprenticeship; AWI (Architectural Woodwork Institute) for finish work",
+      exam: "Most states don't license carpenters separately — General Contractor license covers most work",
+      bonding: "$5k–$25k for GC license",
+      insurance: "General liability + tools & equipment coverage",
+    },
+    "General Contractor": {
+      levels: ["Subcontractor", "Journeyman in trade", "General Contractor License"],
+      national_cert: "No single national cert — state licenses control GC work; NASCLA (National Association of State Contractors Licensing Agencies) exam accepted in many states",
+      exam: "NASCLA exam or state-specific GC exam; typically requires 3–5 yrs documented experience",
+      bonding: "$10k–$100k depending on state and project size",
+      insurance: "General liability $1M minimum; workers' comp if employees; builder's risk for large projects",
+    },
+  };
+
+  const info = tradeInfo[trade_type] ?? tradeInfo["General Contractor"];
+  return {
+    guide: `${trade_type} License & Certification Guide — ${state}`,
+    trade_type,
+    state,
+    current_level: experience_level,
+    licensing_levels: info.levels,
+    national_certifications: info.national_cert,
+    exam_info: info.exam,
+    bonding_requirement: info.bonding,
+    insurance_requirement: info.insurance,
+    general_steps: [
+      { step: 1, action: "Complete required experience hours", detail: `Most ${trade_type} licenses require documented work experience. Journeyman typically needs 4–5 years; Master/Contractor typically needs 2+ years as Journeyman.` },
+      { step: 2, action: "Pass the required exam", detail: `Contact the ${state} contractor licensing board to schedule your exam. Study materials available from PSI Exams, Prometric, or trade-specific prep courses.` },
+      { step: 3, action: "Get bonded", detail: `Purchase a surety bond from a licensed surety company. Shop rates at SuretyBonds.com or through your insurance agent. ${info.bonding}` },
+      { step: 4, action: "Get insurance", detail: `Purchase general liability and workers' comp BEFORE applying for your license — most states require proof of insurance with the application. ${info.insurance}` },
+      { step: 5, action: "Submit your license application", detail: `Apply through the ${state} contractor licensing board website. Typical requirements: proof of experience, exam score, bond certificate, insurance certificate, application fee ($50–$300).` },
+      { step: 6, action: "Register your business entity", detail: "Get your LLC formed and EIN before or alongside your license — many states require a business entity for the contractor license, not just your personal name." },
+      { step: 7, action: "Renew on schedule", detail: "Most contractor licenses renew every 1–2 years. Set a calendar reminder — lapsed licenses can result in fines and stop-work orders on active jobs." },
+    ],
+    apprenticeship_programs: `Search "${trade_type} apprenticeship ${state}" or visit the US Dept of Labor's apprenticeship finder at apprenticeship.gov to find registered programs near you.`,
+    pro_tip: `Getting manufacturer certifications (e.g., Carrier for HVAC, GAF for roofing, KOHLER for plumbing) lets you offer warranties customers can't get from unlicensed competitors — major selling point for residential work.`,
+    state_board_search: `Search "${state} ${trade_type} contractor license board" for your exact state portal, fee schedule, and exam registration.`,
+  };
+}
+
+async function execTradesBusinessEmailSetup(_workspaceId: string, input: any) {
+  const { business_name = "your business", trade_type = "trades", preferred_domain = "" } = input ?? {};
+  const domainSuggestion = preferred_domain || `${business_name.toLowerCase().replace(/\s+/g, "")}${trade_type.toLowerCase().replace(/\s+/g, "")}.com`;
+  return {
+    guide: "Trades Business Email Setup Guide",
+    business_name,
+    recommended_email: `info@${domainSuggestion}`,
+    why_professional_email_matters: "A Gmail or Yahoo address loses commercial jobs. GCs, property managers, and commercial clients expect a domain email. It takes 30 minutes to set up and costs $6–$12/month.",
+    step_1_domain: {
+      title: "Buy your domain",
+      providers: ["Google Domains (domains.google.com) — $12/yr", "Namecheap (namecheap.com) — $8–$15/yr", "GoDaddy (godaddy.com) — $10–$20/yr"],
+      tip: `Try: ${domainSuggestion} — if taken, try ${business_name.toLowerCase().replace(/\s+/g, "")}okc.com or ${trade_type.toLowerCase().replace(/\s+/g, "")}pro.com`,
+    },
+    step_2_email_provider: {
+      title: "Set up business email",
+      options: [
+        { name: "Google Workspace", cost: "$6/user/month", pros: "Gmail interface, Google Drive, Meet, Calendar — most familiar", setup: "workspace.google.com → 'Get started' → enter domain → verify with TXT record" },
+        { name: "Microsoft 365 Business Basic", cost: "$6/user/month", pros: "Outlook, Teams, SharePoint", setup: "microsoft.com/microsoft-365 → connect your domain" },
+        { name: "Zoho Mail (Free tier)", cost: "Free up to 5 users", pros: "Free forever for small teams", setup: "zoho.com/mail → free plan → add domain" },
+      ],
+    },
+    recommended_email_addresses: [
+      `info@${domainSuggestion} — general inquiries and website contact form`,
+      `jobs@${domainSuggestion} — job applications and subcontractor outreach`,
+      `billing@${domainSuggestion} — invoices and payment questions`,
+    ],
+    email_signature_template: `[Your Name] | [Title]\n${business_name}\n📞 [Phone] | 🌐 [Website]\n📍 [City, State]\nLicensed & Insured | [License #]`,
+    pro_tip: "Add your license number and 'Licensed & Insured' to your email signature — commercial clients look for this before responding.",
+  };
+}
+
+async function execTradesBusinessAddressSetup(_workspaceId: string, input: any) {
+  const { business_name = "your business", state = "your state", use_home_address = false } = input ?? {};
+  return {
+    guide: "Trades Business Address Setup Guide",
+    business_name,
+    state,
+    home_address_risks: use_home_address ? [
+      "Your home address becomes public record when filed with the state",
+      "Disqualifies you from some commercial RFPs that require a commercial address",
+      "Can create zoning issues if you store equipment or vehicles at home",
+      "Personal privacy concern if clients or competitors can look up your home",
+    ] : [],
+    options: [
+      {
+        option: "Virtual Mailbox (Recommended)",
+        providers: ["PostScan Mail (postscanmail.com) — from $10/mo", "Anytime Mailbox (anytimemailbox.com) — from $10/mo", "iPostal1 (ipostal1.com) — from $9.99/mo"],
+        pros: ["Real street address (not PO Box)", "Mail scanned and emailed to you", "Accepted by banks, IRS, and state filings", "Professional appearance"],
+        best_for: "Home-based trade contractors who work out of a truck or shop",
+      },
+      {
+        option: "Registered Agent Address",
+        providers: ["Northwest Registered Agent — $39–$125/yr", "Incfile — included with LLC formation", "ZenBusiness — included with LLC formation"],
+        pros: ["Satisfies state LLC requirement for registered agent", "Legal documents received and forwarded"],
+        note: "Cannot use for marketing or Google Business Profile — for state registration only",
+      },
+      {
+        option: "Commercial Office or Co-Working Space",
+        examples: ["Regus (regus.com)", "WeWork (wework.com)", "Local co-working spaces"],
+        pros: ["Full commercial address for all uses", "Meeting space for client consults", "Professional environment"],
+        cost: "$100–$400/month for a business address tier",
+      },
+      {
+        option: "Shop / Warehouse Address",
+        note: "If you rent or own a shop, use that address for everything — Google Business Profile, state registration, bank account, license, and marketing materials.",
+      },
+    ],
+    google_business_profile_tip: "Your Google Business Profile address is what shows up in Google Maps. Use a real, verifiable address (not a PO Box) — Google mails a verification postcard to it. Hiding your address is allowed if you're a service-area business.",
+    recommended_setup: `For a home-based ${state} trade contractor: virtual mailbox for business address + registered agent service for state registration = fully professional setup for ~$30–$50/month combined.`,
+  };
+}
+
+async function execTradesBusinessPhoneSetup(_workspaceId: string, input: any) {
+  const { business_name = "your business", trade_type = "trades", team_size = 1 } = input ?? {};
+  return {
+    guide: "Trades Business Phone Setup Guide",
+    business_name,
+    trade_type,
+    team_size,
+    why_separate_number: "Never give out your personal cell for business. A dedicated number looks professional, lets you set business hours, and can be handed off if you hire someone to answer calls.",
+    options: [
+      {
+        name: "Google Voice (Free)",
+        cost: "Free for personal, $10/user/mo for business",
+        pros: ["Free local number", "Rings your cell", "Voicemail transcription", "Simple"],
+        cons: ["Limited features", "No call recording on free tier", "No team routing"],
+        best_for: "Solo contractor just starting out",
+        setup: "voice.google.com → choose a local number → link your cell",
+      },
+      {
+        name: "OpenPhone (Recommended for small teams)",
+        cost: "$15/user/month",
+        pros: ["Business texting (SMS from your business number)", "Voicemail to email", "Call recording", "Shared inbox for team", "Auto-reply texts"],
+        cons: ["Monthly cost"],
+        best_for: "Contractors with 1–5 employees",
+        setup: "openphone.com → pick a local number → invite team members",
+      },
+      {
+        name: "RingCentral",
+        cost: "$20–$35/user/month",
+        pros: ["Full business phone system", "Auto-attendant ('Press 1 for service, Press 2 for billing')", "Call routing", "CRM integrations"],
+        best_for: `Teams of ${team_size > 5 ? "5+" : "growing"} — when you have a dispatcher or office admin`,
+      },
+    ],
+    voicemail_script: `"Thank you for calling ${business_name}! We're currently on a job or after hours. Please leave your name, number, and a brief description of what you need. We return all calls within [2 hours / same business day]. For urgent service, text us at this number. Thanks — we look forward to earning your business!"`,
+    pro_tips: [
+      "Enable text messaging — most homeowners prefer texting for quick questions",
+      "Set business hours so calls after 7pm roll to voicemail automatically",
+      "Use auto-reply text: 'Thanks for calling [Business Name]! We'll call you back within 2 hours. Text us anytime.'",
+      "Consider an after-hours answering service (Angi Leads, Patlive) once you're busy enough to not want to miss any call",
+    ],
+  };
+}
+
+async function execTradesBusinessBankGuide(_workspaceId: string, input: any) {
+  const { business_name = "your business", state = "your state", annual_revenue_estimate = "under $100k" } = input ?? {};
+  return {
+    guide: "Trades Business Bank Account Guide",
+    business_name,
+    state,
+    annual_revenue_estimate,
+    why_separate_account: "Mixing personal and business money pierces your LLC protection and makes taxes a nightmare. A separate account also builds your business credit history.",
+    what_you_need_to_open: [
+      "EIN confirmation letter (from IRS.gov)",
+      "LLC Articles of Organization (from state filing)",
+      "Operating Agreement (if you have one)",
+      "Government-issued ID (driver's license)",
+      "Initial deposit (varies by bank — $25–$100 typical)",
+    ],
+    recommended_banks: [
+      {
+        name: "Chase Business Complete Banking",
+        monthly_fee: "$15 (waived with $2k minimum balance)",
+        pros: ["Largest bank network", "Zelle for Business", "QuickBooks integration", "Strong business credit card options"],
+        best_for: "Contractors wanting a traditional bank with branches everywhere",
+      },
+      {
+        name: "Bank of America Business Advantage",
+        monthly_fee: "$16 (waived with $5k average balance)",
+        pros: ["Cash Rewards business card (3% back on gas/office, 2% wholesale)", "Preferred Rewards for Business program", "Good lending options"],
+        best_for: "Contractors who fuel up trucks and buy materials regularly",
+      },
+      {
+        name: "Relay (relay.fi) — Online Only",
+        monthly_fee: "Free",
+        pros: ["No fees, no minimums", "Multiple sub-accounts (operating, tax reserve, materials)", "Built for small businesses", "Connects to QuickBooks and Wave"],
+        best_for: "Solo contractors who want zero fees and digital-first banking",
+      },
+      {
+        name: "Bluevine Business Checking",
+        monthly_fee: "Free",
+        pros: ["2% APY on balances (higher than most banks)", "No fees", "Built-in invoicing"],
+        best_for: "Contractors who keep cash in the account between jobs",
+      },
+    ],
+    business_credit_card: {
+      recommendation: "Apply for a business credit card the same day you open your account",
+      top_picks: [
+        "Chase Ink Business Cash — 5% back at office supply stores, 2% at gas stations and restaurants",
+        "Bank of America Business Advantage — 3% back on a category you choose (gas, contractors supplies, etc.)",
+        "Capital One Spark Cash — 2% flat cash back on everything",
+      ],
+      tip: "Use it for ALL business purchases (fuel, materials, tools, insurance) and pay in full monthly — builds business credit fast",
+    },
+    accounting_setup: {
+      options: [
+        { name: "Wave (wave.com)", cost: "Free", best_for: "Solo contractors just starting" },
+        { name: "QuickBooks Simple Start", cost: "$17.50/mo", best_for: "Contractors sending 5–20 invoices/month" },
+        { name: "QuickBooks Plus", cost: "$49.50/mo", best_for: "Contractors with employees, job costing, or inventory" },
+      ],
+      tip: "Set up a 'tax reserve' savings account and transfer 25–30% of every payment into it — self-employment tax hits hard if you're not prepared",
+    },
+  };
+}
+
+async function execTradesInsuranceGuide(_workspaceId: string, input: any) {
+  const { trade_type = "General Contractor", state = "your state", has_employees = false, has_vehicles = false } = input ?? {};
+  return {
+    guide: `${trade_type} Business Insurance Guide — ${state}`,
+    trade_type,
+    state,
+    required_coverages: [
+      {
+        type: "General Liability Insurance",
+        required: true,
+        description: "Covers property damage or bodily injury you cause to a client or third party on the job. If you drop a ladder through a customer's window — GL pays for it.",
+        minimum_recommended: "$1,000,000 per occurrence / $2,000,000 aggregate",
+        typical_cost: "$500–$2,500/year depending on revenue and trade",
+        note: "Most GCs and property managers will not hire you without a valid GL certificate",
+      },
+      {
+        type: "Workers' Compensation",
+        required: has_employees,
+        description: "Required by law in almost every state if you have employees. Covers medical bills and lost wages if a worker is injured on the job.",
+        typical_cost: "$2–$8 per $100 of payroll, varies by trade risk",
+        note: `${has_employees ? "REQUIRED — you have employees." : "Not required if you're truly solo with no W-2 employees, but verify in " + state + " — some states require it even for sole proprietors in high-risk trades."}`,
+      },
+      {
+        type: "Surety Bond",
+        required: true,
+        description: "Protects clients if you fail to complete a job or cause financial harm. Required for contractor licensing in most states.",
+        typical_cost: "$100–$500/year for a $10k–$25k bond",
+        note: "Your license application will require proof of bonding",
+      },
+    ],
+    optional_but_recommended: [
+      {
+        type: "Commercial Auto Insurance",
+        needed: has_vehicles,
+        description: "Covers vehicles used for business. Your personal auto policy does NOT cover accidents while using your vehicle for work.",
+        typical_cost: "$1,200–$3,000/year per vehicle",
+      },
+      {
+        type: "Tools & Equipment Coverage",
+        description: "Covers theft or damage to your tools and equipment. A stolen truck full of tools can cost $10k–$50k to replace.",
+        typical_cost: "$300–$800/year",
+      },
+      {
+        type: "Commercial Umbrella",
+        description: "Extra liability coverage above your GL limits. Important for larger commercial jobs.",
+        typical_cost: "$500–$1,000/year for $1M additional coverage",
+      },
+    ],
+    where_to_get_quotes: [
+      "Next Insurance (nextinsurance.com) — online quotes in minutes, popular with contractors",
+      "Hiscox (hiscox.com) — strong for small contractors",
+      "CoverWallet (coverwallet.com) — compares multiple carriers",
+      "Local independent insurance agent — best for bundling and customization",
+    ],
+    pro_tip: `For ${trade_type} work specifically — get your GL certificate of insurance BEFORE you start marketing. Clients will ask for it immediately, and having it shows you're a professional operation.`,
+  };
+}
+
+async function execTradesEstimateTemplate(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", trade_type = "Trades", job_type = "Service Call", client_name = "Client", labor_hours = 8, hourly_rate = 85, materials_cost = 500 } = input ?? {};
+  const labor_total = labor_hours * hourly_rate;
+  const markup_pct = 0.20;
+  const materials_marked_up = materials_cost * (1 + markup_pct);
+  const subtotal = labor_total + materials_marked_up;
+  const tax_rate = 0.085;
+  const tax = subtotal * tax_rate;
+  const total = subtotal + tax;
+  return {
+    template: "Professional Trades Job Estimate",
+    business_name,
+    client_name,
+    job_type,
+    trade_type,
+    line_items: [
+      { description: "Labor", qty: `${labor_hours} hrs`, rate: `$${hourly_rate}/hr`, total: `$${labor_total.toFixed(2)}` },
+      { description: "Materials & Supplies", qty: "1", rate: `$${materials_cost.toFixed(2)} + 20% markup`, total: `$${materials_marked_up.toFixed(2)}` },
+    ],
+    subtotal: `$${subtotal.toFixed(2)}`,
+    tax: `$${tax.toFixed(2)} (8.5% — adjust for your state)`,
+    estimated_total: `$${total.toFixed(2)}`,
+    terms: [
+      "This estimate is valid for 30 days from the date issued.",
+      "50% deposit required to schedule work. Balance due upon completion.",
+      "Materials are subject to price changes from suppliers.",
+      "Any work beyond the scope of this estimate will be quoted separately before proceeding.",
+      "Estimate does not include permit fees unless stated.",
+    ],
+    recommended_software: [
+      "Jobber (getjobber.com) — built for home service contractors, includes estimates, invoices, scheduling",
+      "Housecall Pro (housecallpro.com) — similar to Jobber, strong mobile app",
+      "ServiceTitan — enterprise-grade, best for larger operations",
+      "QuickBooks + GoProposal — accounting + professional estimates combined",
+    ],
+    pro_tip: "Always get a signed estimate (digital signature via DocuSign or Jobber) before starting any job. It protects you from scope creep and 'that's not what I wanted' disputes.",
+  };
+}
+
+async function execTradesInvoiceTemplate(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", trade_type = "Trades", client_name = "Client", job_description = "Service performed", total_amount = 1000, deposit_paid = 500, payment_due_days = 15 } = input ?? {};
+  const balance_due = total_amount - deposit_paid;
+  return {
+    template: "Professional Trades Invoice",
+    business_name,
+    client_name,
+    job_description,
+    trade_type,
+    invoice_fields: {
+      invoice_number: "INV-[001] — number sequentially",
+      invoice_date: "[Today's Date]",
+      due_date: `[Today + ${payment_due_days} days]`,
+      client_name,
+      client_address: "[Client Address]",
+      job_address: "[Job Site Address if different]",
+    },
+    financials: {
+      total_contract: `$${total_amount.toFixed(2)}`,
+      deposit_paid: `$${deposit_paid.toFixed(2)}`,
+      balance_due: `$${balance_due.toFixed(2)}`,
+      due_date: `${payment_due_days} days from invoice date`,
+    },
+    payment_methods: ["Check payable to: " + business_name, "Zelle: [your business phone/email]", "Venmo Business: @" + business_name.toLowerCase().replace(/\s+/g, ""), "Credit card: [Jobber/Square link]"],
+    late_fee_language: `A late fee of 1.5% per month will be applied to any balance unpaid after ${payment_due_days} days.`,
+    thank_you_note: `Thank you for choosing ${business_name}! We appreciate your business and look forward to serving you again.`,
+    invoice_software: [
+      "Jobber — sends professional invoices, tracks payment, auto-reminders",
+      "QuickBooks — invoicing + accounting in one",
+      "Wave (free) — unlimited invoices at no cost",
+      "Square Invoices (free) — accepts card payments directly",
+    ],
+    pro_tip: "Send the invoice the same day the job is complete — the longer you wait, the longer you wait to get paid. Enable auto-reminders (3 days before due, day of, and 3 days after) in your invoicing software.",
+  };
+}
+
+async function execTradesGoogleAdsCampaign(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", trade_type = "Contractor", service_area = "local area", monthly_budget = 500, services = [] } = input ?? {};
+  const serviceList = services.length > 0 ? services : [`${trade_type} services`, "Emergency repairs", "Free estimates"];
+  return {
+    campaign: `Google Ads Strategy — ${business_name}`,
+    trade_type,
+    service_area,
+    monthly_budget: `$${monthly_budget}`,
+    priority_1: {
+      name: "Google Local Services Ads (LSAs) — Start Here",
+      why: "LSAs show at the very top of Google search results, above regular ads. You only pay when someone calls or messages you directly. The 'Google Guaranteed' badge builds instant trust.",
+      how_to_set_up: [
+        "Go to ads.google.com/local-services-ads",
+        "Select your trade category",
+        "Complete background check and license/insurance verification",
+        "Set your weekly budget and service area",
+        "Google calls you directly when leads come in",
+      ],
+      cost: "Pay per lead (typically $15–$75 per call depending on trade and market)",
+      recommended_budget: `$${Math.round(monthly_budget * 0.5)}/month — 50% of your total budget here first`,
+    },
+    priority_2: {
+      name: "Google Search Ads",
+      keywords: serviceList.flatMap((s: string) => [
+        `${s} ${service_area}`,
+        `${s} near me`,
+        `best ${s}`,
+        `affordable ${s}`,
+        `emergency ${s}`,
+        `${s} cost`,
+      ]),
+      negative_keywords: ["DIY", "how to", "free", "school", "class", "training", "youtube"],
+      ad_copy_examples: serviceList.slice(0, 2).map((s: string) => ({
+        service: s,
+        headline_1: `Expert ${s} in ${service_area}`,
+        headline_2: `Licensed & Insured | Free Estimates`,
+        headline_3: `Call Now — Same Day Available`,
+        description: `${business_name} — trusted ${trade_type.toLowerCase()} serving ${service_area}. Fast response, upfront pricing. Call today for a free estimate!`,
+      })),
+      recommended_budget: `$${Math.round(monthly_budget * 0.5)}/month`,
+    },
+    landing_page_tips: [
+      "Your Google Business Profile must be complete (photos, reviews, hours) before running ads",
+      "Use a click-to-call button prominent on your homepage",
+      "Add your license number and 'Licensed & Insured' above the fold",
+      "Show real photos of your work — not stock photos",
+      "Respond to all leads within 5 minutes during business hours — ads are wasted money if calls go unanswered",
+    ],
+    roi_expectation: `At $${monthly_budget}/month in ${service_area}, expect 10–25 qualified calls/month depending on competition. Average job value in ${trade_type}: close rate 40–60% means 4–15 new jobs/month.`,
+  };
+}
+
+async function execTradesFacebookAdsCampaign(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", trade_type = "Contractor", service_area = "local area", monthly_budget = 300, campaign_goal = "Lead Generation" } = input ?? {};
+  return {
+    campaign: `Facebook & Instagram Ads Strategy — ${business_name}`,
+    trade_type,
+    service_area,
+    monthly_budget: `$${monthly_budget}`,
+    campaign_goal,
+    audience_targeting: {
+      location: `${service_area} — set radius to match your service area (10–25 miles)`,
+      demographics: "Homeowners age 30–65 (home ownership correlates with age and income)",
+      interests: ["Home improvement", "Home & Garden", "Real estate", "House & Home magazine"],
+      custom_audiences: [
+        "Upload your past customer email list — target them for repeat jobs and referrals",
+        "Lookalike audience based on past customers — Facebook finds similar homeowners",
+        "Retarget website visitors who didn't call (pixel required on your website)",
+      ],
+    },
+    ad_formats: [
+      {
+        format: "Before & After Photo Carousel",
+        why: "Highest engagement for trade work — people love transformations",
+        caption_template: `Before → After: [Job type] in ${service_area} 🔨 Swipe to see the full transformation. Call ${business_name} for a FREE estimate! Licensed & Insured. [Phone]`,
+      },
+      {
+        format: "Video — Job Walkthrough",
+        why: "Show your process — builds trust before the first call",
+        script_template: `"Hey, I'm [Name] with ${business_name}. Here's a [job type] we just completed in [neighborhood]. [30-sec walkthrough]. We serve all of ${service_area}. Call or text us for a free estimate — link in bio."`,
+      },
+      {
+        format: "Lead Form Ad",
+        why: "Homeowner fills out a form without leaving Facebook — captures name, phone, and what they need",
+        questions_to_ask: ["What service do you need?", "When would you like it done?", "What's your address or zip code?"],
+      },
+    ],
+    seasonal_campaigns: [
+      { season: "Spring (Mar–May)", offer: "Spring tune-up / maintenance special — 15% off", trade_focus: "HVAC, roofing inspection, exterior painting, landscaping" },
+      { season: "Summer (Jun–Aug)", offer: "Beat the heat — AC service, cooling system check", trade_focus: "HVAC, plumbing, electrical for pools/outdoor kitchens" },
+      { season: "Fall (Sep–Nov)", offer: "Get ready for winter — heating system check, weatherproofing", trade_focus: "HVAC, insulation, roofing, gutters" },
+      { season: "Winter (Dec–Feb)", offer: "Emergency service available 24/7 — pipe burst, heating failure", trade_focus: "Plumbing, HVAC, electrical" },
+    ],
+    budget_allocation: {
+      lead_generation_ads: `$${Math.round(monthly_budget * 0.60)}/month`,
+      retargeting_website_visitors: `$${Math.round(monthly_budget * 0.25)}/month`,
+      brand_awareness_video: `$${Math.round(monthly_budget * 0.15)}/month`,
+    },
+    pro_tip: "Respond to every Facebook lead within 5 minutes — studies show contact rate drops 10x after 5 minutes. Set up text alerts for new leads and call immediately.",
+  };
+}
+
+async function execTradesDirectMailCampaign(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", trade_type = "Contractor", service_area = "local area", offer = "Free estimate", season = "Year-round" } = input ?? {};
+  return {
+    campaign: `Direct Mail Campaign Strategy — ${business_name}`,
+    trade_type,
+    service_area,
+    offer,
+    season,
+    why_direct_mail_works_for_trades: "Homeowners keep a useful postcard on the fridge or bulletin board. A plumber's magnet with your number on it gets calls for years. Direct mail has zero competition in the mailbox on the day it arrives — unlike digital ads.",
+    eddm_guide: {
+      title: "EDDM — Every Door Direct Mail (USPS)",
+      description: "Mail to every home in a zip code or mail carrier route — no list required. USPS delivers it for ~$0.20–$0.23 per piece.",
+      steps: [
+        "Go to usps.com/eddm",
+        "Click 'EDDM Retail'",
+        "Search your target zip codes or draw a radius around your shop",
+        "Select mail routes (see household count per route)",
+        "Design a 6x11 or 6.5x9 postcard (minimum size for EDDM)",
+        "Print at Got Print (gotprint.com) or Vistaprint ($0.05–$0.12/card for 1000+)",
+        "Bundle in groups of 100 with facing slips, drop at your local post office",
+      ],
+      cost_estimate: "1,000 postcards: $50–$120 printing + $200–$230 postage = ~$270–$350 total to reach 1,000 homes",
+    },
+    postcard_copy_template: {
+      headline: `🔧 ${offer} — ${business_name}`,
+      subheadline: `${trade_type} Services in ${service_area}`,
+      body: `Serving homeowners in [city/neighborhood] for [X] years. Licensed & Insured.\n\n✅ Fast response\n✅ Upfront pricing\n✅ 5-star rated\n\n${offer}!`,
+      cta: "Call or Text: [Phone Number]",
+      footer: `${business_name} | [Phone] | [Website] | License #[Number]`,
+    },
+    targeting_strategy: {
+      best_neighborhoods: "Target zip codes with median home values $200k–$500k — owners have equity and money to maintain/improve",
+      best_times: {
+        Spring: "February/March drop — catch homeowners before they hire for spring projects",
+        Summer: "May drop for AC/cooling work",
+        Fall: "August/September — heating prep",
+        Winter: "November for holiday lighting, December for emergency services awareness",
+      },
+      frequency: "Mail the same zip code 3 times over 6 weeks — recognition builds with repetition",
+    },
+    magnet_alternative: "Consider a business card magnet instead of a postcard — $0.15–$0.25 each but stays on the fridge for years. Great for plumbers, HVAC, electricians — emergency trades where you want to be the first call.",
+    pro_tip: "Include a QR code linking to your Google Business Profile so recipients can immediately read reviews and call from their phone.",
+  };
+}
+
+async function execTradesYelpNextdoorSetup(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", trade_type = "Contractor", service_area = "local area", phone_number = "", website = "" } = input ?? {};
+  return {
+    guide: "Yelp & Nextdoor Setup Guide for Trades Contractors",
+    business_name,
+    trade_type,
+    service_area,
+    yelp_setup: {
+      why: "Yelp drives high-intent homeowners — people searching Yelp for a contractor are ready to hire, not just browsing.",
+      steps: [
+        "Go to biz.yelp.com → 'Add your business'",
+        `Search for ${business_name} to check if a listing already exists (customers sometimes create them)`,
+        "Select your business category (Contractors, Plumbers, Electricians, etc.)",
+        "Enter: business name, phone, address, website, service area",
+        "Upload at least 5 photos — before/after work, team, truck/equipment",
+        "Write a 'From the Business' description: who you are, what you specialize in, years of experience, license number",
+        "Verify the listing via phone call or postcard",
+        "Request reviews from past happy customers via Yelp's 'Request a Review' email tool",
+      ],
+      yelp_ads_note: "Yelp will push you to buy ads immediately. Start by optimizing your free profile for 30–60 days first to build reviews before spending on ads — reviews are what convert.",
+      responding_to_reviews: "Respond to every review — thank the positives, address negatives professionally. A thoughtful response to a 2-star review often impresses future customers more than a 5-star review.",
+    },
+    nextdoor_setup: {
+      why: "Nextdoor is hyper-local — homeowners asking their actual neighbors for contractor recommendations. A recommendation on Nextdoor from a real neighbor is the highest-trust referral possible.",
+      steps: [
+        "Go to business.nextdoor.com → 'Claim your free business page'",
+        "Verify your business address",
+        "Complete your profile: business name, services, service area, phone, website",
+        "Add photos and a description",
+        "Enable 'Local Deals' to post occasional offers",
+        "Ask satisfied customers to recommend you on Nextdoor (huge impact in their neighborhood feed)",
+      ],
+      nextdoor_strategy: [
+        "Ask every completed customer to post a Nextdoor recommendation — it appears to all their neighbors automatically",
+        "Monitor for neighborhood posts asking for contractor recommendations — you or a team member can reply",
+        "Post before/after photos as 'Business Updates' — appears in local feeds",
+        "Run a Nextdoor Local Deal for slow seasons: '$25 off your first service call for Nextdoor neighbors'",
+      ],
+    },
+    google_business_profile: {
+      reminder: "Google Business Profile (formerly Google My Business) is more important than both Yelp and Nextdoor combined for contractors. Make sure it is fully set up and verified FIRST before focusing on Yelp and Nextdoor.",
+      key_actions: ["Verify your listing", "Add 10+ photos", "Set exact service areas", "Enable messaging", "Respond to every review within 24 hours"],
+    },
+    review_volume_goal: "Aim for: 10 Google reviews, 5 Yelp reviews, and 3 Nextdoor recommendations in your first 90 days. This establishes credibility that converts visitors into callers.",
+  };
+}
+
+async function execTradesReviewRequestTemplate(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", trade_type = "Contractor", client_name = "there", job_type = "the work", review_platform = "Google" } = input ?? {};
+  const platformLinks: Record<string, string> = {
+    Google: "your Google Business Profile review link (get it from business.google.com → 'Get more reviews')",
+    Yelp: "your Yelp review link (biz.yelp.com → share → write a review link)",
+    Facebook: "your Facebook Page review tab link",
+    All: "your preferred review platform",
+  };
+  return {
+    templates: {
+      sms: {
+        send_timing: "Within 2 hours of job completion — before the customer has moved on to the next thing",
+        message: `Hi ${client_name}! It was great working with you on ${job_type} today. If you're happy with the work, would you mind leaving us a quick Google review? It only takes 2 minutes and means the world to a small business. Here's the link: [REVIEW LINK]. Thanks so much! — ${business_name}`,
+        follow_up_sms: `(3 days later if no review): Hey ${client_name}, just checking in — hope everything with ${job_type} is still going great! If you get a chance, that review would really help us out. [REVIEW LINK] — ${business_name}`,
+      },
+      email: {
+        subject: `How did we do? — ${business_name}`,
+        body: `Hi ${client_name},\n\nThank you for trusting ${business_name} with ${job_type}. It was a pleasure working with you!\n\nWe'd love to hear about your experience. If you have 2 minutes, a quick review on ${review_platform} helps other homeowners find a trustworthy contractor — and it means a lot to our small business.\n\n👉 Leave a review here: [${platformLinks[review_platform]}]\n\nIf there's anything we could have done better, please reply to this email directly — we want to make it right.\n\nThank you again!\n[Your Name]\n${business_name}\n[Phone] | [Website]\nLicensed & Insured`,
+      },
+      in_person_script: `"Hey [client name], glad everything looks good! Hey, would you do me a favor? If you're happy with the work, would you mind leaving us a Google review? I'll text you the link right now — takes about 2 minutes and really helps us out."`,
+    },
+    platform_link: platformLinks[review_platform],
+    timing_strategy: [
+      "Best time: Same day as job completion, within 2 hours",
+      "SMS performs better than email for review requests (70% open rate vs 20%)",
+      "Don't ask on the invoice — ask in person first, then follow up with SMS",
+      "Never offer incentives for reviews (violates Google/Yelp ToS)",
+      "Aim for 1 new review per week — steady pace looks natural to Google's algorithm",
+    ],
+    what_to_do_with_reviews: [
+      "Screenshot 5-star reviews and post on Instagram/Facebook as social proof",
+      "Respond to every review (5-star and below) within 24 hours",
+      "Add top reviews to your website testimonials section",
+      "Share a 'Thank you' reply on Nextdoor when a neighbor recommends you",
+    ],
+  };
+}
+
+async function execTradesPromoCampaignGenerate(_workspaceId: string, input: any) {
+  const { business_name = "Your Business", trade_type = "Contractor", campaign_name = "Seasonal Promo", offer = "15% off", start_date = "TBD", end_date = "TBD", channels = ["Google Ads", "Facebook", "Email", "SMS"] } = input ?? {};
+  return {
+    campaign: `${campaign_name} — ${business_name}`,
+    trade_type,
+    offer,
+    duration: `${start_date} → ${end_date}`,
+    channels,
+    campaign_brief: {
+      objective: `Drive service calls and booked jobs for ${business_name} during the campaign period`,
+      target_audience: `Homeowners in [service area] needing ${trade_type} services`,
+      offer_details: offer,
+      key_message: `${business_name} — trusted ${trade_type.toLowerCase()} + ${offer}. Licensed & Insured. Book now before spots fill up.`,
+      urgency_element: `Offer expires ${end_date} — limited availability`,
+    },
+    channel_playbook: channels.map((channel: string) => ({
+      channel,
+      content: channel === "Google Ads"
+        ? { action: "Update ad headlines to feature offer", headline: `${offer} — Book Before ${end_date}`, note: "Add promotion extension in Google Ads showing offer and expiry" }
+        : channel === "Facebook" || channel === "Instagram"
+        ? { action: "Run before/after carousel with offer overlay", caption: `🔥 Limited time: ${offer} on all ${trade_type.toLowerCase()} jobs! Book by ${end_date}. Call ${business_name} today — Licensed & Insured. [Phone]`, budget: "$150–$300 for campaign duration" }
+        : channel === "Email"
+        ? { subject: `[Limited Time] ${offer} on ${trade_type} Services — ${business_name}`, preview: `Don't miss this — offer ends ${end_date}`, cta: "Book Your Free Estimate", send_schedule: [`Launch day: Full offer announcement`, `Midpoint: 'Only X days left' reminder`, `Final day: 'Last chance' with urgency`] }
+        : channel === "SMS"
+        ? { message: `🔧 ${business_name}: ${offer} on ${trade_type.toLowerCase()} jobs this month! Reply YES for a free estimate or call [Phone]. Offer ends ${end_date}.`, timing: "Send at 10am on campaign launch day + reminder 3 days before end" }
+        : channel === "Direct Mail"
+        ? { format: "6x9 postcard", headline: `${offer} — ${campaign_name}`, drop_date: `2 weeks before ${start_date}`, target: "Top zip codes in service area" }
+        : { action: `Post campaign offer to ${channel}`, timing: "Launch day and midpoint" },
+    })),
+    follow_up_sequence: [
+      "Day of inquiry: Call back within 5 minutes, mention the specific offer they saw",
+      "Same day: Send estimate via text or email with offer amount clearly shown",
+      "Day 2 (if no response): Follow-up text: 'Hi [name], just following up on your estimate for [job type]. Happy to answer any questions!'",
+      "Day 5: Final follow-up call — 'We have an opening next week, would you like to lock it in before the promotion ends?'",
+    ],
+    success_metrics: {
+      track: ["Number of inbound calls (before/during/after)", "Cost per lead by channel", "Close rate on campaign leads vs. regular leads", "Revenue directly attributed to campaign period"],
+      review_after: "7 days into campaign — pause any channel spending less than 1x ROI, double down on what's working",
+    },
+    pro_tip: `For ${trade_type} businesses, Google LSAs + SMS to your past customer list is typically the highest-ROI combination for a short-term promo campaign. Start there before spending on Facebook or direct mail.`,
+  };
+}
