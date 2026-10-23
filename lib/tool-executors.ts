@@ -3734,12 +3734,12 @@ async function execBusinessBrandGuide(_workspaceId: string, input: any) {
       mission: `What ${business_name} does and why it matters — in one sentence. Example: "We help [target customer] achieve [outcome] so they can [bigger benefit]."`,
       vision: "What success looks like in 5 years.",
       values: "3–5 words that describe how you operate: Integrity, Quality, Speed, Innovation, Community, etc.",
-      brand_voice: {
+      brand_voice: ({
         professional: "Clear, confident, authoritative. Avoids jargon. Gets to the point.",
         playful: "Conversational, fun, uses humor. Feels approachable and energetic.",
         luxury: "Elegant, precise, exclusivity-focused. Every word is intentional.",
         approachable: "Warm, friendly, community-focused. Like advice from a trusted neighbor.",
-      }[brand_personality] ?? "Clear, confident, and authentic to your industry.",
+      } as Record<string, string>)[brand_personality] ?? "Clear, confident, and authentic to your industry.",
     },
     visual_identity: {
       logo_direction: {
@@ -3748,12 +3748,12 @@ async function execBusinessBrandGuide(_workspaceId: string, input: any) {
       },
       color_palette: {
         structure: "Choose 1 primary color, 1 secondary color, and 2 neutral colors (usually white/light + dark gray/black)",
-        by_personality: {
+        by_personality: ({
           professional: "Navy blue or dark green primary — signals trust and stability",
           playful: "Bright orange, yellow, or teal primary — signals energy and approachability",
           luxury: "Black, deep navy, or burgundy primary with gold accent — signals premium",
           approachable: "Warm orange or sky blue primary — signals friendliness",
-        }[brand_personality] ?? "Choose a color that stands out in your industry while feeling appropriate for your target customer",
+        } as Record<string, string>)[brand_personality] ?? "Choose a color that stands out in your industry while feeling appropriate for your target customer",
         tools: ["coolors.co — color palette generator", "brandmark.io — see your colors in use"],
       },
       typography: { body_font: "Clean and readable: Inter, Lato, Open Sans, or Nunito (all free on Google Fonts)", heading_font: "More distinctive: Playfair Display (classic), Poppins (modern), Raleway (elegant), Montserrat (professional)" },
