@@ -1678,6 +1678,238 @@ export const TOOL_DEFINITIONS: Record<string, any> = {
     },
   },
 
+  // ── RESTAURANT BUSINESS SETUP (16) ────────────────────────────────────────
+  restaurant_ein_guide: {
+    name: "restaurant_ein_guide",
+    description: "Step-by-step IRS EIN application walkthrough for a restaurant business — entity type selection, what info you need, instant online process.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string", description: "e.g. 'food truck', 'fast casual', 'fine dining', 'bar & grill'" },
+        owner_name: { type: "string" },
+        state: { type: "string" },
+      },
+    },
+  },
+
+  restaurant_state_registration_guide: {
+    name: "restaurant_state_registration_guide",
+    description: "Guide to forming an LLC or corporation for a restaurant — state filing steps, registered agent, operating agreement, and why the entity matters for a food business.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        restaurant_type: { type: "string" },
+        entity_type: { type: "string", enum: ["LLC", "S-Corp", "Sole Proprietor"], default: "LLC" },
+      },
+    },
+  },
+
+  restaurant_license_permit_guide: {
+    name: "restaurant_license_permit_guide",
+    description: "Complete checklist of every license, permit, and certification needed to open a restaurant — food handler cards, food manager certification (ServSafe), business license, seller's permit, liquor license, and more by state.",
+    input_schema: {
+      type: "object",
+      properties: {
+        state: { type: "string" },
+        restaurant_type: { type: "string" },
+        serves_alcohol: { type: "boolean", default: false },
+        has_outdoor_seating: { type: "boolean", default: false },
+        is_food_truck: { type: "boolean", default: false },
+      },
+    },
+  },
+
+  restaurant_health_inspection_guide: {
+    name: "restaurant_health_inspection_guide",
+    description: "How to pass your health department inspection — what inspectors look for, common violations by category (temperature control, cross-contamination, sanitation, pest control), and how to prep your kitchen.",
+    input_schema: {
+      type: "object",
+      properties: {
+        state: { type: "string" },
+        restaurant_type: { type: "string" },
+        kitchen_type: { type: "string", description: "e.g. 'commercial kitchen', 'food truck', 'commissary'" },
+      },
+    },
+  },
+
+  restaurant_fire_safety_guide: {
+    name: "restaurant_fire_safety_guide",
+    description: "Fire safety and code compliance guide for restaurants — hood/suppression systems, fire extinguisher requirements, egress, occupancy load, and how to pass the fire marshal inspection.",
+    input_schema: {
+      type: "object",
+      properties: {
+        state: { type: "string" },
+        restaurant_type: { type: "string" },
+        seating_capacity: { type: "number" },
+      },
+    },
+  },
+
+  restaurant_business_email_setup: {
+    name: "restaurant_business_email_setup",
+    description: "Professional email setup for a restaurant — domain purchase, Google Workspace or Microsoft 365 setup, recommended email addresses (reservations@, catering@, info@), and email signature template.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        preferred_domain: { type: "string" },
+      },
+    },
+  },
+
+  restaurant_business_address_setup: {
+    name: "restaurant_business_address_setup",
+    description: "Business address setup for a restaurant or food truck — using the restaurant location, virtual mailbox for admin mail, registered agent for LLC, and Google Business Profile address verification.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        restaurant_type: { type: "string" },
+        has_physical_location: { type: "boolean", default: true },
+      },
+    },
+  },
+
+  restaurant_business_phone_setup: {
+    name: "restaurant_business_phone_setup",
+    description: "Business phone setup for a restaurant — VoIP options (OpenPhone, Google Voice, RingCentral), reservation line setup, voicemail script, and SMS for order updates and promotions.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        takes_reservations: { type: "boolean", default: true },
+        team_size: { type: "number", default: 1 },
+      },
+    },
+  },
+
+  restaurant_business_bank_guide: {
+    name: "restaurant_business_bank_guide",
+    description: "Restaurant business bank account guide — best banks for food businesses, what to bring to open the account, merchant processing setup (Square, Toast, Stripe), and cash flow tips for high-volume daily sales.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        monthly_revenue_estimate: { type: "string" },
+        has_employees: { type: "boolean", default: false },
+      },
+    },
+  },
+
+  restaurant_servsafe_guide: {
+    name: "restaurant_servsafe_guide",
+    description: "ServSafe Food Manager Certification guide — why it's required, how to register for the exam, study resources, what the exam covers, and how to get your staff food handler cards.",
+    input_schema: {
+      type: "object",
+      properties: {
+        state: { type: "string" },
+        number_of_staff: { type: "number", default: 1 },
+        is_manager: { type: "boolean", default: true },
+      },
+    },
+  },
+
+  restaurant_insurance_guide: {
+    name: "restaurant_insurance_guide",
+    description: "Restaurant insurance guide — general liability, commercial property, liquor liability, workers' comp, food spoilage, and business interruption coverage. What's required vs. recommended and where to get quotes.",
+    input_schema: {
+      type: "object",
+      properties: {
+        restaurant_type: { type: "string" },
+        state: { type: "string" },
+        serves_alcohol: { type: "boolean", default: false },
+        has_employees: { type: "boolean", default: false },
+        annual_revenue_estimate: { type: "string" },
+      },
+    },
+  },
+
+  restaurant_google_ads_campaign: {
+    name: "restaurant_google_ads_campaign",
+    description: "Google Ads strategy for a restaurant — Google Business Profile optimization, Local Services Ads setup, Search Ads for 'restaurants near me', keyword lists, and budget recommendations.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        service_area: { type: "string" },
+        monthly_budget: { type: "number", default: 400 },
+        cuisine_type: { type: "string" },
+      },
+    },
+  },
+
+  restaurant_facebook_ads_campaign: {
+    name: "restaurant_facebook_ads_campaign",
+    description: "Facebook and Instagram Ads strategy for a restaurant — audience targeting (local foodies, event planners, families), food photo ad formats, offer campaigns, and event promotion ads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        service_area: { type: "string" },
+        monthly_budget: { type: "number", default: 250 },
+        cuisine_type: { type: "string" },
+        campaign_goal: { type: "string", enum: ["Drive foot traffic", "Grow online orders", "Promote events", "Build following"], default: "Drive foot traffic" },
+      },
+    },
+  },
+
+  restaurant_menu_marketing: {
+    name: "restaurant_menu_marketing",
+    description: "Restaurant menu marketing guide — how to design a high-converting menu, menu engineering (star/plow-horse/puzzle/dog items), pricing psychology, QR code menus, and seasonal menu strategy.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        cuisine_type: { type: "string" },
+        price_point: { type: "string", enum: ["Budget ($)", "Mid-range ($$)", "Upscale ($$$)", "Fine dining ($$$$)"], default: "Mid-range ($$)" },
+      },
+    },
+  },
+
+  restaurant_review_request_template: {
+    name: "restaurant_review_request_template",
+    description: "SMS and email review request templates for restaurants — when to send, what to say, how to respond to negative reviews, and how to build Google and Yelp review volume fast.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        review_platform: { type: "string", enum: ["Google", "Yelp", "TripAdvisor", "All"], default: "Google" },
+      },
+    },
+  },
+
+  restaurant_promo_campaign_generate: {
+    name: "restaurant_promo_campaign_generate",
+    description: "Full multi-channel promotional campaign generator for a restaurant — grand opening, holiday specials, happy hour, catering push, or seasonal offers across Google, Facebook, email, and SMS.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        campaign_name: { type: "string" },
+        offer: { type: "string", description: "e.g. '20% off', 'Free dessert', 'Buy one get one', 'Grand Opening special'" },
+        start_date: { type: "string" },
+        end_date: { type: "string" },
+        channels: {
+          type: "array",
+          items: { type: "string", enum: ["Google Ads", "Facebook", "Instagram", "Email", "SMS", "Flyer/Poster", "Nextdoor"] },
+        },
+      },
+      required: ["business_name", "offer"],
+    },
+  },
+
   trades_promo_campaign_generate: {
     name: "trades_promo_campaign_generate",
     description: "Generate a full promotional campaign for a trades business — including offer, ad copy, social posts, email/SMS sequence, and follow-up schedule. Seasonal or event-based.",
