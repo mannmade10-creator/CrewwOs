@@ -1,7 +1,7 @@
 "use client";
 /**
  * app/dashboard/[slug]/realestate/page.tsx
- * CrewwOS for Real Estate — agent/broker command center + Scout Agent
+ * CrewwOS for Real Estate — agent/broker command center + Scout Agent + Analytics
  */
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
@@ -27,6 +27,8 @@ interface ScoutDeal {
   status: string; priority: string; notes?: string;
 }
 
+const ACCENT = "#10B981";
+
 const SOURCE_LABELS: Record<string, string> = {
   mls: "MLS", fsbo_zillow: "Zillow FSBO", fsbo_craigslist: "Craigslist FSBO",
   attom: "ATTOM Data", manual: "Manual",
@@ -43,10 +45,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   low: "#6B7280", medium: "#F59E0B", high: "#EF4444", hot: "#FF3D00",
 };
 
-function fmt$(n?: number) {
-  if (!n) return "—";
-  return "$" + n.toLocaleString();
-}
+function fmt$(n?: number) { if (!n) return "—"; return "$" + n.toLocaleString(); }
 function fmtSqft(n?: number) { return n ? n.toLocaleString() + " sqft" : "—"; }
 
 const MOCK_STATS = [
@@ -73,7 +72,8 @@ export default function RealEstateDashboard() {
   const [profile, setProfile] = useState<RealEstateProfile | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "leads" | "scout" | "agents">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "leads" | "scout" | "analytics" | "agents">("overview");
+  const [analyticsTab, setAnalyticsTab] = useState<"market" | "pipeline" | "marketing" | "finance">("market");
 
   // Scout state
   const [scoutCity, setScoutCity]       = useState("Oklahoma City");
@@ -108,20 +108,11 @@ export default function RealEstateDashboard() {
   }, [activeTab, loadSavedDeals]);
 
   async function runScout() {
-    setScoutLoading(true);
-    setScoutError("");
-    setScoutResults([]);
+    setScoutLoading(true); setScoutError(""); setScoutResults([]);
     try {
       const res = await fetch("/api/realestate/scout/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          city: scoutCity.trim(),
-          state: scoutState.trim(),
-          zip: scoutZip.trim(),
-          max_price: Number(scoutMax.replace(/[^0-9]/g, "")) || 500_000,
-          sources: scoutSources,
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ city: scoutCity.trim(), state: scoutState.trim(), zip: scoutZip.trim(), max_price: Number(scoutMax.replace(/[^0-9]/g, "")) || 500_000, sources: scoutSources }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "Search failed");
@@ -129,37 +120,22 @@ export default function RealEstateDashboard() {
       if ((d.deals ?? []).length === 0) setScoutError("No deals found — try adjusting the area or price range.");
     } catch (e: unknown) {
       setScoutError(e instanceof Error ? e.message : "Search failed");
-    } finally {
-      setScoutLoading(false);
-    }
+    } finally { setScoutLoading(false); }
   }
 
   async function saveDeal(deal: ScoutDeal) {
-    const key = deal.external_id ?? deal.address;
-    setSavingId(key);
+    const key = deal.external_id ?? deal.address; setSavingId(key);
     try {
-      const res = await fetch("/api/realestate/scout/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(deal),
-      });
+      const res = await fetch("/api/realestate/scout/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(deal) });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
-      // Refresh saved list
       loadSavedDeals();
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Could not save deal");
-    } finally {
-      setSavingId(null);
-    }
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : "Could not save deal"); }
+    finally { setSavingId(null); }
   }
 
   async function updateDealStatus(id: string, status: string) {
-    await fetch("/api/realestate/scout/save", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status }),
-    });
+    await fetch("/api/realestate/scout/save", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) });
     loadSavedDeals();
   }
 
@@ -168,7 +144,6 @@ export default function RealEstateDashboard() {
     setSavedDeals(prev => prev.filter(d => d.id !== id));
   }
 
-  // Use a placeholder profile if onboard API isn't set up yet
   const displayProfile: RealEstateProfile = profile ?? {
     id: "demo", agent_name: "Your Name", brokerage: "Your Brokerage",
     onboarding_complete: false, onboarding_step: 1, plan: "starter",
@@ -197,271 +172,320 @@ export default function RealEstateDashboard() {
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           {!displayProfile.onboarding_complete && <a href={`${base}/onboard`} style={S.warningBtn}>⚡ Complete setup ({displayProfile.onboarding_step}/5)</a>}
-          <button onClick={() => { setActiveTab("scout"); setScoutView("search"); }} style={S.scoutBtn}>🔍 Scout Deals</button>
           <a href={`${base}/leads/new`} style={S.primaryBtn}>+ New lead</a>
         </div>
       </div>
 
       {/* Tabs */}
       <div style={S.tabs}>
-        {(["overview","leads","scout","agents"] as const).map(t => (
-          <button key={t} onClick={() => setActiveTab(t)} style={{ ...S.tab, ...(activeTab === t ? S.tabActive : {}) }}>
-            {t === "overview" ? "📊 Overview" : t === "leads" ? "📋 Leads" : t === "scout" ? "🔍 Scout Agent" : "🤖 Agents"}
+        {(["overview","leads","scout","analytics","agents"] as const).map(t=>(
+          <button key={t} onClick={()=>setActiveTab(t)} style={{ ...S.tab,...(activeTab===t?{ color:ACCENT,borderBottom:`2px solid ${ACCENT}`,marginBottom:-1 }:{}) }}>
+            {t==="overview"?"📊 Overview":t==="leads"?"📋 Leads":t==="scout"?"🔍 Scout":t==="analytics"?"📈 Analytics":"🤖 Agents"}
           </button>
         ))}
       </div>
 
       {/* OVERVIEW */}
-      {activeTab === "overview" && (
+      {activeTab==="overview"&&(
         <div>
-          <div style={S.statsGrid}>{MOCK_STATS.map(s => (<div key={s.label} style={S.statCard}><div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div><div style={{ fontSize: 28, fontWeight: 800 }}>{s.value}</div><div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", margin: "4px 0 6px" }}>{s.label}</div><div style={{ fontSize: 11, color: "rgba(16,185,129,0.8)" }}>{s.note}</div></div>))}</div>
-          <div style={{ ...S.card, margin: "16px 32px" }}>
-            <div style={S.cardHeader}><span style={{ fontSize: 16, fontWeight: 700 }}>🤖 Agent Activity</span></div>
-            {AGENT_FEED.map(a => (<div key={a.agent} style={S.agentRow}><span style={{ fontSize: 20 }}>{a.icon}</span><div style={{ flex: 1 }}><span style={{ fontSize: 12, fontWeight: 700, color: a.time === "Active" ? "#3B82F6" : "#10B981" }}>{a.agent}</span><span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginLeft: 8 }}>{a.action}</span></div><span style={{ fontSize: 11, color: a.time === "Active" ? "#3B82F6" : "rgba(255,255,255,0.3)" }}>{a.time}</span></div>))}
+          <div style={S.statsGrid}>{MOCK_STATS.map(s=>(<div key={s.label} style={S.statCard}><div style={{ fontSize:24,marginBottom:8 }}>{s.icon}</div><div style={{ fontSize:28,fontWeight:800 }}>{s.value}</div><div style={{ fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.6)",margin:"4px 0 6px" }}>{s.label}</div><div style={{ fontSize:11,color:`${ACCENT}cc` }}>{s.note}</div></div>))}</div>
+          <div style={{ ...S.card,margin:"16px 32px" }}>
+            <div style={S.cardHeader}><span style={{ fontSize:16,fontWeight:700 }}>🤖 Agent Activity</span></div>
+            {AGENT_FEED.map(a=>(<div key={a.agent} style={S.agentRow}><span style={{ fontSize:20 }}>{a.icon}</span><div style={{ flex:1 }}><span style={{ fontSize:12,fontWeight:700,color:ACCENT }}>{a.agent}</span><span style={{ fontSize:13,color:"rgba(255,255,255,0.7)",marginLeft:8 }}>{a.action}</span></div><span style={{ fontSize:11,color:a.time==="Active"?ACCENT:"rgba(255,255,255,0.3)" }}>{a.time}</span></div>))}
           </div>
         </div>
       )}
 
       {/* LEADS */}
-      {activeTab === "leads" && (
-        <div style={{ ...S.card, margin: "24px 32px" }}>
-          <div style={S.cardHeader}><span style={{ fontSize: 16, fontWeight: 700 }}>📋 Lead Pipeline</span><span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{leads.length} total</span></div>
-          {leads.length === 0 ? <div style={S.emptyState}><p>No leads yet. Connect your IDX form or share your booking link.</p></div>
-            : leads.map(l => (<div key={l.id} style={S.agentRow}><div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 600 }}>{l.name ?? "Unknown"}</div><div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{l.phone} · {l.property_type ?? l.source}</div></div><span style={{ fontSize: 11, background: "rgba(16,185,129,0.1)", color: "#10B981", borderRadius: 4, padding: "2px 8px", border: "1px solid rgba(16,185,129,0.2)" }}>{l.status}</span></div>))}
+      {activeTab==="leads"&&(
+        <div style={{ ...S.card,margin:"24px 32px" }}>
+          <div style={S.cardHeader}><span style={{ fontSize:16,fontWeight:700 }}>📋 Lead Pipeline</span><span style={{ fontSize:12,color:"rgba(255,255,255,0.4)" }}>{leads.length} total</span></div>
+          {leads.length===0 ? (
+            <div style={{ textAlign:"center",padding:"32px 0",color:"rgba(255,255,255,0.35)",fontSize:14 }}>No leads yet. Share your IDX form or booking link to start capturing.</div>
+          ) : leads.map(l=>(
+            <div key={l.id} style={S.agentRow}>
+              <div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:600 }}>{l.name??"Unknown"}</div><div style={{ fontSize:11,color:"rgba(255,255,255,0.4)" }}>{l.phone} · {l.source} · {l.property_type??""}</div></div>
+              <span style={{ fontSize:11,background:`${ACCENT}18`,color:ACCENT,borderRadius:4,padding:"2px 8px",border:`1px solid ${ACCENT}30` }}>{l.status}</span>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* SCOUT AGENT */}
-      {activeTab === "scout" && (
-        <div style={{ padding: "24px 32px" }}>
-          {/* Scout header */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-            <div>
-              <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>🔍 Scout Agent</h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>Searches MLS, Zillow FSBO, and ATTOM Data for deals in your market</p>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setScoutView("search")} style={{ ...S.viewToggle, ...(scoutView === "search" ? S.viewToggleActive : {}) }}>🔎 Search</button>
-              <button onClick={() => setScoutView("saved")} style={{ ...S.viewToggle, ...(scoutView === "saved" ? S.viewToggleActive : {}) }}>💾 Saved ({savedDeals.length})</button>
-            </div>
+      {/* SCOUT */}
+      {activeTab==="scout"&&(
+        <div style={{ padding:"24px 32px" }}>
+          <div style={{ display:"flex",gap:8,marginBottom:20 }}>
+            {(["search","saved"] as const).map(v=>(
+              <button key={v} onClick={()=>setScoutView(v)} style={{ background:scoutView===v?ACCENT:"rgba(255,255,255,0.05)",color:scoutView===v?"#000":"rgba(255,255,255,0.6)",border:"none",borderRadius:8,padding:"8px 16px",fontSize:13,fontWeight:600,cursor:"pointer" }}>
+                {v==="search"?"🔍 Find Deals":"💾 Saved Deals"}
+              </button>
+            ))}
           </div>
-
-          {/* Search panel */}
-          {scoutView === "search" && (
-            <>
-              <div style={S.searchBar}>
-                <div style={S.fieldGroup}>
-                  <label style={S.fieldLabel}>City</label>
-                  <input value={scoutCity} onChange={e => setScoutCity(e.target.value)} style={S.input} placeholder="Oklahoma City" />
+          {scoutView==="search"&&(
+            <div style={{ display:"flex",flexDirection:"column",gap:16 }}>
+              <div style={S.card}>
+                <div style={{ fontSize:14,fontWeight:700,marginBottom:14 }}>🎯 Search Parameters</div>
+                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16 }}>
+                  <div><div style={{ fontSize:11,color:"rgba(255,255,255,0.4)",marginBottom:4 }}>CITY</div><input value={scoutCity} onChange={e=>setScoutCity(e.target.value)} style={S.input} placeholder="Oklahoma City" /></div>
+                  <div><div style={{ fontSize:11,color:"rgba(255,255,255,0.4)",marginBottom:4 }}>STATE</div><input value={scoutState} onChange={e=>setScoutState(e.target.value)} style={S.input} placeholder="OK" /></div>
+                  <div><div style={{ fontSize:11,color:"rgba(255,255,255,0.4)",marginBottom:4 }}>ZIP (opt)</div><input value={scoutZip} onChange={e=>setScoutZip(e.target.value)} style={S.input} placeholder="73101" /></div>
+                  <div><div style={{ fontSize:11,color:"rgba(255,255,255,0.4)",marginBottom:4 }}>MAX PRICE</div><input value={scoutMax} onChange={e=>setScoutMax(e.target.value)} style={S.input} placeholder="400000" /></div>
                 </div>
-                <div style={{ ...S.fieldGroup, maxWidth: 100 }}>
-                  <label style={S.fieldLabel}>State</label>
-                  <input value={scoutState} onChange={e => setScoutState(e.target.value)} style={S.input} placeholder="OK" maxLength={2} />
-                </div>
-                <div style={{ ...S.fieldGroup, maxWidth: 120 }}>
-                  <label style={S.fieldLabel}>ZIP (optional)</label>
-                  <input value={scoutZip} onChange={e => setScoutZip(e.target.value)} style={S.input} placeholder="73101" maxLength={5} />
-                </div>
-                <div style={S.fieldGroup}>
-                  <label style={S.fieldLabel}>Max Price</label>
-                  <input value={scoutMax} onChange={e => setScoutMax(e.target.value)} style={S.input} placeholder="400000" />
-                </div>
-                <button onClick={runScout} disabled={scoutLoading} style={{ ...S.primaryBtn, alignSelf: "flex-end", opacity: scoutLoading ? 0.6 : 1, whiteSpace: "nowrap" }}>
-                  {scoutLoading ? "Scouting…" : "Run Scout →"}
-                </button>
-              </div>
-
-              {/* Source toggles */}
-              <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", alignSelf: "center" }}>Sources:</span>
-                {["mls","fsbo_zillow","attom"].map(src => {
-                  const on = scoutSources.includes(src);
-                  return (
-                    <button key={src} onClick={() => setScoutSources(prev => on ? prev.filter(s => s !== src) : [...prev, src])}
-                      style={{ fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 20, border: `1px solid ${on ? SOURCE_COLORS[src] : "rgba(255,255,255,0.1)"}`, background: on ? SOURCE_COLORS[src] + "22" : "transparent", color: on ? SOURCE_COLORS[src] : "rgba(255,255,255,0.35)", cursor: "pointer" }}>
-                      {SOURCE_LABELS[src]}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {scoutError && <div style={{ color: "#F87171", fontSize: 13, marginBottom: 16, padding: "12px 16px", background: "rgba(239,68,68,0.08)", borderRadius: 8, border: "1px solid rgba(239,68,68,0.2)" }}>⚠ {scoutError}</div>}
-
-              {/* API key notice */}
-              <div style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 8, padding: "12px 16px", marginBottom: 20, fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
-                <strong style={{ color: "#3B82F6" }}>📡 API Keys Required</strong> — Add these to your <code style={{ background: "rgba(255,255,255,0.08)", padding: "1px 5px", borderRadius: 3 }}>.env.local</code>:&nbsp;
-                <code>ATTOM_API_KEY</code> (attomdata.com, free tier),&nbsp;
-                <code>RAPIDAPI_KEY</code> + <code>ZILLOW_RAPIDAPI_HOST</code> (zillow-com1.p.rapidapi.com),&nbsp;
-                <code>MLS_RAPIDAPI_HOST</code> (realty-in-us.p.rapidapi.com). Scout runs live searches against whichever sources have keys.
-              </div>
-
-              {/* Results */}
-              {scoutResults.length > 0 && (
-                <>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>
-                    Found <strong style={{ color: "#fff" }}>{scoutResults.length} deals</strong> — FSBO shown first
-                  </div>
-                  <div style={S.dealGrid}>
-                    {scoutResults.map((deal, i) => {
-                      const key = deal.external_id ?? `${deal.source}-${i}`;
-                      const isSaving = savingId === key;
-                      return (
-                        <div key={key} style={{ ...S.dealCard, ...(deal.is_fsbo ? S.dealCardFSBO : {}) }}>
-                          {/* Source + FSBO badge */}
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: SOURCE_COLORS[deal.source], background: SOURCE_COLORS[deal.source] + "20", borderRadius: 4, padding: "2px 8px" }}>
-                              {SOURCE_LABELS[deal.source]}
-                            </span>
-                            {deal.is_fsbo && <span style={{ fontSize: 10, fontWeight: 700, color: "#10B981", background: "rgba(16,185,129,0.15)", borderRadius: 4, padding: "2px 8px", border: "1px solid rgba(16,185,129,0.3)" }}>🤝 FSBO</span>}
-                          </div>
-
-                          {/* Photo */}
-                          {deal.photos?.[0] && (
-                            <img src={deal.photos[0]} alt={deal.address} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 6, marginBottom: 10 }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                          )}
-
-                          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, lineHeight: 1.4 }}>{deal.address}</div>
-                          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>
-                            {[deal.beds && `${deal.beds} bd`, deal.baths && `${deal.baths} ba`, deal.sqft && fmtSqft(deal.sqft), deal.year_built && `Built ${deal.year_built}`].filter(Boolean).join(" · ")}
-                          </div>
-
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 12 }}>
-                            <div>
-                              <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>{fmt$(deal.list_price)}</div>
-                              {deal.days_on_market !== undefined && <div style={{ fontSize: 10, color: deal.days_on_market > 30 ? "#F59E0B" : "rgba(255,255,255,0.35)" }}>{deal.days_on_market}d on market</div>}
-                            </div>
-                            {deal.property_type && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", textTransform: "capitalize" }}>{deal.property_type.replace(/_/g," ")}</span>}
-                          </div>
-
-                          <div style={{ display: "flex", gap: 6 }}>
-                            {deal.listing_url && (
-                              <a href={deal.listing_url} target="_blank" rel="noopener noreferrer"
-                                style={{ flex: 1, textAlign: "center", fontSize: 11, fontWeight: 600, padding: "7px 0", borderRadius: 6, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", textDecoration: "none" }}>
-                                View Listing ↗
-                              </a>
-                            )}
-                            <button onClick={() => saveDeal({ ...deal, external_id: key })} disabled={isSaving}
-                              style={{ flex: 1, fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 6, border: "none", background: isSaving ? "rgba(16,185,129,0.3)" : "linear-gradient(135deg,#10B981,#059669)", color: "#fff", cursor: "pointer", opacity: isSaving ? 0.7 : 1 }}>
-                              {isSaving ? "Saving…" : "💾 Save Deal"}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-
-              {!scoutLoading && scoutResults.length === 0 && !scoutError && (
-                <div style={S.emptyScout}>
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Scout Agent is ready</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 400, textAlign: "center", lineHeight: 1.7 }}>
-                    Enter your market area and price range above, select your data sources, and hit <strong>Run Scout</strong>. Scout pulls live deals from MLS, Zillow FSBO, and ATTOM all at once.
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Saved deals panel */}
-          {scoutView === "saved" && (
-            <>
-              {savedDeals.length === 0 ? (
-                <div style={S.emptyScout}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>💾</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>No saved deals yet</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>Run a scout search and save deals you want to track.</div>
-                </div>
-              ) : (
-                <>
-                  {/* Status filter row */}
-                  <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-                    {Object.entries(STATUS_COLORS).map(([st, color]) => (
-                      <button key={st} style={{ fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, border: `1px solid ${color}44`, background: color + "18", color, cursor: "pointer" }}>
-                        {st.replace(/_/g," ")} ({savedDeals.filter(d => d.status === st).length})
+                <div style={{ marginBottom:16 }}>
+                  <div style={{ fontSize:11,color:"rgba(255,255,255,0.4)",marginBottom:8 }}>DATA SOURCES</div>
+                  <div style={{ display:"flex",gap:8,flexWrap:"wrap" as const }}>
+                    {["mls","fsbo_zillow","fsbo_craigslist","attom"].map(src=>(
+                      <button key={src} onClick={()=>setScoutSources(p=>p.includes(src)?p.filter(x=>x!==src):[...p,src])} style={{ background:scoutSources.includes(src)?`${SOURCE_COLORS[src]}22`:"rgba(255,255,255,0.04)",color:scoutSources.includes(src)?SOURCE_COLORS[src]:"rgba(255,255,255,0.4)",border:`1px solid ${scoutSources.includes(src)?SOURCE_COLORS[src]+"44":"rgba(255,255,255,0.08)"}`,borderRadius:6,padding:"6px 12px",fontSize:12,cursor:"pointer" }}>
+                        {SOURCE_LABELS[src]}
                       </button>
                     ))}
                   </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    {savedDeals.map(deal => (
-                      <div key={deal.id} style={S.savedDealRow}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
-                            <span style={{ fontSize: 13, fontWeight: 700 }}>{deal.address}</span>
-                            {deal.is_fsbo && <span style={{ fontSize: 10, color: "#10B981", fontWeight: 700 }}>FSBO</span>}
-                            <span style={{ fontSize: 10, color: SOURCE_COLORS[deal.source] }}>{SOURCE_LABELS[deal.source]}</span>
+                </div>
+                <button onClick={runScout} disabled={scoutLoading} style={{ background:scoutLoading?"rgba(16,185,129,0.3)":`linear-gradient(135deg,${ACCENT},#059669)`,color:scoutLoading?"rgba(255,255,255,0.5)":"#fff",border:"none",borderRadius:8,padding:"10px 24px",fontSize:13,fontWeight:700,cursor:scoutLoading?"not-allowed":"pointer" }}>
+                  {scoutLoading?"🔍 Searching...":"🔍 Find Deals"}
+                </button>
+              </div>
+              {scoutError&&<div style={{ background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:10,padding:"12px 16px",color:"#fca5a5",fontSize:13 }}>{scoutError}</div>}
+              {scoutResults.length>0&&(
+                <div>
+                  <div style={{ fontSize:14,fontWeight:700,marginBottom:12 }}>🏠 {scoutResults.length} Deals Found</div>
+                  <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
+                    {scoutResults.map((deal,i)=>(
+                      <div key={deal.external_id??i} style={{ ...S.card,position:"relative" as const }}>
+                        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12 }}>
+                          <div>
+                            <div style={{ fontSize:15,fontWeight:700,marginBottom:4 }}>{deal.address}{deal.city?`, ${deal.city}`:""}{deal.state?` ${deal.state}`:""}</div>
+                            <div style={{ display:"flex",gap:8,flexWrap:"wrap" as const }}>
+                              <span style={{ fontSize:11,color:SOURCE_COLORS[deal.source],background:`${SOURCE_COLORS[deal.source]}18`,borderRadius:4,padding:"2px 8px",border:`1px solid ${SOURCE_COLORS[deal.source]}30` }}>{SOURCE_LABELS[deal.source]}</span>
+                              {deal.is_fsbo&&<span style={{ fontSize:11,color:"#F59E0B",background:"rgba(245,158,11,0.1)",borderRadius:4,padding:"2px 8px",border:"1px solid rgba(245,158,11,0.2)" }}>FSBO</span>}
+                              {deal.days_on_market!==undefined&&<span style={{ fontSize:11,color:"rgba(255,255,255,0.4)" }}>{deal.days_on_market}d on market</span>}
+                            </div>
                           </div>
-                          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", display: "flex", gap: 16, flexWrap: "wrap" }}>
-                            <span>{fmt$(deal.list_price)}</span>
-                            {deal.beds && <span>{deal.beds}bd/{deal.baths}ba</span>}
-                            {deal.est_arv && <span style={{ color: "#10B981" }}>ARV: {fmt$(deal.est_arv)}</span>}
-                            {deal.est_repair && <span style={{ color: "#F59E0B" }}>Repairs: {fmt$(deal.est_repair)}</span>}
+                          <div style={{ textAlign:"right" as const }}>
+                            <div style={{ fontSize:20,fontWeight:800,color:ACCENT }}>{fmt$(deal.list_price)}</div>
+                            {deal.est_arv&&<div style={{ fontSize:12,color:"rgba(255,255,255,0.5)" }}>ARV: {fmt$(deal.est_arv)}</div>}
                           </div>
-                          {deal.notes && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 4, fontStyle: "italic" }}>{deal.notes}</div>}
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
-                          <div style={{ display: "flex", gap: 6 }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: (STATUS_COLORS[deal.status] ?? "#6B7280") + "20", color: STATUS_COLORS[deal.status] ?? "#6B7280", border: `1px solid ${(STATUS_COLORS[deal.status] ?? "#6B7280")}44` }}>
-                              {deal.status.replace(/_/g," ")}
-                            </span>
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: (PRIORITY_COLORS[deal.priority] ?? "#6B7280") + "20", color: PRIORITY_COLORS[deal.priority] ?? "#6B7280" }}>
-                              {deal.priority === "hot" ? "🔥" : ""} {deal.priority}
-                            </span>
-                          </div>
-                          <div style={{ display: "flex", gap: 6 }}>
-                            <select onChange={e => deal.id && updateDealStatus(deal.id, e.target.value)} value={deal.status}
-                              style={{ fontSize: 11, background: "#0d0d1a", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", borderRadius: 6, padding: "4px 8px", cursor: "pointer" }}>
-                              {["new","analyzing","contacted","offer_sent","under_contract","closed","passed"].map(s => <option key={s} value={s}>{s.replace(/_/g," ")}</option>)}
-                            </select>
-                            {deal.listing_url && (
-                              <a href={deal.listing_url} target="_blank" rel="noopener noreferrer"
-                                style={{ fontSize: 11, padding: "4px 10px", borderRadius: 6, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.1)" }}>↗</a>
-                            )}
-                            <button onClick={() => deal.id && deleteDeal(deal.id)}
-                              style={{ fontSize: 11, padding: "4px 10px", borderRadius: 6, background: "rgba(239,68,68,0.1)", color: "#F87171", border: "1px solid rgba(239,68,68,0.2)", cursor: "pointer" }}>✕</button>
-                          </div>
+                        <div style={{ display:"flex",gap:16,flexWrap:"wrap" as const,marginBottom:12 }}>
+                          {deal.beds&&<span style={{ fontSize:13,color:"rgba(255,255,255,0.7)" }}>🛏 {deal.beds}bd</span>}
+                          {deal.baths&&<span style={{ fontSize:13,color:"rgba(255,255,255,0.7)" }}>🚿 {deal.baths}ba</span>}
+                          {deal.sqft&&<span style={{ fontSize:13,color:"rgba(255,255,255,0.7)" }}>📐 {fmtSqft(deal.sqft)}</span>}
+                          {deal.year_built&&<span style={{ fontSize:13,color:"rgba(255,255,255,0.7)" }}>🏗 {deal.year_built}</span>}
+                          {deal.est_repair&&<span style={{ fontSize:13,color:"#F59E0B" }}>🔧 Est repair: {fmt$(deal.est_repair)}</span>}
+                        </div>
+                        <div style={{ display:"flex",gap:10 }}>
+                          <button onClick={()=>saveDeal(deal)} disabled={savingId===(deal.external_id??deal.address)} style={{ background:`${ACCENT}22`,color:ACCENT,border:`1px solid ${ACCENT}44`,borderRadius:6,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer" }}>
+                            {savingId===(deal.external_id??deal.address)?"Saving...":"💾 Save Deal"}
+                          </button>
+                          {deal.listing_url&&<a href={deal.listing_url} target="_blank" rel="noreferrer" style={{ background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.6)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,padding:"6px 14px",fontSize:12,textDecoration:"none" }}>🔗 View Listing</a>}
                         </div>
                       </div>
                     ))}
                   </div>
-                </>
+                </div>
               )}
+            </div>
+          )}
+          {scoutView==="saved"&&(
+            <div>
+              <div style={{ fontSize:14,fontWeight:700,marginBottom:12 }}>💾 Saved Deals ({savedDeals.length})</div>
+              {savedDeals.length===0 ? (
+                <div style={{ ...S.card,textAlign:"center" as const,padding:"40px 20px",color:"rgba(255,255,255,0.35)" }}>No saved deals yet. Run a search and save deals to track them here.</div>
+              ) : savedDeals.map(deal=>(
+                <div key={deal.id} style={{ ...S.card,marginBottom:12 }}>
+                  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12 }}>
+                    <div>
+                      <div style={{ fontSize:14,fontWeight:700,marginBottom:4 }}>{deal.address}</div>
+                      <div style={{ display:"flex",gap:8 }}>
+                        <span style={{ fontSize:11,color:SOURCE_COLORS[deal.source],background:`${SOURCE_COLORS[deal.source]}18`,borderRadius:4,padding:"2px 8px",border:`1px solid ${SOURCE_COLORS[deal.source]}30` }}>{SOURCE_LABELS[deal.source]}</span>
+                        <span style={{ fontSize:11,color:STATUS_COLORS[deal.status]??ACCENT,background:`${STATUS_COLORS[deal.status]??ACCENT}18`,borderRadius:4,padding:"2px 8px",border:`1px solid ${STATUS_COLORS[deal.status]??ACCENT}30` }}>{deal.status.replace("_"," ")}</span>
+                        <span style={{ fontSize:11,color:PRIORITY_COLORS[deal.priority]??"#6B7280",background:`${PRIORITY_COLORS[deal.priority]??"#6B7280"}18`,borderRadius:4,padding:"2px 8px",border:`1px solid ${PRIORITY_COLORS[deal.priority]??"#6B7280"}30` }}>{deal.priority}</span>
+                      </div>
+                    </div>
+                    <div style={{ textAlign:"right" as const }}>
+                      <div style={{ fontSize:18,fontWeight:800,color:ACCENT }}>{fmt$(deal.list_price)}</div>
+                    </div>
+                  </div>
+                  <div style={{ display:"flex",gap:8,flexWrap:"wrap" as const }}>
+                    {["analyzing","contacted","offer_sent","under_contract","passed"].map(st=>(
+                      <button key={st} onClick={()=>deal.id&&updateDealStatus(deal.id,st)} style={{ background:deal.status===st?`${STATUS_COLORS[st]}22`:"rgba(255,255,255,0.04)",color:deal.status===st?(STATUS_COLORS[st]??ACCENT):"rgba(255,255,255,0.4)",border:`1px solid ${deal.status===st?(STATUS_COLORS[st]??"#10B981")+"44":"rgba(255,255,255,0.08)"}`,borderRadius:5,padding:"4px 10px",fontSize:11,cursor:"pointer" }}>
+                        {st.replace("_"," ")}
+                      </button>
+                    ))}
+                    <button onClick={()=>deal.id&&deleteDeal(deal.id)} style={{ background:"rgba(239,68,68,0.08)",color:"rgba(239,68,68,0.7)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:5,padding:"4px 10px",fontSize:11,cursor:"pointer",marginLeft:"auto" }}>🗑 Remove</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ANALYTICS */}
+      {activeTab==="analytics"&&(
+        <div style={{ padding:"24px 32px",display:"flex",flexDirection:"column",gap:16 }}>
+          <div style={{ display:"flex",alignItems:"center",gap:16,background:`${ACCENT}0a`,border:`1px solid ${ACCENT}28`,borderRadius:12,padding:"16px 20px" }}>
+            <span style={{ fontSize:20 }}>🔗</span>
+            <div style={{ flex:1 }}>
+              <strong style={{ fontSize:14 }}>Connect your tools for live real estate analytics</strong>
+              <p style={{ margin:"4px 0 0",fontSize:12,color:"rgba(255,255,255,0.5)" }}>Connect your CRM, MLS data feed, and Google Analytics to track leads, listings, and market performance in real time.</p>
+            </div>
+            <a href={`/dashboard/${slug}/integrations`} style={{ background:ACCENT,color:"#fff",fontWeight:700,fontSize:12,padding:"8px 16px",borderRadius:8,textDecoration:"none",whiteSpace:"nowrap" as const }}>Connect →</a>
+          </div>
+
+          <div style={{ display:"flex",gap:4,borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+            {(["market","pipeline","marketing","finance"] as const).map(t=>(
+              <button key={t} onClick={()=>setAnalyticsTab(t)} style={{ background:"none",border:"none",color:analyticsTab===t?ACCENT:"rgba(255,255,255,0.4)",fontSize:12,fontWeight:600,padding:"10px 14px",cursor:"pointer",borderBottom:analyticsTab===t?`2px solid ${ACCENT}`:"2px solid transparent",marginBottom:-1,whiteSpace:"nowrap" as const }}>
+                {t==="market"?"🏘️ Market":t==="pipeline"?"🔄 Pipeline":t==="marketing"?"📢 Marketing":"💰 Finance"}
+              </button>
+            ))}
+          </div>
+
+          {analyticsTab==="market"&&(
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label:"Median Home Price",    value:"$—",  icon:"🏠", note:"Your target market",        color:ACCENT },
+                  { label:"Days on Market (Avg)", value:"—",   icon:"📅", note:"Market absorption rate",    color:"#06B6D4" },
+                  { label:"List/Sale Price Ratio",value:"—%",  icon:"📊", note:"How close to asking",       color:"#a855f7" },
+                  { label:"Active Listings",       value:"—",   icon:"📍", note:"Your MLS area",             color:"#f59e0b" },
+                  { label:"Months of Inventory",  value:"—",   icon:"🗓️", note:"Supply vs demand metric",   color:"#ef4444" },
+                  { label:"Avg Price per Sqft",   value:"$—",  icon:"📐", note:"Market benchmark",          color:ACCENT },
+                ].map(s=><REStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize:14,fontWeight:700 }}>🔗 MLS & Market Data Integrations</span></div>
+                {[
+                  { name:"Zillow Bridge API",    icon:"🔵", desc:"Property data, Zestimate, and market stats",            url:"https://bridgeinteractive.com" },
+                  { name:"ATTOM Data Solutions", icon:"🟣", desc:"Property details, valuation, and neighborhood data",    url:"https://www.attomdata.com" },
+                  { name:"Redfin Data Center",   icon:"🔴", desc:"Market trend reports and median price history",         url:"https://www.redfin.com/news/data-center" },
+                  { name:"CoreLogic Matrix",     icon:"🟠", desc:"MLS data, tax records, and market analytics",          url:"https://www.corelogic.com" },
+                ].map(p=>(
+                  <div key={p.name} style={{ display:"flex",alignItems:"center",gap:14,padding:"12px 0",borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize:20 }}>{p.icon}</span>
+                    <div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:700,marginBottom:2 }}>{p.name}</div><div style={{ fontSize:12,color:"rgba(255,255,255,0.4)" }}>{p.desc}</div></div>
+                    <a href={p.url} target="_blank" rel="noreferrer" style={{ fontSize:12,color:ACCENT,textDecoration:"none",background:`${ACCENT}10`,border:`1px solid ${ACCENT}28`,borderRadius:6,padding:"4px 10px" }}>Connect →</a>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {analyticsTab==="pipeline"&&(
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label:"Active Leads",        value:"—",   icon:"📋", note:"In your pipeline",           color:ACCENT },
+                  { label:"Showings (30d)",       value:"—",   icon:"🏠", note:"Scheduled showings",          color:"#06B6D4" },
+                  { label:"Offers Made (30d)",    value:"—",   icon:"📝", note:"Buyer offers submitted",      color:"#a855f7" },
+                  { label:"Under Contract",        value:"—",   icon:"🤝", note:"Active transactions",         color:"#f59e0b" },
+                  { label:"Closings (MTD)",        value:"—",   icon:"🔑", note:"Deals closed this month",    color:"#22c55e" },
+                  { label:"Lead→Close Rate",       value:"—%",  icon:"🎯", note:"Conversion rate",             color:ACCENT },
+                ].map(s=><REStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize:14,fontWeight:700 }}>🔄 CRM Integrations</span></div>
+                {[
+                  { name:"Follow Up Boss",  icon:"🟢", desc:"Real estate CRM with pipeline tracking and auto-follow-up",  url:"https://www.followupboss.com" },
+                  { name:"LionDesk",        icon:"🦁", desc:"CRM, email/text drips, and video email for agents",          url:"https://www.liondesk.com" },
+                  { name:"KvCORE",          icon:"🔵", desc:"All-in-one platform with IDX, CRM, and lead gen",            url:"https://kvcore.com" },
+                  { name:"Sierra Interactive",icon:"🟣", desc:"IDX website, CRM, and lead routing for real estate teams", url:"https://www.sierrainteractive.com" },
+                ].map(p=>(
+                  <div key={p.name} style={{ display:"flex",alignItems:"center",gap:14,padding:"12px 0",borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize:20 }}>{p.icon}</span>
+                    <div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:700,marginBottom:2 }}>{p.name}</div><div style={{ fontSize:12,color:"rgba(255,255,255,0.4)" }}>{p.desc}</div></div>
+                    <a href={p.url} target="_blank" rel="noreferrer" style={{ fontSize:12,color:ACCENT,textDecoration:"none",background:`${ACCENT}10`,border:`1px solid ${ACCENT}28`,borderRadius:6,padding:"4px 10px" }}>Connect →</a>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {analyticsTab==="marketing"&&(
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label:"IDX Website Visits",  value:"—",  icon:"🌐", note:"Connect Google Analytics",  color:ACCENT },
+                  { label:"Lead Form Submits",   value:"—",  icon:"📋", note:"Organic lead captures",      color:"#22c55e" },
+                  { label:"Email Open Rate",      value:"—%", icon:"📧", note:"Connect Mailchimp/Brevo",    color:"#06B6D4" },
+                  { label:"Social Reach (30d)",   value:"—",  icon:"📲", note:"Connect Instagram/Facebook", color:"#a855f7" },
+                ].map(s=><REStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize:14,fontWeight:700 }}>📢 Marketing Platform Integrations</span></div>
+                {[
+                  { name:"Google Analytics",     icon:"🟡", desc:"Website traffic, lead source attribution, and conversions", url:"https://analytics.google.com" },
+                  { name:"Mailchimp",             icon:"🟡", desc:"Email newsletters, market report drips, and automations",   url:"https://mailchimp.com" },
+                  { name:"BombBomb",              icon:"🔴", desc:"Video email for personal outreach and listing presentations", url:"https://bombbomb.com" },
+                  { name:"Canva for Real Estate", icon:"🔵", desc:"Listing flyers, social posts, and market report templates",  url:"https://www.canva.com/realtors" },
+                ].map(p=>(
+                  <div key={p.name} style={{ display:"flex",alignItems:"center",gap:14,padding:"12px 0",borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize:20 }}>{p.icon}</span>
+                    <div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:700,marginBottom:2 }}>{p.name}</div><div style={{ fontSize:12,color:"rgba(255,255,255,0.4)" }}>{p.desc}</div></div>
+                    <a href={p.url} target="_blank" rel="noreferrer" style={{ fontSize:12,color:ACCENT,textDecoration:"none",background:`${ACCENT}10`,border:`1px solid ${ACCENT}28`,borderRadius:6,padding:"4px 10px" }}>Connect →</a>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {analyticsTab==="finance"&&(
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label:"GCI (MTD)",           value:"$—", icon:"💰", note:"Gross commission income",    color:"#22c55e" },
+                  { label:"Active Transaction $", value:"$—", icon:"🤝", note:"Pipeline deal volume",       color:ACCENT },
+                  { label:"Avg Commission",       value:"$—", icon:"📊", note:"Per closed transaction",     color:"#06B6D4" },
+                  { label:"Split Take-Home",      value:"$—", icon:"✂️", note:"After brokerage split",      color:"#a855f7" },
+                ].map(s=><REStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize:14,fontWeight:700 }}>💰 Finance Integrations</span></div>
+                {[
+                  { name:"QuickBooks Self-Employed", icon:"🟢", desc:"Track commission income, mileage, and deductible expenses", url:"https://quickbooks.intuit.com/self-employed" },
+                  { name:"Realty Juggler",           icon:"🟠", desc:"Real estate-specific CRM with commission tracking",          url:"https://www.realtyjuggler.com" },
+                  { name:"Propertybase",             icon:"🔵", desc:"Salesforce-powered CRM with commission and pipeline mgmt",   url:"https://www.propertybase.com" },
+                ].map(p=>(
+                  <div key={p.name} style={{ display:"flex",alignItems:"center",gap:14,padding:"12px 0",borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize:20 }}>{p.icon}</span>
+                    <div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:700,marginBottom:2 }}>{p.name}</div><div style={{ fontSize:12,color:"rgba(255,255,255,0.4)" }}>{p.desc}</div></div>
+                    <a href={p.url} target="_blank" rel="noreferrer" style={{ fontSize:12,color:ACCENT,textDecoration:"none",background:`${ACCENT}10`,border:`1px solid ${ACCENT}28`,borderRadius:6,padding:"4px 10px" }}>Connect →</a>
+                  </div>
+                ))}
+              </div>
             </>
           )}
         </div>
       )}
 
       {/* AGENTS */}
-      {activeTab === "agents" && (
+      {activeTab==="agents"&&(
         <div style={S.agentGrid}>
           {[
-            { icon:"👑",name:"Nia",role:"Chief of Staff",status:"active",desc:"Running your real estate operations"},
-            { icon:"🔍",name:"ScoutAgent",role:"Deal Finder",status:"active",desc:"MLS + Zillow FSBO + ATTOM deal hunter"},
-            { icon:"📋",name:"LeadAgent",role:"Lead Capture",status:"waiting",desc:"Connects to your IDX & web forms"},
-            { icon:"🔁",name:"FollowUpAgent",role:"Follow-Up",status:"waiting",desc:"Never lets a lead go cold"},
-            { icon:"🏠",name:"ShowingAgent",role:"Scheduling",status:"waiting",desc:"Books showings automatically"},
-            { icon:"✍️",name:"CopyAgent",role:"Listing Copy",status:"waiting",desc:"Listing descriptions in seconds"},
-            { icon:"📊",name:"ReportAgent",role:"Market Intel",status:"waiting",desc:"Auto CMA & market reports"},
-            { icon:"📲",name:"SocialAgent",role:"Social Media",status:"waiting",desc:"Just listed / just sold posts"},
-            { icon:"📧",name:"InboxAgent",role:"Comms",status:"waiting",desc:"Routes & responds to inquiries"},
-            { icon:"🎬",name:"VideoAgent",role:"Content",status:"waiting",desc:"Property walkthrough scripts"},
-            { icon:"⭐",name:"ReviewAgent",role:"Reputation",status:"waiting",desc:"Google & Zillow reviews"},
-            { icon:"💰",name:"TaxAgent",role:"Finance",status:"waiting",desc:"Connect QuickBooks to activate"},
-            { icon:"🔍",name:"SEOAgent",role:"Local SEO",status:"waiting",desc:"Ranks your listings higher"},
-            { icon:"📅",name:"ScheduleAgent",role:"Calendar",status:"waiting",desc:"Open houses & deadlines"},
-            { icon:"🤖",name:"ChatAgent",role:"Website Chat",status:"waiting",desc:"Connect site chat to activate"},
-            { icon:"📨",name:"NurturingAgent",role:"Sphere",status:"waiting",desc:"Keeps your database warm"},
-            { icon:"⚖️",name:"LegalAgent",role:"Compliance",status:"active",desc:"License renewal tracker ready"},
-            { icon:"📈",name:"AdAgent",role:"Paid Media",status:"waiting",desc:"Available on Pro plan"},
-            { icon:"🏷️",name:"PricingAgent",role:"Strategy",status:"waiting",desc:"Comp analysis on demand"},
-            { icon:"🔔",name:"AlertAgent",role:"Monitoring",status:"waiting",desc:"Watches your market area"},
-          ].map(a => (
-            <div key={a.name} style={{ ...S.agentCard, ...(a.status==="active" ? S.agentCardActive : {}) }}>
+            {icon:"👑",name:"Nia",role:"Chief of Staff",status:"active",desc:"Running your real estate operations"},
+            {icon:"🔍",name:"ScoutAgent",role:"Deal Finder",status:"active",desc:"Finds off-market & FSBO deals daily"},
+            {icon:"📋",name:"LeadAgent",role:"Lead Capture",status:"waiting",desc:"Connect IDX form to activate"},
+            {icon:"🔁",name:"FollowUpAgent",role:"Follow-Up",status:"waiting",desc:"Auto-follows up on every lead"},
+            {icon:"🏠",name:"ShowingAgent",role:"Scheduling",status:"waiting",desc:"Connect calendar to automate showings"},
+            {icon:"✍️",name:"CopyAgent",role:"Copywriter",status:"waiting",desc:"Listing descriptions & social posts"},
+            {icon:"📊",name:"ReportAgent",role:"Market Reports",status:"waiting",desc:"Weekly sphere market updates"},
+            {icon:"📲",name:"SocialAgent",role:"Social Media",status:"waiting",desc:"Just Listed/Sold content"},
+            {icon:"📧",name:"InboxAgent",role:"Comms",status:"waiting",desc:"Handles lead inquiries"},
+            {icon:"🎬",name:"VideoAgent",role:"Listing Video",status:"waiting",desc:"Listing tours & neighborhood reels"},
+            {icon:"🔔",name:"AlertAgent",role:"Monitoring",status:"waiting",desc:"Price changes & new MLS listings"},
+            {icon:"📈",name:"AdAgent",role:"Paid Media",status:"waiting",desc:"Facebook Lead Ads & Google PPC"},
+            {icon:"🤖",name:"ChatAgent",role:"Website Chat",status:"waiting",desc:"24/7 IDX site lead capture"},
+            {icon:"⚖️",name:"LegalAgent",role:"Compliance",status:"active",desc:"License renewal tracker ready"},
+            {icon:"💰",name:"TaxAgent",role:"Finance",status:"waiting",desc:"Connect QuickBooks to activate"},
+            {icon:"🏗️",name:"StagerAgent",role:"Staging Tips",status:"waiting",desc:"AI staging recommendations"},
+            {icon:"📸",name:"PhotoAgent",role:"Media",status:"waiting",desc:"Photo scheduling & MLS upload"},
+            {icon:"🗺️",name:"LocalAgent",role:"Local SEO",status:"waiting",desc:"Ranks your site on Google Maps"},
+            {icon:"🔎",name:"BuyerAgent",role:"Buyer Search",status:"waiting",desc:"Matches listings to buyer criteria"},
+          ].map(a=>(
+            <div key={a.name} style={{ ...S.agentCard,...(a.status==="active"?S.agentCardActive:{}) }}>
               <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8 }}><span style={{ fontSize:24 }}>{a.icon}</span><span style={{ fontSize:10,fontWeight:700,color:a.status==="active"?"#22c55e":"rgba(255,255,255,0.25)",textTransform:"uppercase",letterSpacing:1 }}>{a.status==="active"?"● Active":"○ Waiting"}</span></div>
               <div style={{ fontSize:13,fontWeight:700,marginBottom:3 }}>{a.name}</div>
-              <div style={{ fontSize:11,color:"#10B981",marginBottom:8 }}>{a.role}</div>
+              <div style={{ fontSize:11,color:ACCENT,marginBottom:8 }}>{a.role}</div>
               <div style={{ fontSize:12,color:"rgba(255,255,255,0.4)",lineHeight:1.5 }}>{a.desc}</div>
             </div>
           ))}
@@ -471,7 +495,18 @@ export default function RealEstateDashboard() {
   );
 }
 
-const S: Record<string, React.CSSProperties> = {
+function REStat({ label, value, icon, note, color }: { label: string; value: string; icon: string; note: string; color: string }) {
+  return (
+    <div style={{ background:"rgba(255,255,255,0.03)",border:`1px solid ${color}22`,borderRadius:14,padding:"20px 16px" }}>
+      <div style={{ fontSize:22,marginBottom:8 }}>{icon}</div>
+      <div style={{ fontSize:26,fontWeight:800,color:value.includes("—")?"rgba(255,255,255,0.2)":"#fff" }}>{value}</div>
+      <div style={{ fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.6)",margin:"4px 0 6px" }}>{label}</div>
+      <div style={{ fontSize:11,color:`${color}cc` }}>{note}</div>
+    </div>
+  );
+}
+
+const S: Record<string,React.CSSProperties> = {
   page:{background:"#060612",color:"#fff",fontFamily:"Inter, sans-serif",padding:"0 0 80px"},
   centered:{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#060612",color:"#fff",fontFamily:"Inter, sans-serif",padding:"80px 32px"},
   spinner:{width:36,height:36,border:"3px solid rgba(16,185,129,0.2)",borderTop:"3px solid #10B981",borderRadius:"50%",animation:"spin 0.8s linear infinite"},
@@ -479,30 +514,16 @@ const S: Record<string, React.CSSProperties> = {
   avatar:{width:56,height:56,borderRadius:12,background:"rgba(16,185,129,0.15)",border:"1px solid rgba(16,185,129,0.3)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"},
   planBadge:{fontSize:10,fontWeight:700,color:"#10B981",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.25)",borderRadius:4,padding:"2px 8px",letterSpacing:1},
   primaryBtn:{background:"linear-gradient(135deg,#10B981,#059669)",color:"#fff",fontWeight:700,fontSize:13,padding:"10px 20px",borderRadius:8,textDecoration:"none",border:"none",cursor:"pointer"},
-  scoutBtn:{background:"rgba(59,130,246,0.15)",border:"1px solid rgba(59,130,246,0.4)",color:"#3B82F6",fontWeight:700,fontSize:13,padding:"10px 20px",borderRadius:8,cursor:"pointer"},
   warningBtn:{background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",color:"#eab308",fontWeight:700,fontSize:13,padding:"10px 20px",borderRadius:8,textDecoration:"none"},
   tabs:{display:"flex",gap:4,padding:"16px 32px 0",borderBottom:"1px solid rgba(255,255,255,0.06)"},
   tab:{background:"none",border:"none",color:"rgba(255,255,255,0.4)",fontSize:13,fontWeight:600,padding:"10px 16px",cursor:"pointer",borderBottom:"2px solid transparent",marginBottom:-1},
-  tabActive:{color:"#10B981",borderBottom:"2px solid #10B981"},
-  statsGrid:{display:"grid",gridTemplateColumns:"repeat(5, 1fr)",gap:12,padding:"24px 32px 0"},
+  statsGrid:{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(150px, 1fr))",gap:12},
   statCard:{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"20px 16px"},
   card:{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"20px"},
   cardHeader:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,paddingBottom:12,borderBottom:"1px solid rgba(255,255,255,0.06)"},
   agentRow:{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"},
-  emptyState:{textAlign:"center",padding:"32px 0",color:"rgba(255,255,255,0.35)",fontSize:14},
+  input:{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:8,padding:"8px 12px",fontSize:13,color:"#fff",outline:"none"},
   agentGrid:{display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:12,padding:"24px 32px"},
   agentCard:{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"16px"},
   agentCardActive:{borderColor:"rgba(34,197,94,0.25)",background:"rgba(34,197,94,0.04)"},
-  // Scout-specific
-  searchBar:{display:"flex",gap:12,flexWrap:"wrap",marginBottom:16,alignItems:"flex-end"},
-  fieldGroup:{display:"flex",flexDirection:"column",gap:6,flex:1,minWidth:120},
-  fieldLabel:{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.45)",letterSpacing:0.5},
-  input:{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:8,padding:"9px 12px",color:"#fff",fontSize:13,outline:"none"},
-  dealGrid:{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))",gap:16},
-  dealCard:{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:"16px"},
-  dealCardFSBO:{borderColor:"rgba(16,185,129,0.25)",background:"rgba(16,185,129,0.03)"},
-  emptyScout:{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"60px 0",color:"rgba(255,255,255,0.5)"},
-  savedDealRow:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"14px 16px"},
-  viewToggle:{fontSize:12,fontWeight:700,padding:"7px 16px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"transparent",color:"rgba(255,255,255,0.5)",cursor:"pointer"},
-  viewToggleActive:{background:"rgba(59,130,246,0.15)",borderColor:"rgba(59,130,246,0.4)",color:"#3B82F6"},
 };

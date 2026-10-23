@@ -1,7 +1,7 @@
 "use client";
 /**
  * app/dashboard/[slug]/trades/page.tsx
- * CrewwOS for Trades — skilled trades & contractor command center
+ * CrewwOS for Trades — skilled trades & contractor command center + Analytics
  */
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -12,7 +12,7 @@ interface TradesProfile {
   phone_number?: string; license_number?: string; plan: string;
 }
 
-const ACCENT = "#F59E0B"; // amber for trades
+const ACCENT = "#F59E0B";
 
 const MOCK_STATS = [
   { label: "Open Jobs",       value: "—",  icon: "🔧", note: "Connect your job board" },
@@ -37,7 +37,8 @@ export default function TradesDashboard() {
   const base = `/dashboard/${slug}/trades`;
   const [profile, setProfile] = useState<TradesProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "agents">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "analytics" | "agents">("overview");
+  const [analyticsTab, setAnalyticsTab] = useState<"jobs" | "revenue" | "reviews" | "marketing">("jobs");
 
   useEffect(() => {
     fetch("/api/trades/onboard").then(r=>r.json())
@@ -75,9 +76,9 @@ export default function TradesDashboard() {
       </div>
 
       <div style={S.tabs}>
-        {(["overview","agents"] as const).map(t=>(
-          <button key={t} onClick={()=>setActiveTab(t)} style={{ ...S.tab,...(activeTab===t?{ ...S.tabActive,color:ACCENT,borderBottomColor:ACCENT }:{}) }}>
-            {t==="overview"?"📊 Overview":"🤖 Agents"}
+        {(["overview","analytics","agents"] as const).map(t=>(
+          <button key={t} onClick={()=>setActiveTab(t)} style={{ ...S.tab,...(activeTab===t?{ color:ACCENT,borderBottom:`2px solid ${ACCENT}`,marginBottom:-1 }:{}) }}>
+            {t==="overview"?"📊 Overview":t==="analytics"?"📈 Analytics":"🤖 Agents"}
           </button>
         ))}
       </div>
@@ -91,6 +92,138 @@ export default function TradesDashboard() {
           </div>
         </div>
       )}
+
+      {activeTab==="analytics"&&(
+        <div style={{ padding:"24px 32px",display:"flex",flexDirection:"column",gap:16 }}>
+          <div style={{ display:"flex",alignItems:"center",gap:16,background:`${ACCENT}0a`,border:`1px solid ${ACCENT}28`,borderRadius:12,padding:"16px 20px" }}>
+            <span style={{ fontSize:20 }}>🔗</span>
+            <div style={{ flex:1 }}>
+              <strong style={{ fontSize:14 }}>Connect your tools for live job and revenue analytics</strong>
+              <p style={{ margin:"4px 0 0",fontSize:12,color:"rgba(255,255,255,0.5)" }}>QuickBooks for revenue, Google Business for reviews, Jobber or ServiceTitan for job tracking.</p>
+            </div>
+            <a href={`/dashboard/${slug}/integrations`} style={{ background:ACCENT,color:"#000",fontWeight:700,fontSize:12,padding:"8px 16px",borderRadius:8,textDecoration:"none",whiteSpace:"nowrap" as const }}>Connect →</a>
+          </div>
+
+          <div style={{ display:"flex",gap:4,borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+            {(["jobs","revenue","reviews","marketing"] as const).map(t=>(
+              <button key={t} onClick={()=>setAnalyticsTab(t)} style={{ background:"none",border:"none",color:analyticsTab===t?ACCENT:"rgba(255,255,255,0.4)",fontSize:12,fontWeight:600,padding:"10px 14px",cursor:"pointer",borderBottom:analyticsTab===t?`2px solid ${ACCENT}`:"2px solid transparent",marginBottom:-1,whiteSpace:"nowrap" as const }}>
+                {t==="jobs"?"🔧 Jobs":t==="revenue"?"💰 Revenue":t==="reviews"?"⭐ Reviews":"📢 Marketing"}
+              </button>
+            ))}
+          </div>
+
+          {analyticsTab==="jobs"&&(
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label:"Open Jobs",         value:"—",  icon:"🔧", note:"Active job orders",        color:ACCENT },
+                  { label:"Jobs Completed (MTD)", value:"—",icon:"✅", note:"Finished this month",       color:"#22c55e" },
+                  { label:"Avg Job Duration",   value:"—d", icon:"⏱️", note:"Days start to finish",     color:"#06B6D4" },
+                  { label:"Estimate Win Rate",  value:"—%", icon:"📋", note:"Accepted ÷ Sent",          color:"#a855f7" },
+                  { label:"Jobs Scheduled",     value:"—",  icon:"📅", note:"Upcoming this week",        color:ACCENT },
+                  { label:"Callback Rate",      value:"—%", icon:"🔁", note:"Repeat customers",          color:"#22c55e" },
+                ].map(s=><TradesStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize:14,fontWeight:700 }}>📊 Job Management Integrations</span></div>
+                {[
+                  { name:"Jobber",         icon:"🟢", desc:"Field service scheduling, estimates, invoices", url:"https://getjobber.com" },
+                  { name:"ServiceTitan",   icon:"🔵", desc:"Enterprise service business management",        url:"https://servicetitan.com" },
+                  { name:"Housecall Pro",  icon:"🟠", desc:"HVAC, plumbing, electrical field service",      url:"https://housecallpro.com" },
+                  { name:"Google Calendar",icon:"🟡", desc:"Sync job schedule to your crew's calendars",    url:"https://calendar.google.com" },
+                ].map(p=>(
+                  <div key={p.name} style={{ display:"flex",alignItems:"center",gap:14,padding:"12px 0",borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize:20 }}>{p.icon}</span>
+                    <div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:700,marginBottom:2 }}>{p.name}</div><div style={{ fontSize:12,color:"rgba(255,255,255,0.4)" }}>{p.desc}</div></div>
+                    <a href={p.url} target="_blank" rel="noreferrer" style={{ fontSize:12,color:ACCENT,textDecoration:"none",background:`${ACCENT}10`,border:`1px solid ${ACCENT}28`,borderRadius:6,padding:"4px 10px" }}>Connect →</a>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {analyticsTab==="revenue"&&(
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label:"Revenue (MTD)",     value:"$—", icon:"💰", note:"Connect QuickBooks",        color:"#22c55e" },
+                  { label:"Avg Job Value",      value:"$—", icon:"📋", note:"Revenue ÷ Jobs completed", color:ACCENT },
+                  { label:"Outstanding",        value:"$—", icon:"🧾", note:"Unpaid invoices",           color:"#f59e0b" },
+                  { label:"Expenses (MTD)",     value:"$—", icon:"📉", note:"Materials + labor",         color:"#ef4444" },
+                ].map(s=><TradesStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize:14,fontWeight:700 }}>💰 Revenue by Service Type</span></div>
+                {["Emergency/Urgent Calls","Scheduled Maintenance","Installations","Inspections","Repairs"].map(s=>(
+                  <div key={s} style={{ display:"flex",alignItems:"center",padding:"8px 0",borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ flex:1,fontSize:13,color:"rgba(255,255,255,0.7)" }}>{s}</span>
+                    <span style={{ fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.2)" }}>$— · —%</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {analyticsTab==="reviews"&&(
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label:"Google Rating",     value:"—",  icon:"⭐", note:"Connect Google Business", color:"#eab308" },
+                  { label:"Total Reviews",     value:"—",  icon:"💬", note:"All platforms",            color:ACCENT },
+                  { label:"New Reviews (30d)", value:"—",  icon:"🆕", note:"Recent reviews",            color:"#22c55e" },
+                  { label:"Response Rate",     value:"—%", icon:"💁", note:"Reviews you replied to",    color:"#06B6D4" },
+                ].map(s=><TradesStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize:14,fontWeight:700 }}>📊 Review Platforms</span></div>
+                {[
+                  { name:"Google Business",  icon:"🟡", url:"https://business.google.com" },
+                  { name:"Angi (Angie's List)", icon:"🟠", url:"https://pro.angi.com" },
+                  { name:"HomeAdvisor",      icon:"🔵", url:"https://www.homeadvisor.com/account/" },
+                  { name:"Yelp",             icon:"🔴", url:"https://biz.yelp.com" },
+                  { name:"Nextdoor",         icon:"🟢", url:"https://business.nextdoor.com" },
+                ].map(p=>(
+                  <div key={p.name} style={{ display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize:18 }}>{p.icon}</span>
+                    <span style={{ flex:1,fontSize:13,fontWeight:600 }}>{p.name}</span>
+                    <span style={{ fontSize:12,color:"rgba(255,255,255,0.2)" }}>— reviews</span>
+                    <a href={p.url} target="_blank" rel="noreferrer" style={{ fontSize:12,color:ACCENT,textDecoration:"none",background:`${ACCENT}10`,border:`1px solid ${ACCENT}28`,borderRadius:6,padding:"4px 10px" }}>Connect →</a>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {analyticsTab==="marketing"&&(
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label:"Google Local Rank",  value:"—",  icon:"🗺️", note:"Position in local search",  color:ACCENT },
+                  { label:"Profile Views (30d)", value:"—",  icon:"👁️", note:"Google Business views",     color:"#22c55e" },
+                  { label:"Direction Requests",  value:"—",  icon:"📍", note:"Map navigation taps",        color:"#06B6D4" },
+                  { label:"Website Clicks",      value:"—",  icon:"🌐", note:"From Google profile",        color:"#f59e0b" },
+                ].map(s=><TradesStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize:14,fontWeight:700 }}>📢 Lead Generation Platforms</span></div>
+                {[
+                  { name:"Google Local Services Ads", icon:"🟡", desc:"Pay per qualified lead, verified contractor badge", url:"https://ads.google.com/local-services-ads" },
+                  { name:"Angi Leads",                icon:"🟠", desc:"Homeowner job requests in your service area",        url:"https://pro.angi.com" },
+                  { name:"Thumbtack",                 icon:"🔵", desc:"Quote requests from local homeowners",               url:"https://www.thumbtack.com/pro" },
+                  { name:"Houzz Pro",                 icon:"🟤", desc:"Renovation & remodel project leads",                 url:"https://www.houzz.com/pro" },
+                ].map(p=>(
+                  <div key={p.name} style={{ display:"flex",alignItems:"center",gap:14,padding:"12px 0",borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize:20 }}>{p.icon}</span>
+                    <div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:700,marginBottom:2 }}>{p.name}</div><div style={{ fontSize:12,color:"rgba(255,255,255,0.4)" }}>{p.desc}</div></div>
+                    <a href={p.url} target="_blank" rel="noreferrer" style={{ fontSize:12,color:ACCENT,textDecoration:"none",background:`${ACCENT}10`,border:`1px solid ${ACCENT}28`,borderRadius:6,padding:"4px 10px" }}>Connect →</a>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {activeTab==="agents"&&(
         <div style={S.agentGrid}>
           {[
@@ -127,6 +260,17 @@ export default function TradesDashboard() {
   );
 }
 
+function TradesStat({ label, value, icon, note, color }: { label: string; value: string; icon: string; note: string; color: string }) {
+  return (
+    <div style={{ background:"rgba(255,255,255,0.03)",border:`1px solid ${color}22`,borderRadius:14,padding:"20px 16px" }}>
+      <div style={{ fontSize:22,marginBottom:8 }}>{icon}</div>
+      <div style={{ fontSize:26,fontWeight:800,color:value.includes("—")?"rgba(255,255,255,0.2)":"#fff" }}>{value}</div>
+      <div style={{ fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.6)",margin:"4px 0 6px" }}>{label}</div>
+      <div style={{ fontSize:11,color:`${color}cc` }}>{note}</div>
+    </div>
+  );
+}
+
 const S: Record<string,React.CSSProperties> = {
   page:{background:"#060612",color:"#fff",fontFamily:"Inter, sans-serif",padding:"0 0 80px"},
   centered:{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#060612",color:"#fff",fontFamily:"Inter, sans-serif",padding:"80px 32px"},
@@ -138,8 +282,7 @@ const S: Record<string,React.CSSProperties> = {
   warningBtn:{background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",color:"#eab308",fontWeight:700,fontSize:13,padding:"10px 20px",borderRadius:8,textDecoration:"none"},
   tabs:{display:"flex",gap:4,padding:"16px 32px 0",borderBottom:"1px solid rgba(255,255,255,0.06)"},
   tab:{background:"none",border:"none",color:"rgba(255,255,255,0.4)",fontSize:13,fontWeight:600,padding:"10px 16px",cursor:"pointer",borderBottom:"2px solid transparent",marginBottom:-1},
-  tabActive:{borderBottom:"2px solid"},
-  statsGrid:{display:"grid",gridTemplateColumns:"repeat(5, 1fr)",gap:12,padding:"24px 32px 0"},
+  statsGrid:{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(150px, 1fr))",gap:12},
   statCard:{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"20px 16px"},
   card:{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"20px"},
   cardHeader:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,paddingBottom:12,borderBottom:"1px solid rgba(255,255,255,0.06)"},
