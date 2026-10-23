@@ -4,14 +4,14 @@ import { PLAN_LABELS } from "@/lib/plans";
 
 const DEPT_COLORS: Record<string, string> = {
   Engineering: "#00D4FF", Sales: "#FF6B35", Marketing: "#A855F7", Operations: "#10B981",
-  "Real Estate": "#F59E0B", Restaurant: "#EF4444", "Music & Entertainment": "#8B5CF6",
+  "Real Estate": "#F59E0B", Restaurant: "#EF4444", "Music & Entertainment": "#8B5CF6", "E-Commerce": "#EC4899",
 };
 
 export default function AgentRoster({ agents, busyIds, onSelect, allowedSlugs, plan }: {
   agents: AgentDef[]; busyIds: Set<string>; onSelect: (a: AgentDef) => void;
   allowedSlugs: Set<string>; plan: string;
 }) {
-  const depts: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment"];
+  const depts: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment", "E-Commerce"];
   const unlockedCount = agents.filter(a => allowedSlugs.has(a.slug)).length;
 
   return (

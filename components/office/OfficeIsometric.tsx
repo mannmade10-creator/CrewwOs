@@ -23,6 +23,7 @@ const DEPT_COLORS: Record<string, string> = {
   "Real Estate": "#F59E0B",
   Restaurant: "#EF4444",
   "Music & Entertainment": "#8B5CF6",
+  "E-Commerce": "#EC4899",
 };
 
 const DEPT_LABELS: Record<string, string> = {
@@ -368,7 +369,7 @@ function IsoReception({
   };
 }
 
-const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment"];
+const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment", "E-Commerce"];
 
 function getAgentIsoPos(dept: Dept, slugIndex: number, isMobile: boolean): { sx: number; sy: number } {
   const flatY = isMobile ? DEPT_FLAT_Y_MOBILE[dept] : DEPT_FLAT_Y_DESKTOP[dept];
