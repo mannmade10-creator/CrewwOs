@@ -47,16 +47,29 @@ async function uniqueSlug(base: string): Promise<string> {
 // Creates a new workspace for the given Clerk user, seeds it with all
 // agents from lib/agents.ts, and defaults to the Starter plan — the person
 // upgrades via Stripe checkout from Settings once they're ready to pay.
-export async function createWorkspace(ownerId: string, name: string, vertical = "general"): Promise<WorkspaceSummary> {
+// Lifetime-access emails (in the lifetime_access table) are auto-upgraded
+// to Enterprise at creation with no payment required.
+export async function createWorkspace(ownerId: string, name: string, vertical = "general", ownerEmail?: string): Promise<WorkspaceSummary> {
   const trimmed = name.trim();
   if (!trimmed) throw new Error("Workspace name is required");
 
   const slug = await uniqueSlug(slugify(trimmed));
   const supabase = supabaseAdmin();
 
+  // Check lifetime access whitelist
+  let plan = "starter";
+  if (ownerEmail) {
+    const { data: lifetimeRow } = await supabase
+      .from("lifetime_access")
+      .select("email")
+      .ilike("email", ownerEmail.trim())
+      .maybeSingle();
+    if (lifetimeRow) plan = "enterprise";
+  }
+
   const { data, error } = await supabase
     .from("workspaces")
-    .insert({ name: trimmed, slug, owner_id: ownerId, plan: "starter", vertical })
+    .insert({ name: trimmed, slug, owner_id: ownerId, plan, vertical, owner_email: ownerEmail ?? null })
     .select("id, name, slug, plan, vertical")
     .single();
   if (error) throw error;
