@@ -298,7 +298,7 @@ export default async function NiaPage() {
           </div>
 
           {/* Dept headers + agents grid */}
-          {(["Engineering", "Sales", "Marketing", "Operations"] as const).map(dept => {
+          {(["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant"] as const).map(dept => {
             const agents = roster.filter(a => a.dept === dept);
             const color = deptColors[dept];
             return (

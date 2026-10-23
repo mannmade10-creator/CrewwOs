@@ -365,7 +365,7 @@ function IsoReception({
   };
 }
 
-const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations"];
+const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant"];
 
 function getAgentIsoPos(dept: Dept, slugIndex: number, isMobile: boolean): { sx: number; sy: number } {
   const flatY = isMobile ? DEPT_FLAT_Y_MOBILE[dept] : DEPT_FLAT_Y_DESKTOP[dept];

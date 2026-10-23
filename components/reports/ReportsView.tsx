@@ -9,7 +9,8 @@ import MetricConfigForm from "./MetricConfigForm";
 import type { TaskSummary } from "@/lib/reports";
 
 const DEPT_COLORS: Record<string, string> = {
-  Engineering: "#00D4FF", Sales: "#FF6B35", Marketing: "#A855F7", Operations: "#10B981", Unknown: "#666",
+  Engineering: "#00D4FF", Sales: "#FF6B35", Marketing: "#A855F7", Operations: "#10B981",
+  "Real Estate": "#F59E0B", Restaurant: "#EF4444", Unknown: "#666",
 };
 
 export default function ReportsView({ workspaceSlug }: { workspaceSlug: string }) {

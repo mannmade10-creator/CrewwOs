@@ -9,6 +9,7 @@ import ToolResultCard from "./ToolResultCard";
 
 const DEPT_COLORS: Record<string, string> = {
   Engineering: "#00D4FF", Sales: "#FF6B35", Marketing: "#A855F7", Operations: "#10B981",
+  "Real Estate": "#F59E0B", Restaurant: "#EF4444",
 };
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];

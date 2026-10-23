@@ -433,7 +433,7 @@ function LobbyFloor({
   );
 }
 
-const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations"];
+const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant"];
 
 export default function OfficeSkyscraper({
   agents,
