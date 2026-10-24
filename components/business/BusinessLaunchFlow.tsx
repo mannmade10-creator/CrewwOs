@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const STATE_SOS: Record<string, { name: string; url: string; fee: string; processingTime: string }> = {
   AL: { name: "Alabama", url: "https://www.sos.alabama.gov/business-services/file", fee: "$200", processingTime: "3-5 days" },
@@ -97,7 +98,9 @@ const s: Record<string, React.CSSProperties> = {
 };
 
 export default function BusinessLaunchFlow({ workspaceId }: { workspaceId: string }) {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("entity");
+  const [saving, setSaving] = useState(false);
   const [setup, setSetup] = useState<BusinessSetupState>({
     entityType: "",
     state: "",
@@ -113,6 +116,23 @@ export default function BusinessLaunchFlow({ workspaceId }: { workspaceId: strin
     state: "STEP 2 OF 4 · STATE",
     ein: "STEP 3 OF 4 · EIN NUMBER",
     status: "STEP 4 OF 4 · TRACK PROGRESS",
+  };
+
+  const handleSaveAndContinue = async () => {
+    setSaving(true);
+    try {
+      // Persist progress to the API (best-effort — don't block navigation on failure)
+      await fetch(`/api/workspaces/${workspaceId}/business-setup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(setup),
+      }).catch(() => {
+        // Silently swallow — we still navigate even if the save fails
+      });
+    } finally {
+      setSaving(false);
+      router.push(`/dashboard/${workspaceId}`);
+    }
   };
 
   return (
@@ -270,7 +290,13 @@ export default function BusinessLaunchFlow({ workspaceId }: { workspaceId: strin
             );
           })()}
 
-          <button style={s.btn} onClick={() => alert("Progress saved!")}>Save Progress</button>
+          <button
+            style={{ ...s.btn, opacity: saving ? 0.6 : 1 }}
+            disabled={saving}
+            onClick={handleSaveAndContinue}
+          >
+            {saving ? "Saving…" : "Save Progress →"}
+          </button>
         </div>
       )}
     </div>

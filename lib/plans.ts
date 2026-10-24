@@ -10,6 +10,8 @@ export const PLAN_LABELS: Record<string, { name: string; price: string; agents: 
   growth: { name: "Growth", price: "$297/mo", agents: "12 agents", integrations: "5 integrations" },
   enterprise: { name: "Enterprise", price: "$997/mo", agents: "All agents", integrations: "Unlimited" },
   agency: { name: "Agency", price: "$2,497/mo", agents: "All agents × 5 workspaces", integrations: "Unlimited" },
+  // Internal plan for the platform owner — never shown to regular users
+  superadmin: { name: "Owner", price: "Free", agents: "All agents", integrations: "Unlimited" },
 };
 
 // Priority order agents unlock in as a workspace moves up plans. Leadership/
@@ -27,15 +29,16 @@ export const AGENT_PRIORITY_ORDER: string[] = [
 // null = unlimited (all agents / all integrations).
 export const PLAN_AGENT_LIMITS: Record<string, number | null> = {
   starter: 6, growth: 13, enterprise: null, agency: null,
+  superadmin: null, // owner gets everything
 };
 export const PLAN_INTEGRATION_LIMITS: Record<string, number | null> = {
   starter: 2, growth: 5, enterprise: null, agency: null,
+  superadmin: null, // owner gets everything
 };
 
 // Given a plan and the full set of agent slugs that exist, returns which
-// ones this plan has access to. Enterprise/Agency get everything regardless
-// of AGENT_PRIORITY_ORDER's length, so a new 19th/20th agent added later
-// doesn't accidentally get locked out for paying customers.
+// ones this plan has access to. Enterprise/Agency/superadmin get everything
+// regardless of AGENT_PRIORITY_ORDER's length.
 export function agentsAllowedForPlan(plan: string, allSlugs: string[]): Set<string> {
   const limit = PLAN_AGENT_LIMITS[plan];
   if (limit == null) return new Set(allSlugs);

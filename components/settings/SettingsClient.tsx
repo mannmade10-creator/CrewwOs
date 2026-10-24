@@ -81,7 +81,7 @@ function DangerTab({ workspaceSlug, workspaceName }: { workspaceSlug: string; wo
   const [confirmName, setConfirmName] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const canDelete = confirmName === workspaceName;
+  const canDelete = confirmName.trim() === workspaceName.trim();
   const deleteWorkspace = async () => {
     if (!canDelete) return;
     setDeleting(true); setError(null);

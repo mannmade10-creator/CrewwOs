@@ -1,7 +1,7 @@
 // app/dashboard/[slug]/page.tsx
 import { auth } from "@clerk/nextjs/server";
 import { redirect, notFound } from "next/navigation";
-import { getWorkspace } from "@/lib/supabase";
+import { getWorkspace } from "@/lib/workspaces";
 import VirtualOffice from "@/components/office/VirtualOffice";
 
 export default async function DashboardPage({ params }: { params: Promise<{ slug: string }> }) {

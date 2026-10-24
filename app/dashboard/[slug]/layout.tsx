@@ -1,7 +1,7 @@
 // app/dashboard/[slug]/layout.tsx
 import { auth } from "@clerk/nextjs/server";
 import { redirect, notFound } from "next/navigation";
-import { getWorkspace } from "@/lib/supabase";
+import { getWorkspace } from "@/lib/workspaces";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 
 export default async function WorkspaceLayout({
