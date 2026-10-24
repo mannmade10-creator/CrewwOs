@@ -16,42 +16,30 @@ function useWindowWidth() {
 }
 
 const DEPT_COLORS: Record<string, string> = {
-  Engineering:            "#00D4FF",
-  Sales:                  "#FF6B35",
-  Marketing:              "#A855F7",
-  Operations:             "#10B981",
-  "Real Estate":          "#F59E0B",
-  Restaurant:             "#EF4444",
-  "Music & Entertainment":"#EC4899",
-  "E-Commerce":           "#06B6D4",
-  Trades:                 "#84CC16",
-  Business:               "#6366F1",
+  Engineering: "#00D4FF",
+  Sales: "#FF6B35",
+  Marketing: "#A855F7",
+  Operations: "#10B981",
+  "Real Estate": "#F59E0B",
+  Restaurant: "#EF4444",
+  "Music & Entertainment": "#8B5CF6",
+  "E-Commerce": "#EC4899",
+  Trades: "#F59E0B",
+  Business: "#6366F1",
 };
 
 const DEPT_ICONS: Record<string, string> = {
-  Engineering:            "⚙️",
-  Sales:                  "💼",
-  Marketing:              "📢",
-  Operations:             "🏗️",
-  "Real Estate":          "🏠",
-  Restaurant:             "🍽️",
-  "Music & Entertainment":"🎵",
-  "E-Commerce":           "🛒",
-  Trades:                 "🔧",
-  Business:               "📊",
+  Engineering: "⚙️",
+  Sales: "💼",
+  Marketing: "📢",
+  Operations: "🏗️",
 };
 
 const DEPT_FLOOR: Record<string, number> = {
-  Engineering:            10,
-  Sales:                   9,
-  Marketing:               8,
-  Operations:              7,
-  "Real Estate":           6,
-  Restaurant:              5,
-  "Music & Entertainment": 4,
-  "E-Commerce":            3,
-  Trades:                  2,
-  Business:                1,
+  Engineering: 4,
+  Sales: 3,
+  Marketing: 2,
+  Operations: 1,
 };
 
 const HAIR_COLORS: Record<string, string> = {
@@ -64,16 +52,10 @@ const HAIR_COLORS: Record<string, string> = {
 };
 
 const DEPT_SKIN: Record<string, string> = {
-  Engineering:            "#FFD5A8",
-  Sales:                  "#F4A261",
-  Marketing:              "#C9A0DC",
-  Operations:             "#A8D5A2",
-  "Real Estate":          "#F4D3A8",
-  Restaurant:             "#F4A28C",
-  "Music & Entertainment":"#D5A8F4",
-  "E-Commerce":           "#A8D5F4",
-  Trades:                 "#C8B89A",
-  Business:               "#A8C4D5",
+  Engineering: "#FFD5A8",
+  Sales: "#F4A261",
+  Marketing: "#C9A0DC",
+  Operations: "#A8D5A2",
 };
 
 function FloorAgent({
@@ -457,14 +439,7 @@ function LobbyFloor({
   );
 }
 
-// All recognised departments — the building only renders floors that
-// actually have agents, so vertical-specific depts show up automatically
-// once agents with those dept values are seeded.
-const ALL_DEPTS: Dept[] = [
-  "Engineering", "Sales", "Marketing", "Operations",
-  "Real Estate", "Restaurant", "Music & Entertainment",
-  "E-Commerce", "Trades", "Business",
-];
+const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment", "E-Commerce", "Trades", "Business"];
 
 export default function OfficeSkyscraper({
   agents,
@@ -495,10 +470,6 @@ export default function OfficeSkyscraper({
   const agentScale    = isMobile ? 1.0 : 1.9;
   const nameFontSize  = isMobile ?   9 :  13;
   const roleFontSize  = isMobile ?   7 :  10;
-
-  // Only render floors that have at least one agent — this way vertical-specific
-  // departments (Real Estate, Restaurant, etc.) only appear once agents are seeded.
-  const DEPTS = ALL_DEPTS.filter(dept => agents.some(a => a.dept === dept));
 
   const totalFloors = DEPTS.length;
   const totalHeight = LOBBY_HEIGHT + totalFloors * FLOOR_HEIGHT + 60;

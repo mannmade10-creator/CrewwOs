@@ -934,6 +934,804 @@ export const TOOL_DEFINITIONS: Record<string, any> = {
       required: ["postcard_id"],
     },
   },
+
+  // ── REAL ESTATE / MLS ──────────────────────────────────────────────────────
+  mls_property_search: {
+    name: "mls_property_search",
+    description: "Search active for-sale MLS property listings by location, price range, bedrooms, and property type via Rentcast API. Returns matching listings with address, price, beds/baths, and square footage.",
+    input_schema: {
+      type: "object",
+      properties: {
+        city: { type: "string", description: "City name" },
+        state: { type: "string", description: "Two-letter state abbreviation, e.g. 'TX'" },
+        zip_code: { type: "string", description: "5-digit ZIP code" },
+        min_price: { type: "number", description: "Minimum listing price" },
+        max_price: { type: "number", description: "Maximum listing price" },
+        min_beds: { type: "number", description: "Minimum number of bedrooms" },
+        max_beds: { type: "number", description: "Maximum number of bedrooms" },
+        property_type: { type: "string", enum: ["Single Family", "Condo", "Townhouse", "Multi Family", "Land"], description: "Property type filter" },
+        limit: { type: "number", description: "Max results, default 20" },
+      },
+    },
+  },
+
+  mls_property_detail: {
+    name: "mls_property_detail",
+    description: "Get detailed information about a specific property by address — beds, baths, square footage, year built, lot size, tax assessment, and listing status.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string", description: "Street address, e.g. '123 Main St'" },
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+      },
+      required: ["address"],
+    },
+  },
+
+  property_valuation: {
+    name: "property_valuation",
+    description: "Get an AI-powered automated valuation (AVM) for a property — estimated market value, confidence score, and value range. Uses Rentcast's comparable sales model.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string" },
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+        property_type: { type: "string" },
+        bedrooms: { type: "number" },
+        bathrooms: { type: "number" },
+        square_footage: { type: "number" },
+      },
+      required: ["address"],
+    },
+  },
+
+  rent_estimate: {
+    name: "rent_estimate",
+    description: "Estimate fair market rent for a property based on its characteristics and local comparable rentals. Returns estimated monthly rent, confidence score, and rent range.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string" },
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+        property_type: { type: "string" },
+        bedrooms: { type: "number" },
+        bathrooms: { type: "number" },
+        square_footage: { type: "number" },
+      },
+      required: ["address"],
+    },
+  },
+
+  property_comps: {
+    name: "property_comps",
+    description: "Pull recent comparable sales (comps) near a subject property. Returns sold properties sorted by similarity with sale price, date, and distance.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string" },
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+        radius_miles: { type: "number", description: "Search radius in miles, default 1" },
+        days_old: { type: "number", description: "Only include sales from the last N days, default 180" },
+        limit: { type: "number", description: "Number of comps to return, default 10" },
+      },
+      required: ["address"],
+    },
+  },
+
+  owner_lookup: {
+    name: "owner_lookup",
+    description: "Look up property ownership information — owner name, whether owner-occupied, mailing address, and last sale price/date. Useful for prospecting off-market leads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string" },
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+      },
+      required: ["address"],
+    },
+  },
+
+  mls_rental_listings: {
+    name: "mls_rental_listings",
+    description: "Search active long-term rental listings in a market by location, price range, and property type. Good for comping rent prices and finding tenant leads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        city: { type: "string" },
+        state: { type: "string" },
+        zip_code: { type: "string" },
+        min_price: { type: "number" },
+        max_price: { type: "number" },
+        min_beds: { type: "number" },
+        property_type: { type: "string" },
+        limit: { type: "number" },
+      },
+    },
+  },
+
+  // ── RESTAURANT ─────────────────────────────────────────────────────────────
+  pos_orders_list: {
+    name: "pos_orders_list",
+    description: "Pull recent orders from the restaurant's Toast POS system — filtered by date range and status. Returns order totals, items, and timestamps.",
+    input_schema: {
+      type: "object",
+      properties: {
+        start_date: { type: "string", description: "ISO 8601 start datetime, e.g. '2025-01-01T00:00:00Z'" },
+        end_date: { type: "string", description: "ISO 8601 end datetime" },
+        status: { type: "string", enum: ["OPEN", "PAID", "VOIDED", "NEEDS_APPROVAL"] },
+        limit: { type: "number" },
+      },
+    },
+  },
+
+  menu_items_list: {
+    name: "menu_items_list",
+    description: "List all menu items from Toast POS, optionally filtered by category. Returns item names, prices, descriptions, and calories.",
+    input_schema: {
+      type: "object",
+      properties: {
+        category: { type: "string", description: "Filter by menu category/group name" },
+        availability: { type: "string" },
+      },
+    },
+  },
+
+  reservation_list: {
+    name: "reservation_list",
+    description: "List upcoming restaurant reservations from Toast. Returns guest name, party size, time, and special requests.",
+    input_schema: {
+      type: "object",
+      properties: {
+        date: { type: "string", description: "Date in YYYY-MM-DD format" },
+        status: { type: "string", enum: ["BOOKED", "ARRIVED", "PARTIALLY_ARRIVED", "SEATED", "DONE", "NO_SHOW", "CANCEL"] },
+        limit: { type: "number" },
+      },
+    },
+  },
+
+  pos_revenue_report: {
+    name: "pos_revenue_report",
+    description: "Generate a revenue/cash report from Toast POS for a date range. Returns gross sales, net sales, tax collected, and tip totals.",
+    input_schema: {
+      type: "object",
+      properties: {
+        start_date: { type: "string", description: "ISO 8601 start datetime" },
+        end_date: { type: "string", description: "ISO 8601 end datetime" },
+      },
+      required: ["start_date", "end_date"],
+    },
+  },
+
+  yelp_reviews_get: {
+    name: "yelp_reviews_get",
+    description: "Fetch Yelp reviews and overall rating for a business. Can look up by Yelp business ID or by business name + location.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_id: { type: "string", description: "Yelp business ID" },
+        business_name: { type: "string", description: "Business name to search for" },
+        location: { type: "string", description: "City or address to narrow the Yelp search" },
+        limit: { type: "number", description: "Number of reviews to return (max 50)" },
+      },
+    },
+  },
+
+  // ── BUSINESS (Google My Business) ──────────────────────────────────────────
+  google_business_reviews: {
+    name: "google_business_reviews",
+    description: "Fetch Google Business Profile reviews for the connected location. Returns average rating, total count, and individual reviews with any existing owner replies.",
+    input_schema: {
+      type: "object",
+      properties: {
+        limit: { type: "number", description: "Reviews per page, max 50" },
+        page_token: { type: "string", description: "Pagination token from a previous result" },
+      },
+    },
+  },
+
+  google_business_reply_review: {
+    name: "google_business_reply_review",
+    description: "Post or update a public reply to a Google Business review on behalf of the business owner.",
+    input_schema: {
+      type: "object",
+      properties: {
+        review_name: { type: "string", description: "Full review resource name from google_business_reviews, e.g. 'accounts/123/locations/456/reviews/789'" },
+        reply_text: { type: "string", description: "The reply text to post publicly" },
+      },
+      required: ["review_name", "reply_text"],
+    },
+  },
+
+  google_business_update_hours: {
+    name: "google_business_update_hours",
+    description: "Update the regular business hours on the Google Business Profile. Specify hours per day as 'HH:MM-HH:MM', e.g. '09:00-21:00'. Omit a day to leave its hours unchanged.",
+    input_schema: {
+      type: "object",
+      properties: {
+        monday: { type: "string" },
+        tuesday: { type: "string" },
+        wednesday: { type: "string" },
+        thursday: { type: "string" },
+        friday: { type: "string" },
+        saturday: { type: "string" },
+        sunday: { type: "string" },
+      },
+    },
+  },
+
+  // ── Music & Entertainment (18 tools) ────────────────────────────────────
+
+  music_ein_guide: {
+    name: "music_ein_guide",
+    description: "Provide a step-by-step guide to registering an EIN (Employer Identification Number) with the IRS for a music business entity.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string", description: "Legal business name to register" },
+        business_type: { type: "string", enum: ["LLC", "Sole Proprietorship", "Corporation", "Partnership"], description: "Entity type" },
+      },
+    },
+  },
+
+  music_state_registration_guide: {
+    name: "music_state_registration_guide",
+    description: "Guide for registering a music business entity (LLC or Corp) with the appropriate state Secretary of State.",
+    input_schema: {
+      type: "object",
+      properties: {
+        state: { type: "string", description: "Two-letter state abbreviation, e.g. OK, CA, NY" },
+        entity_type: { type: "string", enum: ["LLC", "Corporation", "Sole Proprietorship"], description: "Type of business entity" },
+        business_name: { type: "string", description: "Desired business name" },
+      },
+      required: ["state"],
+    },
+  },
+
+  music_bmi_ascap_guide: {
+    name: "music_bmi_ascap_guide",
+    description: "Guide for registering with a Performing Rights Organization (PRO) — BMI or ASCAP — to collect performance royalties.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        role: { type: "string", enum: ["songwriter", "publisher", "both"], description: "Whether registering as songwriter, publisher, or both" },
+      },
+    },
+  },
+
+  music_sync_license_generate: {
+    name: "music_sync_license_generate",
+    description: "Generate a sync license agreement template for licensing a song for use in a film, TV show, ad, or other visual media.",
+    input_schema: {
+      type: "object",
+      properties: {
+        song_title: { type: "string" },
+        artist_name: { type: "string" },
+        licensee_name: { type: "string", description: "Name of the company or person licensing the song" },
+        use_type: { type: "string", description: "Describe the project: film, commercial, YouTube video, etc." },
+        territory: { type: "string", description: "Geographic scope, e.g. Worldwide or United States" },
+        term: { type: "string", description: "License duration, e.g. 1 year, in perpetuity" },
+        fee: { type: "number", description: "License fee in USD" },
+      },
+      required: ["song_title", "artist_name"],
+    },
+  },
+
+  music_sync_pitch_email: {
+    name: "music_sync_pitch_email",
+    description: "Draft a professional sync licensing pitch email to a music supervisor for a film, TV show, ad, or game.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        genre: { type: "string" },
+        mood: { type: "string", description: "Emotional feel of the track, e.g. uplifting, dark, cinematic" },
+        bpm: { type: "number" },
+        supervisor_name: { type: "string" },
+        project_name: { type: "string", description: "Film/show/ad name if known" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_distribution_setup: {
+    name: "music_distribution_setup",
+    description: "Step-by-step guide to set up music distribution through DistroKid, TuneCore, or CD Baby to get on Spotify, Apple Music, and 70+ platforms.",
+    input_schema: {
+      type: "object",
+      properties: {
+        distributor: { type: "string", enum: ["DistroKid", "TuneCore", "CD Baby"], description: "Distribution platform to use" },
+        artist_name: { type: "string" },
+      },
+    },
+  },
+
+  music_streaming_profile_setup: {
+    name: "music_streaming_profile_setup",
+    description: "Guide to claiming and optimizing artist profiles on Spotify for Artists, Apple Music for Artists, YouTube, and TikTok.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        platforms: {
+          type: "array",
+          items: { type: "string", enum: ["Spotify", "Apple Music", "YouTube", "TikTok"] },
+          description: "Which platforms to set up",
+        },
+      },
+    },
+  },
+
+  music_press_kit_generate: {
+    name: "music_press_kit_generate",
+    description: "Generate a professional Electronic Press Kit (EPK) template with bio, achievements, social links, streaming links, and press contact.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        genre: { type: "string" },
+        hometown: { type: "string" },
+        bio: { type: "string", description: "Artist bio (optional — will provide template if omitted)" },
+        achievements: { type: "string" },
+        social_links: { type: "object", description: "Social handles: {instagram, tiktok, youtube}" },
+        contact_email: { type: "string" },
+        streaming_link: { type: "string" },
+      },
+      required: ["artist_name"],
+    },
+  },
+
+  music_press_release_write: {
+    name: "music_press_release_write",
+    description: "Write a professional press release for a new music release (single, EP, or album) to send to blogs, publications, and radio stations.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        release_title: { type: "string" },
+        release_type: { type: "string", enum: ["single", "EP", "album"], description: "Type of release" },
+        release_date: { type: "string", description: "Release date YYYY-MM-DD" },
+        genre: { type: "string" },
+        quote: { type: "string", description: "Artist quote about the release" },
+        streaming_link: { type: "string" },
+        contact_email: { type: "string" },
+      },
+      required: ["artist_name", "release_title"],
+    },
+  },
+
+  music_radio_pitch_email: {
+    name: "music_radio_pitch_email",
+    description: "Draft a radio airplay submission email to a station music director or DJ.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        genre: { type: "string" },
+        station_name: { type: "string" },
+        dj_name: { type: "string", description: "Name of the music director or DJ (optional)" },
+        streaming_link: { type: "string" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_google_ads_campaign: {
+    name: "music_google_ads_campaign",
+    description: "Generate a Google Ads campaign brief and setup guide for promoting a music release via YouTube TrueView and Display ads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        target_url: { type: "string", description: "Smart link URL for the release" },
+        budget_daily: { type: "number", description: "Daily ad spend in USD" },
+        target_location: { type: "string", description: "Target location, e.g. United States, Atlanta GA" },
+        genre: { type: "string" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_tiktok_ads_campaign: {
+    name: "music_tiktok_ads_campaign",
+    description: "Generate a TikTok Ads campaign brief for promoting a music release via In-Feed and Spark Ads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        budget_daily: { type: "number", description: "Daily ad spend in USD" },
+        target_age_range: { type: "string", description: "Age range, e.g. 18-34" },
+        genre: { type: "string" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_facebook_ads_campaign: {
+    name: "music_facebook_ads_campaign",
+    description: "Generate a Meta (Facebook + Instagram) Ads campaign brief for promoting a music release.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        budget_daily: { type: "number", description: "Daily ad spend in USD" },
+        target_location: { type: "string" },
+        genre: { type: "string" },
+        smart_link: { type: "string", description: "Smart link to streaming platforms" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_social_post_generate: {
+    name: "music_social_post_generate",
+    description: "Generate ready-to-post social media content for Instagram, TikTok, Twitter/X, and Facebook for a music release.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        release_date: { type: "string" },
+        platform: { type: "string", enum: ["instagram", "tiktok", "twitter", "facebook"], description: "Target platform (omit for all)" },
+        post_type: { type: "string", enum: ["announcement", "countdown", "behindthescenes"], description: "Type of post" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  music_release_calendar: {
+    name: "music_release_calendar",
+    description: "Generate a full release campaign timeline working backwards from the release date, covering distribution, editorial pitch, PR, ads, and social milestones.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        release_date: { type: "string", description: "Release date in YYYY-MM-DD format" },
+      },
+      required: ["release_date"],
+    },
+  },
+
+  music_artist_roster: {
+    name: "music_artist_roster",
+    description: "Manage the label's artist roster — list, add, or update artist records including genre, deal stage, and contact info.",
+    input_schema: {
+      type: "object",
+      properties: {
+        action: { type: "string", enum: ["list", "add", "update"], description: "Operation to perform" },
+        artist_name: { type: "string" },
+        genre: { type: "string" },
+        stage: { type: "string", enum: ["Prospecting", "Signed", "Active", "Alumni"], description: "Relationship stage" },
+        contact: { type: "string", description: "Email or phone" },
+      },
+      required: ["action"],
+    },
+  },
+
+  music_royalty_tracker: {
+    name: "music_royalty_tracker",
+    description: "Guide to tracking and reconciling streaming royalties, PRO performance royalties, and sync fees across all platforms.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        period: { type: "string", description: "Reporting period, e.g. Q3 2026" },
+        platform: { type: "string", description: "Platform to focus on, e.g. Spotify, BMI, or 'all'" },
+      },
+    },
+  },
+
+  music_playlist_pitch: {
+    name: "music_playlist_pitch",
+    description: "Draft a playlist pitch email and provide a list of playlist submission platforms for independent curators and editorial teams.",
+    input_schema: {
+      type: "object",
+      properties: {
+        artist_name: { type: "string" },
+        song_title: { type: "string" },
+        genre: { type: "string" },
+        mood: { type: "string" },
+        bpm: { type: "number" },
+        playlist_name: { type: "string", description: "Name of the playlist being pitched to" },
+        curator_name: { type: "string" },
+      },
+      required: ["artist_name", "song_title"],
+    },
+  },
+
+  // ── Trades (16 tools) ────────────────────────────────────────────────────────
+
+  trades_ein_guide: {
+    name: "trades_ein_guide",
+    description: "Step-by-step guide to apply for an EIN (Employer Identification Number) for a trades business via IRS.gov — free, instant, and required before opening a business bank account or hiring employees.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string", description: "e.g. Plumbing, Electrical, HVAC, Roofing, Carpentry" },
+        owner_name: { type: "string" },
+        state: { type: "string" },
+      },
+    },
+  },
+
+  trades_state_registration_guide: {
+    name: "trades_state_registration_guide",
+    description: "Walk-through for registering a trades business with the state — LLC vs sole proprietor comparison, Articles of Organization, registered agent, operating agreement, and state-specific contractor registration requirements.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        trade_type: { type: "string" },
+        entity_type: { type: "string", enum: ["LLC", "Sole Proprietor", "Corporation", "Partnership"], description: "Preferred business structure" },
+      },
+    },
+  },
+
+  trades_license_certification_guide: {
+    name: "trades_license_certification_guide",
+    description: "State-by-state guide to getting licensed and certified in a specific trade — contractor license boards, exam requirements, apprenticeship programs, bonding, and insurance minimums.",
+    input_schema: {
+      type: "object",
+      properties: {
+        trade_type: { type: "string", description: "e.g. Electrician, Plumber, HVAC Tech, Roofer, Welder, Carpenter, General Contractor" },
+        state: { type: "string" },
+        experience_level: { type: "string", enum: ["Apprentice", "Journeyman", "Master", "General Contractor"], description: "Current experience level" },
+      },
+      required: ["trade_type", "state"],
+    },
+  },
+
+  trades_business_email_setup: {
+    name: "trades_business_email_setup",
+    description: "Guide to creating a professional business email address for a trades company — domain purchase, Google Workspace or Microsoft 365 setup, and email signature best practices.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        preferred_domain: { type: "string", description: "Desired domain name, e.g. smithelectrical.com" },
+      },
+    },
+  },
+
+  trades_business_address_setup: {
+    name: "trades_business_address_setup",
+    description: "Guide to establishing a professional business address for a trades company — virtual mailbox services, registered agent address, home address considerations, and PO Box options.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        use_home_address: { type: "boolean", description: "Whether owner is considering using their home address" },
+      },
+    },
+  },
+
+  trades_business_phone_setup: {
+    name: "trades_business_phone_setup",
+    description: "Guide to setting up a dedicated business phone number for a trades company — VoIP options (Google Voice, RingCentral, OpenPhone), call routing, voicemail scripts, and after-hours handling.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        team_size: { type: "number", description: "Number of employees or contractors" },
+      },
+    },
+  },
+
+  trades_business_bank_guide: {
+    name: "trades_business_bank_guide",
+    description: "Guide to opening a business bank account for a trades company — best banks for contractors, required documents (EIN, LLC docs, ID), business credit card options, and QuickBooks/Wave accounting setup.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        annual_revenue_estimate: { type: "string", description: "Estimated annual revenue range, e.g. $50k-$150k" },
+      },
+    },
+  },
+
+  trades_insurance_guide: {
+    name: "trades_insurance_guide",
+    description: "Guide to getting properly insured as a trades contractor — general liability, workers' comp, commercial auto, tools & equipment coverage, and surety bonds by trade type.",
+    input_schema: {
+      type: "object",
+      properties: {
+        trade_type: { type: "string" },
+        state: { type: "string" },
+        has_employees: { type: "boolean" },
+        has_vehicles: { type: "boolean" },
+      },
+      required: ["trade_type", "state"],
+    },
+  },
+
+  trades_estimate_template: {
+    name: "trades_estimate_template",
+    description: "Generate a professional job estimate template for a trades business — line items for labor, materials, markup, taxes, and terms. Customized by trade type and job scope.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        job_type: { type: "string", description: "e.g. Bathroom remodel, HVAC install, Roof replacement, Electrical panel upgrade" },
+        client_name: { type: "string" },
+        labor_hours: { type: "number" },
+        hourly_rate: { type: "number" },
+        materials_cost: { type: "number" },
+      },
+    },
+  },
+
+  trades_invoice_template: {
+    name: "trades_invoice_template",
+    description: "Generate a professional invoice for a completed trades job — with payment terms, deposit tracking, late fee language, and accepted payment methods.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        client_name: { type: "string" },
+        job_description: { type: "string" },
+        total_amount: { type: "number" },
+        deposit_paid: { type: "number" },
+        payment_due_days: { type: "number", description: "Days until payment is due, e.g. 15 or 30" },
+      },
+    },
+  },
+
+  trades_google_ads_campaign: {
+    name: "trades_google_ads_campaign",
+    description: "Generate a complete Google Local Services Ads and Google Search Ads strategy for a trades business — targeting local zip codes, keywords by trade, ad copy, and budget recommendations.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        service_area: { type: "string", description: "City, state or zip codes served" },
+        monthly_budget: { type: "number" },
+        services: { type: "array", items: { type: "string" }, description: "Specific services to advertise, e.g. ['drain cleaning', 'water heater install']" },
+      },
+      required: ["trade_type", "service_area"],
+    },
+  },
+
+  trades_facebook_ads_campaign: {
+    name: "trades_facebook_ads_campaign",
+    description: "Generate a Facebook and Instagram ads campaign strategy for a trades business — targeting homeowners by zip code, ad creative briefs, offer ideas, and seasonal campaign calendar.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        service_area: { type: "string" },
+        monthly_budget: { type: "number" },
+        campaign_goal: { type: "string", enum: ["Lead Generation", "Brand Awareness", "Seasonal Promotion"], description: "Primary campaign objective" },
+      },
+      required: ["trade_type", "service_area"],
+    },
+  },
+
+  trades_direct_mail_campaign: {
+    name: "trades_direct_mail_campaign",
+    description: "Generate a direct mail postcard campaign strategy for a trades business — targeting homeowner zip codes, seasonal offers, postcard copy, and EDDM (Every Door Direct Mail) setup guide.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        service_area: { type: "string" },
+        offer: { type: "string", description: "Promotional offer, e.g. '$50 off first service call', 'Free estimate'" },
+        season: { type: "string", enum: ["Spring", "Summer", "Fall", "Winter", "Year-round"] },
+      },
+      required: ["trade_type"],
+    },
+  },
+
+  trades_yelp_nextdoor_setup: {
+    name: "trades_yelp_nextdoor_setup",
+    description: "Step-by-step guide to claiming and optimizing a trades business on Yelp and Nextdoor — the two highest-converting local platforms for home service contractors.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        service_area: { type: "string" },
+        phone_number: { type: "string" },
+        website: { type: "string" },
+      },
+    },
+  },
+
+  trades_review_request_template: {
+    name: "trades_review_request_template",
+    description: "Generate SMS and email templates for requesting Google, Yelp, and Facebook reviews from completed trades jobs — timing, tone, and direct review link instructions.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        client_name: { type: "string" },
+        job_type: { type: "string" },
+        review_platform: { type: "string", enum: ["Google", "Yelp", "Facebook", "All"], description: "Platform to request review on" },
+      },
+    },
+  },
+
+  trades_promo_campaign_generate: {
+    name: "trades_promo_campaign_generate",
+    description: "Generate a full promotional campaign for a trades business — including offer, ad copy, social posts, email/SMS sequence, and follow-up schedule. Seasonal or event-based.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        trade_type: { type: "string" },
+        campaign_name: { type: "string" },
+        offer: { type: "string", description: "The promotion, e.g. '20% off AC tune-up'" },
+        start_date: { type: "string" },
+        end_date: { type: "string" },
+        channels: {
+          type: "array",
+          items: { type: "string", enum: ["Google Ads", "Facebook", "Instagram", "Email", "SMS", "Direct Mail", "Nextdoor"] },
+        },
+      },
+      required: ["trade_type", "offer"],
+    },
+  },
+
+  // ── Restaurant Business Setup (16) ──────────────────────────────────────────
+  restaurant_ein_guide: { name: "restaurant_ein_guide", description: "Walk through the EIN application for a restaurant business — required for bank accounts, payroll, licenses, and permits.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, owner_name: { type: "string" }, state: { type: "string" } }, required: [] } },
+  restaurant_state_registration_guide: { name: "restaurant_state_registration_guide", description: "Guide to forming an LLC or registering a restaurant business entity in any state.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, restaurant_type: { type: "string" }, entity_type: { type: "string" } }, required: [] } },
+  restaurant_license_permit_guide: { name: "restaurant_license_permit_guide", description: "Full checklist of licenses and permits to open a restaurant: health permit, food handler cards, ServSafe, seller's permit, CO, liquor license, fire inspection.", input_schema: { type: "object", properties: { state: { type: "string" }, restaurant_type: { type: "string" }, serves_alcohol: { type: "boolean" }, has_outdoor_seating: { type: "boolean" }, is_food_truck: { type: "boolean" } }, required: [] } },
+  restaurant_health_inspection_guide: { name: "restaurant_health_inspection_guide", description: "Health inspection prep guide — temperature control, hygiene, cross-contamination, sanitation, pest control, day-before checklist.", input_schema: { type: "object", properties: { state: { type: "string" }, restaurant_type: { type: "string" }, kitchen_type: { type: "string" } }, required: [] } },
+  restaurant_fire_safety_guide: { name: "restaurant_fire_safety_guide", description: "Fire safety and code compliance guide — hood/suppression systems, extinguishers, sprinklers, occupancy/egress, fire marshal inspection.", input_schema: { type: "object", properties: { state: { type: "string" }, restaurant_type: { type: "string" }, seating_capacity: { type: "number" } }, required: [] } },
+  restaurant_business_email_setup: { name: "restaurant_business_email_setup", description: "Guide to setting up professional business email for a restaurant — domain, Google Workspace, address structure (info@, catering@, reservations@).", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, preferred_domain: { type: "string" } }, required: [] } },
+  restaurant_business_address_setup: { name: "restaurant_business_address_setup", description: "Guide to setting up a business address for a restaurant — physical vs. virtual mailbox, registered agent, Google Business Profile verification.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, restaurant_type: { type: "string" }, has_physical_location: { type: "boolean" } }, required: [] } },
+  restaurant_business_phone_setup: { name: "restaurant_business_phone_setup", description: "Guide to setting up a dedicated business phone for a restaurant — Google Voice vs. OpenPhone vs. RingCentral, voicemail scripts, SMS strategy.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, takes_reservations: { type: "boolean" }, team_size: { type: "number" } }, required: [] } },
+  restaurant_business_bank_guide: { name: "restaurant_business_bank_guide", description: "Guide to opening a business bank account for a restaurant — what to bring, bank options, merchant processing, cash flow sub-accounts, accounting setup.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, monthly_revenue_estimate: { type: "string" }, has_employees: { type: "boolean" } }, required: [] } },
+  restaurant_servsafe_guide: { name: "restaurant_servsafe_guide", description: "ServSafe food safety certification guide — food handler cards, Food Manager exam, HACCP plan, staff training program.", input_schema: { type: "object", properties: { state: { type: "string" }, number_of_staff: { type: "number" }, is_manager: { type: "boolean" } }, required: [] } },
+  restaurant_insurance_guide: { name: "restaurant_insurance_guide", description: "Restaurant insurance guide — general liability, property, workers' comp, liquor liability, business interruption, BOP packages.", input_schema: { type: "object", properties: { restaurant_type: { type: "string" }, state: { type: "string" }, serves_alcohol: { type: "boolean" }, has_employees: { type: "boolean" }, annual_revenue_estimate: { type: "string" } }, required: [] } },
+  restaurant_google_ads_campaign: { name: "restaurant_google_ads_campaign", description: "Google Ads strategy for a restaurant — Google Business Profile optimization, search keywords, remarketing, catering campaign.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, service_area: { type: "string" }, monthly_budget: { type: "number" }, cuisine_type: { type: "string" } }, required: [] } },
+  restaurant_facebook_ads_campaign: { name: "restaurant_facebook_ads_campaign", description: "Facebook and Instagram ads strategy for a restaurant — audience targeting, ad formats, seasonal calendar, budget allocation.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, service_area: { type: "string" }, monthly_budget: { type: "number" }, cuisine_type: { type: "string" }, campaign_goal: { type: "string" } }, required: [] } },
+  restaurant_menu_marketing: { name: "restaurant_menu_marketing", description: "Menu engineering and marketing guide — Stars/Plowhorses/Puzzles/Dogs framework, design principles, QR codes, pricing psychology, upsell training.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, cuisine_type: { type: "string" }, price_point: { type: "string" } }, required: [] } },
+  restaurant_review_request_template: { name: "restaurant_review_request_template", description: "SMS, email, table tent, and receipt review request templates for a restaurant plus collection strategy and responding to reviews.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, review_platform: { type: "string" } }, required: [] } },
+  restaurant_promo_campaign_generate: { name: "restaurant_promo_campaign_generate", description: "Full promotional campaign for a restaurant — offer, ad copy, social posts, email/SMS sequence, grand opening extras, success metrics.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, campaign_name: { type: "string" }, offer: { type: "string" }, start_date: { type: "string" }, end_date: { type: "string" }, channels: { type: "array", items: { type: "string", enum: ["Google Ads", "Facebook", "Instagram", "Email", "SMS", "Flyer/Poster", "Nextdoor"] } } }, required: ["offer"] } },
+
+  // ── Business Setup (14) ──────────────────────────────────────────────────────
+  business_ein_guide: { name: "business_ein_guide", description: "Walk through the EIN application for any new business — required for bank accounts, payroll, hiring, and taxes. Free and instant from the IRS.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, owner_name: { type: "string" }, state: { type: "string" }, entity_type: { type: "string", enum: ["LLC", "Sole Proprietor", "S-Corp", "C-Corp", "Partnership"] } }, required: [] } },
+  business_state_registration_guide: { name: "business_state_registration_guide", description: "Guide to forming an LLC, corporation, or registering any business entity in any state — entity comparison, Articles of Organization, registered agent, operating agreement.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, business_type: { type: "string" }, entity_type: { type: "string", enum: ["LLC", "S-Corp", "C-Corp", "Sole Proprietor", "Partnership"] } }, required: [] } },
+  business_license_permit_guide: { name: "business_license_permit_guide", description: "Checklist of licenses and permits for any business: general business license, seller's permit, professional licenses, zoning, home occupation permit.", input_schema: { type: "object", properties: { state: { type: "string" }, business_type: { type: "string" }, is_home_based: { type: "boolean" }, is_online_only: { type: "boolean" }, sells_physical_products: { type: "boolean" }, requires_professional_license: { type: "boolean" } }, required: [] } },
+  business_email_setup: { name: "business_email_setup", description: "Guide to setting up professional business email for any company — domain, Google Workspace or M365, address structure, email signature.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, preferred_domain: { type: "string" }, team_size: { type: "number" } }, required: [] } },
+  business_address_setup: { name: "business_address_setup", description: "Guide to setting up a business address — physical location, virtual mailbox, registered agent, home-based business considerations, Google Business Profile.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, business_type: { type: "string" }, has_physical_location: { type: "boolean" }, is_home_based: { type: "boolean" } }, required: [] } },
+  business_phone_setup: { name: "business_phone_setup", description: "Guide to setting up a dedicated business phone number — Google Voice vs. OpenPhone vs. RingCentral, voicemail scripts, auto-attendant, SMS strategy.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, team_size: { type: "number" }, needs_auto_attendant: { type: "boolean" } }, required: [] } },
+  business_bank_account_guide: { name: "business_bank_account_guide", description: "Guide to opening a business bank account — what to bring, bank options (Chase, BofA, Relay, Mercury), merchant processing, cash flow management, accounting software.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, business_type: { type: "string" }, monthly_revenue_estimate: { type: "string" }, has_employees: { type: "boolean" }, accepts_payments_online: { type: "boolean" } }, required: [] } },
+  business_website_guide: { name: "business_website_guide", description: "Guide to launching a professional business website — platform options (Squarespace, Webflow, WordPress, Shopify), must-have pages, SEO basics, domain and hosting.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, sells_products_online: { type: "boolean" }, budget: { type: "string" } }, required: [] } },
+  business_google_ads_campaign: { name: "business_google_ads_campaign", description: "Google Ads strategy for any business — Google Business Profile, search keywords, ad copy, remarketing, and budget allocation.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, service_area: { type: "string" }, monthly_budget: { type: "number" }, target_customer: { type: "string" } }, required: [] } },
+  business_facebook_ads_campaign: { name: "business_facebook_ads_campaign", description: "Facebook and Instagram ads strategy for any business — audience targeting, ad formats, content calendar, budget allocation.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, service_area: { type: "string" }, monthly_budget: { type: "number" }, target_customer: { type: "string" }, campaign_goal: { type: "string" } }, required: [] } },
+  business_brand_guide: { name: "business_brand_guide", description: "Brand identity guide for a new business — name, logo direction, color palette, typography, voice/tone, and brand standards for consistent marketing.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, target_customer: { type: "string" }, brand_personality: { type: "string" } }, required: [] } },
+  business_social_media_strategy: { name: "business_social_media_strategy", description: "Social media strategy for a new business — platform selection, content pillars, posting schedule, growth tactics, content ideas by industry.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, target_customer: { type: "string" }, team_size: { type: "number" }, posting_frequency: { type: "string" } }, required: [] } },
+  business_review_request_template: { name: "business_review_request_template", description: "Review request templates (SMS, email, in-person script) for any business plus a strategy for collecting and responding to Google, Yelp, and Facebook reviews.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, review_platform: { type: "string" }, service_description: { type: "string" } }, required: [] } },
+  business_promo_campaign_generate: { name: "business_promo_campaign_generate", description: "Full promotional campaign for any business — offer, ad copy, social posts, email/SMS sequence, and success metrics. Grand openings, seasonal promos, service launches.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, campaign_name: { type: "string" }, offer: { type: "string" }, start_date: { type: "string" }, end_date: { type: "string" }, target_customer: { type: "string" }, channels: { type: "array", items: { type: "string", enum: ["Google Ads", "Facebook", "Instagram", "Email", "SMS", "Flyer/Poster", "Nextdoor", "LinkedIn"] } } }, required: ["offer"] } },
 };
 
 // Returns the tool_use schema array for a given agent, filtered to what they're allowed to call.

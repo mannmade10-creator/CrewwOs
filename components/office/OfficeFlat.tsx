@@ -17,7 +17,7 @@ function useWindowWidth() {
   return w;
 }
 
-const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations"];
+const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment", "E-Commerce", "Trades", "Business"];
 
 export default function OfficeFlat({
   agents,

@@ -1,7 +1,7 @@
 "use client";
 /**
  * app/dashboard/[slug]/business/page.tsx
- * CrewwOS for Business — local & service business command center
+ * CrewwOS for Business — local & service business command center + Analytics
  */
 
 import { useEffect, useState } from "react";
@@ -48,6 +48,15 @@ const AGENT_FEED = [
   { agent: "InvoiceAgent",  icon: "🧾", action: "Connect QuickBooks to start auto-invoicing",      time: "Waiting" },
 ];
 
+const ANALYTICS_STATS = [
+  { label: "Website Visitors (30d)", value: "—",  icon: "🌐", note: "Connect Google Analytics",  color: "#00D4FF" },
+  { label: "Conversion Rate",        value: "—",  icon: "📈", note: "Leads ÷ Visitors",          color: "#22c55e" },
+  { label: "Avg Deal Value",         value: "$—", icon: "💰", note: "Connect CRM or QuickBooks", color: "#f59e0b" },
+  { label: "CAC",                    value: "$—", icon: "🎯", note: "Cost to acquire a customer", color: "#a855f7" },
+  { label: "Revenue (MTD)",          value: "$—", icon: "💵", note: "Connect QuickBooks",        color: "#00D4FF" },
+  { label: "Google Rating",          value: "—",  icon: "⭐", note: "Connect Google Business",   color: "#eab308" },
+];
+
 export default function BusinessDashboard() {
   const params = useParams();
   const slug = params?.slug as string ?? "";
@@ -56,7 +65,8 @@ export default function BusinessDashboard() {
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "leads" | "agents">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "leads" | "analytics" | "agents">("overview");
+  const [analyticsTab, setAnalyticsTab] = useState<"performance" | "leads" | "reviews" | "finance">("performance");
 
   useEffect(() => {
     fetch("/api/business/onboard")
@@ -108,9 +118,9 @@ export default function BusinessDashboard() {
 
       {/* Tabs */}
       <div style={S.tabs}>
-        {(["overview", "leads", "agents"] as const).map(t => (
+        {(["overview", "leads", "analytics", "agents"] as const).map(t => (
           <button key={t} onClick={() => setActiveTab(t)} style={{ ...S.tab, ...(activeTab === t ? S.tabActive : {}) }}>
-            {t === "overview" ? "📊 Overview" : t === "leads" ? "📥 Leads" : "🤖 Agents"}
+            {t === "overview" ? "📊 Overview" : t === "leads" ? "📥 Leads" : t === "analytics" ? "📈 Analytics" : "🤖 Agents"}
           </button>
         ))}
       </div>
@@ -169,6 +179,147 @@ export default function BusinessDashboard() {
         </div>
       )}
 
+      {/* ANALYTICS */}
+      {activeTab === "analytics" && (
+        <div style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Connect banner */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.18)", borderRadius: 12, padding: "16px 20px" }}>
+            <span style={{ fontSize: 20 }}>🔗</span>
+            <div style={{ flex: 1 }}>
+              <strong style={{ fontSize: 14 }}>Connect your tools to unlock live analytics</strong>
+              <p style={{ margin: "4px 0 0", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
+                Google Analytics for traffic, QuickBooks for revenue, Google Business for reviews, and your CRM for lead tracking.
+              </p>
+            </div>
+            <a href={`/dashboard/${slug}/integrations`} style={{ background: "#00D4FF", color: "#000", fontWeight: 700, fontSize: 12, padding: "8px 16px", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap" as const }}>Connect →</a>
+          </div>
+
+          {/* Analytics sub-tabs */}
+          <div style={{ display: "flex", gap: 4, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            {(["performance","leads","reviews","finance"] as const).map(t => (
+              <button key={t} onClick={() => setAnalyticsTab(t)} style={{ background: "none", border: "none", color: analyticsTab === t ? "#00D4FF" : "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 600, padding: "10px 14px", cursor: "pointer", borderBottom: analyticsTab === t ? "2px solid #00D4FF" : "2px solid transparent", marginBottom: -1, whiteSpace: "nowrap" as const }}>
+                {t === "performance" ? "📊 Performance" : t === "leads" ? "📥 Lead Flow" : t === "reviews" ? "⭐ Reviews" : "💰 Finance"}
+              </button>
+            ))}
+          </div>
+
+          {/* Performance */}
+          {analyticsTab === "performance" && (
+            <>
+              <div style={S.statsGrid}>{ANALYTICS_STATS.map(s => <BizStat key={s.label} {...s} />)}</div>
+              <div style={S.twoCol}>
+                <div style={S.card}>
+                  <div style={S.cardHeader}><span style={{ fontSize: 14, fontWeight: 700 }}>🌐 Traffic Sources</span></div>
+                  {["Google Organic","Google Paid","Direct","Referral","Social Media"].map(src => (
+                    <div key={src} style={{ display: "flex", alignItems: "center", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                      <span style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{src}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.2)" }}>—</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={S.card}>
+                  <div style={S.cardHeader}><span style={{ fontSize: 14, fontWeight: 700 }}>📱 Channel Breakdown</span></div>
+                  {["Phone Calls","Web Form","Walk-In","Referral","Google Business"].map(ch => (
+                    <div key={ch} style={{ display: "flex", alignItems: "center", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                      <span style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{ch}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.2)" }}>—</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Lead Flow */}
+          {analyticsTab === "leads" && (
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label: "Leads This Month",   value: "—",  icon: "📥", note: "All inbound leads",      color: "#00D4FF" },
+                  { label: "Contacted",           value: "—",  icon: "📞", note: "Reached by agent",       color: "#22c55e" },
+                  { label: "Proposals Sent",      value: "—",  icon: "📋", note: "Estimate or quote sent", color: "#f59e0b" },
+                  { label: "Closed Won",          value: "—",  icon: "✅", note: "Converted to jobs",      color: "#a855f7" },
+                  { label: "Close Rate",          value: "—%", icon: "🎯", note: "Won ÷ Total leads",      color: "#00D4FF" },
+                  { label: "Avg Response Time",   value: "—",  icon: "⚡", note: "Time to first contact",  color: "#22c55e" },
+                ].map(s => <BizStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize: 14, fontWeight: 700 }}>🔄 Lead Pipeline Funnel</span></div>
+                {["New Lead → Contacted","Contacted → Proposal Sent","Proposal Sent → Won","Won → Job Complete"].map((stage, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize: 13, flex: 1, color: "rgba(255,255,255,0.7)" }}>{stage}</span>
+                    <div style={{ width: 140, height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3 }}><div style={{ height: "100%", width: "0%", background: "#00D4FF", borderRadius: 3 }} /></div>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.2)", minWidth: 40, textAlign: "right" as const }}>—%</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Reviews */}
+          {analyticsTab === "reviews" && (
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label: "Google Rating",      value: "—",  icon: "⭐", note: "Connect Google Business", color: "#eab308" },
+                  { label: "Total Reviews",       value: "—",  icon: "💬", note: "All platforms combined",  color: "#00D4FF" },
+                  { label: "New Reviews (30d)",   value: "—",  icon: "🆕", note: "Recent activity",         color: "#22c55e" },
+                  { label: "Yelp Rating",         value: "—",  icon: "🔴", note: "Connect Yelp",           color: "#ef4444" },
+                ].map(s => <BizStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize: 14, fontWeight: 700 }}>📊 Review Platforms</span></div>
+                {[
+                  { name: "Google Business", icon: "🟡", url: "https://business.google.com" },
+                  { name: "Yelp",            icon: "🔴", url: "https://biz.yelp.com" },
+                  { name: "Facebook",        icon: "🔵", url: "https://business.facebook.com" },
+                  { name: "Nextdoor",        icon: "🟢", url: "https://business.nextdoor.com" },
+                ].map(p => (
+                  <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize: 20 }}>{p.icon}</span>
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{p.name}</span>
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.2)" }}>— reviews</span>
+                    <a href={p.url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#00D4FF", textDecoration: "none", background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 6, padding: "4px 10px" }}>Connect →</a>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Finance */}
+          {analyticsTab === "finance" && (
+            <>
+              <div style={S.statsGrid}>
+                {[
+                  { label: "Revenue (MTD)",      value: "$—", icon: "💰", note: "Connect QuickBooks",       color: "#22c55e" },
+                  { label: "Outstanding Invoices",value: "$—", icon: "🧾", note: "Unpaid invoices",          color: "#f59e0b" },
+                  { label: "Expenses (MTD)",      value: "$—", icon: "📉", note: "Operating costs",          color: "#ef4444" },
+                  { label: "Profit Margin",       value: "—%", icon: "📊", note: "Net ÷ Revenue",           color: "#00D4FF" },
+                ].map(s => <BizStat key={s.label} {...s} />)}
+              </div>
+              <div style={S.card}>
+                <div style={S.cardHeader}><span style={{ fontSize: 14, fontWeight: 700 }}>💳 Finance Integrations</span></div>
+                {[
+                  { name: "QuickBooks Online", icon: "🟢", desc: "Revenue, expenses, P&L, invoices",    url: "https://quickbooks.intuit.com" },
+                  { name: "Stripe",            icon: "🟣", desc: "Online payments and payouts",          url: "https://stripe.com" },
+                  { name: "Square",            icon: "⬛", desc: "In-person payments and POS",           url: "https://squareup.com" },
+                  { name: "Wave",              icon: "🔵", desc: "Free accounting for small business",   url: "https://waveapps.com" },
+                ].map(p => (
+                  <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize: 22 }}>{p.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>{p.name}</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{p.desc}</div>
+                    </div>
+                    <a href={p.url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#00D4FF", textDecoration: "none", background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 6, padding: "4px 10px" }}>Connect →</a>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {/* AGENTS */}
       {activeTab === "agents" && (
         <div style={S.agentGrid}>
@@ -211,6 +362,17 @@ export default function BusinessDashboard() {
   );
 }
 
+function BizStat({ label, value, icon, note, color }: { label: string; value: string; icon: string; note: string; color: string }) {
+  return (
+    <div style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${color}22`, borderRadius: 14, padding: "20px 16px" }}>
+      <div style={{ fontSize: 22, marginBottom: 8 }}>{icon}</div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: value === "—" || value.includes("—") ? "rgba(255,255,255,0.2)" : "#fff" }}>{value}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", margin: "4px 0 6px" }}>{label}</div>
+      <div style={{ fontSize: 11, color: `${color}cc` }}>{note}</div>
+    </div>
+  );
+}
+
 const S: Record<string, React.CSSProperties> = {
   page:          { background: "#060612", color: "#fff", fontFamily: "Inter, sans-serif", padding: "0 0 80px" },
   centered:      { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#060612", color: "#fff", fontFamily: "Inter, sans-serif", padding: "80px 32px" },
@@ -223,7 +385,8 @@ const S: Record<string, React.CSSProperties> = {
   tabs:          { display: "flex", gap: 4, padding: "16px 32px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" },
   tab:           { background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 600, padding: "10px 16px", cursor: "pointer", borderBottom: "2px solid transparent", marginBottom: -1 },
   tabActive:     { color: "#00D4FF", borderBottom: "2px solid #00D4FF" },
-  statsGrid:     { display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, padding: "24px 32px 0" },
+  statsGrid:     { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12, padding: "24px 32px 0" },
+  twoCol:        { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 },
   statCard:      { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "20px 16px" },
   card:          { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "20px" },
   cardHeader:    { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" },

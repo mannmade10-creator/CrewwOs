@@ -46,6 +46,7 @@ export default async function NiaPage() {
     { emoji: "🎨", name: "Creators & Agencies" },
     { emoji: "🏠", name: "Real Estate" },
     { emoji: "🍽️", name: "Restaurants" },
+    { emoji: "🎵", name: "Music & Entertainment" },
     { emoji: "🔧", name: "Trades & Contractors" },
     { emoji: "🛍️", name: "E-Commerce" },
   ];
@@ -77,6 +78,12 @@ export default async function NiaPage() {
     Sales:       "#10b981",
     Marketing:   "#a855f7",
     Operations:  "#f59e0b",
+    "Real Estate": "#F59E0B",
+    Restaurant:    "#EF4444",
+    "Music & Entertainment": "#8B5CF6",
+    "E-Commerce": "#EC4899",
+    Trades: "#F59E0B",
+    Business: "#6366F1",
   };
 
   return (
@@ -298,7 +305,7 @@ export default async function NiaPage() {
           </div>
 
           {/* Dept headers + agents grid */}
-          {(["Engineering", "Sales", "Marketing", "Operations"] as const).map(dept => {
+          {(["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment", "E-Commerce", "Trades", "Business"] as const).map(dept => {
             const agents = roster.filter(a => a.dept === dept);
             const color = deptColors[dept];
             return (
