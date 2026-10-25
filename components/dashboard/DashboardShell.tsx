@@ -9,12 +9,14 @@ import { agentsAllowedForPlan, PLAN_LABELS } from "@/lib/plans";
 import type { WorkspaceSummary } from "@/lib/workspaces";
 import { CrewwOSLogo } from "@/components/ui/CrewwOSLogo";
 
-const TABS = [
-  { key: "",              label: "Office",      icon: "🏢" },
-  { key: "/integrations", label: "Integrations",icon: "🔌" },
-  { key: "/reports",      label: "Reports",     icon: "📊" },
-  { key: "/nia",          label: "Nia Credits", icon: "👑" },
-  { key: "/settings",     label: "Settings",    icon: "⚙️" },
+const BASE_TABS = [
+  { key: "",              label: "Office",      icon: "🏢", agencyOnly: false },
+  { key: "/integrations", label: "Integrations",icon: "🔌", agencyOnly: false },
+  { key: "/reports",      label: "Reports",     icon: "📊", agencyOnly: false },
+  { key: "/nia",          label: "Nia Credits", icon: "👑", agencyOnly: false },
+  { key: "/analytics",   label: "Analytics",   icon: "📈", agencyOnly: false },
+  { key: "/agency",      label: "Agency",      icon: "🏛️", agencyOnly: true },
+  { key: "/settings",    label: "Settings",    icon: "⚙️", agencyOnly: false },
 ];
 
 export default function DashboardShell({ workspaceName, workspaceSlug, plan, children }: {
@@ -23,6 +25,9 @@ export default function DashboardShell({ workspaceName, workspaceSlug, plan, chi
   const pathname = usePathname();
   const router = useRouter();
   const allowedCount = agentsAllowedForPlan(plan, AGENTS.map(a => a.slug)).size;
+
+  const isAgency = plan === "agency" || plan === "superadmin";
+  const TABS = BASE_TABS.filter(t => !t.agencyOnly || isAgency);
 
   const currentTab = pathname.replace(`/dashboard/${workspaceSlug}`, "") || "";
 
@@ -128,11 +133,14 @@ export default function DashboardShell({ workspaceName, workspaceSlug, plan, chi
               const href = `/dashboard/${workspaceSlug}${t.key}`;
               const active = currentTab === t.key;
               const isNia = t.key === "/nia";
+              const isAnalytics = t.key === "/analytics";
+              const isAgencyTab = t.key === "/agency";
+              const accentColor = isAgencyTab ? "#f59e0b" : isNia ? "#A855F7" : isAnalytics ? "#10b981" : "#fff";
               return (
                 <Link key={t.key} href={href} style={{
-                  background: active ? (isNia ? "#A855F722" : "#ffffff10") : "transparent",
-                  border: "1px solid " + (active ? (isNia ? "#A855F744" : "#ffffff22") : "transparent"),
-                  color: active ? (isNia ? "#A855F7" : "#fff") : "#ffffff66",
+                  background: active ? accentColor + "22" : "transparent",
+                  border: "1px solid " + (active ? accentColor + "44" : "transparent"),
+                  color: active ? accentColor : "#ffffff66",
                   borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 600, textDecoration: "none",
                   display: "flex", alignItems: "center", gap: 5,
                 }}>
@@ -196,22 +204,25 @@ export default function DashboardShell({ workspaceName, workspaceSlug, plan, chi
                 const href = `/dashboard/${workspaceSlug}${t.key}`;
                 const active = currentTab === t.key;
                 const isNia = t.key === "/nia";
+                const isAnalytics = t.key === "/analytics";
+                const isAgencyTab = t.key === "/agency";
+                const accentColor = isAgencyTab ? "#f59e0b" : isNia ? "#A855F7" : isAnalytics ? "#10b981" : "#fff";
                 return (
                   <Link
                     key={t.key}
                     href={href}
                     onClick={() => setMenuOpen(false)}
                     style={{
-                      background: active ? (isNia ? "#A855F718" : "#ffffff0f") : "transparent",
-                      border: `1px solid ${active ? (isNia ? "#A855F744" : "#ffffff22") : "transparent"}`,
-                      color: active ? (isNia ? "#A855F7" : "#fff") : "#ffffffaa",
+                      background: active ? accentColor + "18" : "transparent",
+                      border: `1px solid ${active ? accentColor + "44" : "transparent"}`,
+                      color: active ? accentColor : "#ffffffaa",
                       borderRadius: 10, padding: "11px 14px", fontSize: 14, fontWeight: active ? 700 : 400,
                       textDecoration: "none", display: "flex", alignItems: "center", gap: 12,
                     }}
                   >
                     <span style={{ fontSize: 18, minWidth: 24, textAlign: "center" }}>{t.icon}</span>
                     {t.label}
-                    {active && <span style={{ marginLeft: "auto", color: "#00D4FF", fontSize: 12 }}>●</span>}
+                    {active && <span style={{ marginLeft: "auto", color: accentColor, fontSize: 12 }}>●</span>}
                   </Link>
                 );
               })}
