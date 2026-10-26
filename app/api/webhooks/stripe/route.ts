@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
+import { createWorkspace } from "@/lib/workspaces";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 
@@ -12,9 +13,12 @@ const supabaseAdmin = createClient(
 );
 
 const PLAN_MAP: Record<string, string> = {
-  starter: "starter",
-  pro: "pro",
+  starter:    "starter",
+  growth:     "growth",
   enterprise: "enterprise",
+  agency:     "agency",
+  // legacy alias
+  pro:        "growth",
 };
 
 export async function POST(req: Request) {
@@ -37,33 +41,69 @@ export async function POST(req: Request) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
 
-      // The checkout route sets these metadata keys (crewos_workspace_id, crewos_plan).
-      // priceKey and userId are set by the Nia credits checkout (NiaCreditsClient),
-      // which calls POST /api/checkout with { priceKey, mode: "payment" }.
-      const workspaceId = session.metadata?.crewos_workspace_id;
-      const crewosplan = session.metadata?.crewos_plan;
-      const priceKey = session.metadata?.priceKey;
-      const userId = session.metadata?.userId; // set by /api/checkout for Nia flows
+      const isNewWorkspace = session.metadata?.crewos_new_workspace === "true";
+      const workspaceId    = session.metadata?.crewos_workspace_id;
+      const crewosplan     = session.metadata?.crewos_plan;
+      const priceKey       = session.metadata?.priceKey;
+      const userId         = session.metadata?.userId; // set by /api/checkout for Nia flows
 
-      // -- Subscription plan upgrade (billing/checkout route) --
+      // ── New-workspace onboarding path ────────────────────────────────────
+      if (isNewWorkspace) {
+        const workspaceName = session.metadata?.crewos_workspace_name ?? "My Workspace";
+        const vertical      = session.metadata?.crewos_vertical ?? "general";
+        const ownerId       = session.metadata?.crewos_owner_id;
+        const plan          = PLAN_MAP[crewosplan ?? ""] ?? "starter";
+
+        if (!ownerId) {
+          console.error("[stripe webhook] Missing crewos_owner_id on new workspace session", session.id);
+          break;
+        }
+
+        try {
+          // createWorkspace(userId, name, vertical, plan)
+          const workspace = await createWorkspace(ownerId, workspaceName, vertical, plan);
+
+          // Stamp the Stripe IDs onto the new workspace
+          await supabaseAdmin
+            .from("workspaces")
+            .update({
+              stripe_subscription_id: session.subscription as string,
+              stripe_customer_id:     session.customer as string,
+            })
+            .eq("id", workspace.id);
+
+          // Write slug to pending_checkouts so the redirect API can pick it up
+          await supabaseAdmin.from("pending_checkouts").insert({
+            stripe_session_id: session.id,
+            workspace_slug:    workspace.slug,
+            owner_id:          ownerId,
+          });
+
+          console.log(`[stripe webhook] New workspace created: ${workspace.slug} for session ${session.id}`);
+        } catch (err) {
+          console.error("[stripe webhook] Failed to create workspace:", err);
+        }
+
+        break;
+      }
+
+      // ── Existing workspace upgrade path ──────────────────────────────────
       if (workspaceId && crewosplan && PLAN_MAP[crewosplan]) {
         await supabaseAdmin
           .from("workspaces")
           .update({
-            plan: PLAN_MAP[crewosplan],
-            stripe_subscription_id: session.subscription as string,
-            stripe_customer_id: session.customer as string,
+            plan:                    PLAN_MAP[crewosplan],
+            stripe_subscription_id:  session.subscription as string,
+            stripe_customer_id:      session.customer as string,
           })
           .eq("id", workspaceId);
       }
 
-      // -- Nia credit pack purchase (one-time payment, NiaCreditsClient) --
-      // priceKey is like "nia_credits_500" or "nia_setup"
+      // ── Nia credit pack purchase (one-time payment, NiaCreditsClient) ────
       if (priceKey && userId) {
         if (priceKey.startsWith("nia_credits_")) {
           const credits = parseInt(priceKey.replace("nia_credits_", ""), 10);
           if (credits > 0) {
-            // Use workspace_id if available, fall back to userId-based lookup
             const query = workspaceId
               ? supabaseAdmin.from("nia_credits").select("credits_remaining").eq("workspace_id", workspaceId).single()
               : supabaseAdmin.from("nia_credits").select("credits_remaining").eq("user_id", userId).single();
