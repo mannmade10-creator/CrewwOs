@@ -11,10 +11,11 @@ import {
   EcommerceOnboarding, EcommerceProfile,
   GeneralOnboarding, GeneralProfile,
 } from "@/components/onboarding/VerticalOnboarding";
+import ConnectTools from "@/components/onboarding/ConnectTools";
 
 type EntityStep = "ask" | "setup" | "skip";
-// steps: 1=pick industry, 2=name workspace, "plan"=pick plan, intake steps, 3=biz entity, 4=success
-type StepType = 1 | 2 | "plan" | 3 | 4 | "music" | "realestate" | "restaurant" | "trades" | "ecommerce" | "general";
+// steps: 1=pick industry, 2=name workspace, "plan"=pick plan, intake steps, 3=biz entity, "connect"=connect tools, 4=success
+type StepType = 1 | 2 | "plan" | 3 | 4 | "connect" | "music" | "realestate" | "restaurant" | "trades" | "ecommerce" | "general";
 
 interface Vertical {
   id: string;
@@ -245,7 +246,8 @@ export default function OnboardingWizard() {
     if (choice === "setup") {
       router.push(`/dashboard/${createdSlug}/business-setup`);
     } else {
-      setStep(4);
+      // Go to Connect Tools step before success
+      setStep("connect");
     }
   };
 
@@ -254,19 +256,20 @@ export default function OnboardingWizard() {
     router.push(route ? `/dashboard/${createdSlug}/${route}` : `/dashboard/${createdSlug}`);
   };
 
-  const numericSteps: StepType[] = [1, 2, "plan", 3, 4];
+  const numericSteps: StepType[] = [1, 2, "plan", 3, "connect", 4];
   const isIntakeStep = !numericSteps.includes(step);
   const stepLabel =
-    step === 1      ? "STEP 1 OF 4" :
-    step === 2      ? "STEP 2 OF 4" :
-    step === "plan" ? "STEP 3 OF 4" :
-    step === 3      ? "STEP 3 OF 4" :
-    isIntakeStep    ? "" :
-    "STEP 4 OF 4";
+    step === 1         ? "STEP 1 OF 5" :
+    step === 2         ? "STEP 2 OF 5" :
+    step === "plan"    ? "STEP 3 OF 5" :
+    step === 3         ? "STEP 3 OF 5" :
+    step === "connect" ? "STEP 4 OF 5" :
+    isIntakeStep       ? "" :
+    "STEP 5 OF 5";
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div style={{ width: "100%", maxWidth: step === 1 ? 640 : step === "plan" ? 900 : isIntakeStep ? 560 : 480 }}>
+      <div style={{ width: "100%", maxWidth: step === 1 ? 640 : step === "plan" ? 900 : step === "connect" ? 520 : isIntakeStep ? 560 : 480 }}>
 
         {!isIntakeStep && (
           <div style={{ color: "#00D4FF", fontSize: 12, letterSpacing: 3, marginBottom: 8, textAlign: "center" }} className="mono">
@@ -576,6 +579,15 @@ export default function OnboardingWizard() {
               </button>
             </div>
           </div>
+        )}
+
+        {/* ── Connect Tools step ────────────────────────────────── */}
+        {step === "connect" && vertical && createdSlug && (
+          <ConnectTools
+            vertical={vertical}
+            workspaceSlug={createdSlug}
+            onContinue={() => setStep(4)}
+          />
         )}
 
         {/* ── Step 4: Success ────────────────────────────────────── */}
