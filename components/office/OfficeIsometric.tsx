@@ -1,3 +1,4 @@
+
 // components/office/OfficeIsometric.tsx
 // Isometric 3D office view — responsive for desktop & mobile
 "use client";
@@ -82,8 +83,8 @@ function IsoAgent({
   const [isWalking, setIsWalking] = useState(false);
   const [offsetX, setOffsetX] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
-  const walkRef = useRef<ReturnType<typeof setInterval>>(undefined);
-  const moveRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const walkRef = useRef<ReturnType<typeof setInterval>>();
+  const moveRef = useRef<ReturnType<typeof setTimeout>>();
   const hairColor = HAIR_COLORS[agent.slug] ?? "#1a1a2e";
 
   useEffect(() => {
@@ -230,16 +231,10 @@ const DEPT_AGENT_FLAT_X_DESKTOP: Record<string, number[]> = {
 };
 
 const DEPT_AGENT_SLUGS: Record<string, string[]> = {
-  Engineering:              ["cto", "pm", "frontend", "backend", "devops", "qa", "designer"],
-  Sales:                    ["vpsales", "sdr", "csm"],
-  Marketing:                ["cmo", "content", "ads", "email", "scout"],
-  Operations:               ["coo", "cfo", "hr", "legal"],
-  "Real Estate":            [],
-  Restaurant:               [],
-  "Music & Entertainment":  [],
-  "E-Commerce":             [],
-  Trades:                   [],
-  Business:                 [],
+  Engineering: ["cto", "pm", "frontend", "backend", "devops", "qa", "designer"],
+  Sales:       ["vpsales", "sdr", "csm"],
+  Marketing:   ["cmo", "content", "ads", "email", "scout"],
+  Operations:  ["coo", "cfo", "hr", "legal"],
 };
 
 function IsoRoom({
@@ -377,7 +372,9 @@ function IsoReception({
   };
 }
 
-const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment", "E-Commerce", "Trades", "Business"];
+// Only the 4 departments that have isometric layout data defined above.
+// Other verticals are shown in the AgentRoster panel but don't render rooms in this view.
+const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations"];
 
 function getAgentIsoPos(dept: Dept, slugIndex: number, isMobile: boolean): { sx: number; sy: number } {
   const flatY = isMobile ? DEPT_FLAT_Y_MOBILE[dept] : DEPT_FLAT_Y_DESKTOP[dept];
@@ -478,10 +475,9 @@ export default function OfficeIsometric({
 
         {/* Dept agent avatars */}
         {DEPTS.map(dept => {
-          const slugs = DEPT_AGENT_SLUGS[dept] ?? [];
+          const slugs = DEPT_AGENT_SLUGS[dept];
           const skinTone = DEPT_SKIN[dept] ?? "#FFD5A8";
           const color = DEPT_COLORS[dept];
-          if (!slugs.length) return null;
           return slugs.map((slug, idx) => {
             const agent = agents.find(a => a.slug === slug);
             if (!agent) return null;

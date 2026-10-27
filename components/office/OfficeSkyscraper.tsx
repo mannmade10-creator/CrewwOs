@@ -29,29 +29,17 @@ const DEPT_COLORS: Record<string, string> = {
 };
 
 const DEPT_ICONS: Record<string, string> = {
-  Engineering:              "⚙️",
-  Sales:                    "💼",
-  Marketing:                "📢",
-  Operations:               "🏗️",
-  "Real Estate":            "🏠",
-  Restaurant:               "🍽️",
-  "Music & Entertainment":  "🎵",
-  "E-Commerce":             "🛒",
-  Trades:                   "🔧",
-  Business:                 "📊",
+  Engineering: "⚙️",
+  Sales: "💼",
+  Marketing: "📢",
+  Operations: "🏗️",
 };
 
 const DEPT_FLOOR: Record<string, number> = {
-  Engineering:              10,
-  Sales:                    9,
-  Marketing:                8,
-  Operations:               7,
-  "Real Estate":            6,
-  Restaurant:               5,
-  "Music & Entertainment":  4,
-  "E-Commerce":             3,
-  Trades:                   2,
-  Business:                 1,
+  Engineering: 4,
+  Sales: 3,
+  Marketing: 2,
+  Operations: 1,
 };
 
 const HAIR_COLORS: Record<string, string> = {
@@ -97,8 +85,8 @@ function FloorAgent({
   const [isWalking, setIsWalking] = useState(false);
   const [offsetX, setOffsetX] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
-  const walkRef = useRef<ReturnType<typeof setInterval>>(undefined);
-  const moveRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const walkRef = useRef<ReturnType<typeof setInterval>>();
+  const moveRef = useRef<ReturnType<typeof setTimeout>>();
   const hairColor = HAIR_COLORS[agent.slug] ?? "#1a1a2e";
 
   useEffect(() => {
@@ -451,7 +439,9 @@ function LobbyFloor({
   );
 }
 
-const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations", "Real Estate", "Restaurant", "Music & Entertainment", "E-Commerce", "Trades", "Business"];
+// Only the 4 departments that have floor/layout data defined above.
+// Other verticals are shown in the AgentRoster panel but don't render floors in this view.
+const DEPTS: Dept[] = ["Engineering", "Sales", "Marketing", "Operations"];
 
 export default function OfficeSkyscraper({
   agents,
@@ -545,7 +535,7 @@ export default function OfficeSkyscraper({
               key={dept}
               dept={dept}
               agents={agents.filter(a => a.dept === dept)}
-              floorNum={DEPT_FLOOR[dept] ?? 1}
+              floorNum={DEPT_FLOOR[dept]}
               totalFloors={totalFloors}
               activeAgent={activeAgent}
               busyAgents={busyAgents}
