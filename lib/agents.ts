@@ -48,7 +48,7 @@ For emails: acknowledge receipt, summarize what you understood their need to be,
 For new inbound contacts (calls, emails, form fills): always create a CRM record via crm_lead_create with the contact's info and your routing decision noted in the notes field. This is not optional — every new contact gets a record.
 
 Never attempt to do the work of another agent. Your only job is to receive, understand, and route — but do it with warmth, confidence, and precision. You are the face of the company.`,
-    tools: ["email_send", "sms_send", "voice_call", "vapi_outbound_call", "brevo_email_send", "crm_lead_create", "crm_leads_list", "db_query"],
+    tools: ["email_send", "sms_send", "voice_call", "vapi_outbound_call", "brevo_email_send", "crm_lead_create", "crm_leads_list", "db_query", "website_launch_plan", "app_launch_plan", "marketing_automation_plan", "call_script_generate", "sms_campaign_generate", "email_sequence_generate", "content_brief_generate"],
   },
 
   // ---------------- Engineering ----------------
@@ -133,7 +133,7 @@ Your workflow for a new lead:
 7. Hand off to Marcus (vpsales) for the close via [[REDIRECT:vpsales]].
 
 Keep the CRM current at every step — crm_lead_update after every meaningful interaction.`,
-    tools: ["email_send", "brevo_email_send", "sms_send", "leads_search", "outreach_sequence", "voice_call", "vapi_outbound_call", "crm_lead_create", "crm_lead_update", "crm_leads_list", "calendar_book_demo"],
+    tools: ["email_send", "brevo_email_send", "sms_send", "leads_search", "outreach_sequence", "voice_call", "vapi_outbound_call", "crm_lead_create", "crm_lead_update", "crm_leads_list", "calendar_book_demo", "call_script_generate", "sms_campaign_generate", "email_sequence_generate"],
   },
   {
     slug: "csm", name: "Priya", role: "Customer Support", dept: "Sales", emoji: "🤝",
@@ -174,7 +174,7 @@ Your workflow for a direct mail campaign:
 NEVER call direct_mail_send without first getting CEO approval on the estimate. Real mail costs real money and cannot be recalled once sent.
 
 This is one of the most powerful and underused marketing channels — most businesses have never sent a physical mailer. Position it as a competitive advantage, especially for local service businesses (barbers, restaurants, cleaning companies, trades) where a well-timed postcard to the right zip code can drive immediate foot traffic.`,
-    tools: ["flyer_generate", "direct_mail_estimate", "direct_mail_send", "direct_mail_track", "brevo_campaign_create", "google_business_reviews", "google_business_reply_review", "google_business_update_hours", "yelp_reviews_get", "reports_generate"],
+    tools: ["flyer_generate", "direct_mail_estimate", "direct_mail_send", "direct_mail_track", "brevo_campaign_create", "google_business_reviews", "google_business_reply_review", "google_business_update_hours", "yelp_reviews_get", "reports_generate", "website_launch_plan", "app_launch_plan", "marketing_automation_plan", "content_brief_generate", "sms_campaign_generate", "email_sequence_generate", "higgsfield_video_generate", "higgsfield_job_wait", "tiktok_publish", "sms_send", "email_send"],
   },
   {
     slug: "scout", name: "Scout", role: "Product Research Agent", dept: "Marketing", emoji: "🔍",
@@ -312,7 +312,7 @@ Your core workflows:
 - **Yelp Monitoring**: Run yelp_reviews_get monthly and report on rating trend, most common praise, and most common complaints to Chef.
 
 Never respond to a review without reading it fully first. A templated response that doesn't address the specific complaint makes the business look worse, not better.`,
-    tools: ["google_business_reviews", "google_business_reply_review", "google_business_update_hours", "yelp_reviews_get", "brevo_campaign_create", "brevo_email_send", "email_send", "flyer_generate", "direct_mail_estimate", "direct_mail_send", "reports_generate"],
+    tools: ["google_business_reviews", "google_business_reply_review", "google_business_update_hours", "yelp_reviews_get", "brevo_campaign_create", "brevo_email_send", "email_send", "flyer_generate", "direct_mail_estimate", "direct_mail_send", "reports_generate", "website_launch_plan", "marketing_automation_plan", "content_brief_generate", "sms_campaign_generate", "email_sequence_generate", "higgsfield_video_generate", "higgsfield_job_wait", "tiktok_publish", "sms_send"],
   },
 
   // ── Music & Entertainment ────────────────────────────────────────────────
