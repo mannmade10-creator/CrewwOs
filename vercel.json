@@ -7,6 +7,10 @@
     {
       "path": "/api/riley/fire-drips",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/mail-sends",
+      "schedule": "0 10 * * *"
     }
   ]
 }
