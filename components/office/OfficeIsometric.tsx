@@ -1,4 +1,3 @@
-
 // components/office/OfficeIsometric.tsx
 // Isometric 3D office view — responsive for desktop & mobile
 "use client";
@@ -83,8 +82,8 @@ function IsoAgent({
   const [isWalking, setIsWalking] = useState(false);
   const [offsetX, setOffsetX] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
-  const walkRef = useRef<ReturnType<typeof setInterval>>();
-  const moveRef = useRef<ReturnType<typeof setTimeout>>();
+  const walkRef = useRef<ReturnType<typeof setInterval>>(undefined);
+  const moveRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const hairColor = HAIR_COLORS[agent.slug] ?? "#1a1a2e";
 
   useEffect(() => {
@@ -231,10 +230,16 @@ const DEPT_AGENT_FLAT_X_DESKTOP: Record<string, number[]> = {
 };
 
 const DEPT_AGENT_SLUGS: Record<string, string[]> = {
-  Engineering: ["cto", "pm", "frontend", "backend", "devops", "qa", "designer"],
-  Sales:       ["vpsales", "sdr", "csm"],
-  Marketing:   ["cmo", "content", "ads", "email", "scout"],
-  Operations:  ["coo", "cfo", "hr", "legal"],
+  Engineering:              ["cto", "pm", "frontend", "backend", "devops", "qa", "designer"],
+  Sales:                    ["vpsales", "sdr", "csm"],
+  Marketing:                ["cmo", "content", "ads", "email", "scout"],
+  Operations:               ["coo", "cfo", "hr", "legal"],
+  "Real Estate":            [],
+  Restaurant:               [],
+  "Music & Entertainment":  [],
+  "E-Commerce":             [],
+  Trades:                   [],
+  Business:                 [],
 };
 
 function IsoRoom({
@@ -475,9 +480,10 @@ export default function OfficeIsometric({
 
         {/* Dept agent avatars */}
         {DEPTS.map(dept => {
-          const slugs = DEPT_AGENT_SLUGS[dept];
+          const slugs = DEPT_AGENT_SLUGS[dept] ?? [];
           const skinTone = DEPT_SKIN[dept] ?? "#FFD5A8";
           const color = DEPT_COLORS[dept];
+          if (!slugs.length) return null;
           return slugs.map((slug, idx) => {
             const agent = agents.find(a => a.slug === slug);
             if (!agent) return null;
