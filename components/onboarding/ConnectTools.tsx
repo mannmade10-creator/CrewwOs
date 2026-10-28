@@ -2,7 +2,7 @@
 //
 // Step shown after vertical intake + entity question, before final success screen.
 // Shows only the integrations relevant to each vertical.
-// Platform-level tools (Lob, Resend) are hidden — they run on the operator's keys.
+// Platform-level tools (PostGrid, Resend) are hidden — they run on the operator's keys.
 // Client connects only what belongs to their account (social, store, MLS, ads, etc.)
 
 "use client";
@@ -17,57 +17,8 @@ interface Integration {
   description: string;
   authType: "oauth" | "apikey" | "credentials";
   required: boolean;
-  oauthPath?: string; // e.g. /api/oauth/instagram
+  oauthPath?: string;
 }
-
-const ALL_INTEGRATIONS: Record<string, Integration[]> = {
-  // ── Shared across most verticals ──────────────────────────────────────────
-  social_instagram: {
-    id: "instagram", label: "Instagram", icon: "📸",
-    description: "Post content, schedule reels, track reach, DM automation",
-    authType: "oauth", required: false, oauthPath: "/api/oauth/instagram",
-  } as unknown as Integration,
-  social_tiktok: {
-    id: "tiktok", label: "TikTok", icon: "🎵",
-    description: "Auto-post videos, trending hashtags, analytics",
-    authType: "oauth", required: false, oauthPath: "/api/oauth/tiktok",
-  } as unknown as Integration,
-  social_facebook: {
-    id: "facebook", label: "Facebook Page", icon: "👍",
-    description: "Page posts, event promotions, ad account access",
-    authType: "oauth", required: false, oauthPath: "/api/oauth/facebook",
-  } as unknown as Integration,
-  social_youtube: {
-    id: "youtube", label: "YouTube", icon: "▶️",
-    description: "Upload videos, schedule premieres, track analytics",
-    authType: "oauth", required: false, oauthPath: "/api/oauth/youtube",
-  } as unknown as Integration,
-  google_business: {
-    id: "google_business", label: "Google Business Profile", icon: "🗺️",
-    description: "Respond to reviews, update hours, post offers",
-    authType: "oauth", required: false, oauthPath: "/api/oauth/google-business",
-  } as unknown as Integration,
-  meta_ads: {
-    id: "meta_ads", label: "Meta Ads", icon: "📣",
-    description: "Run Facebook & Instagram ad campaigns automatically",
-    authType: "oauth", required: false, oauthPath: "/api/oauth/meta-ads",
-  } as unknown as Integration,
-  google_ads: {
-    id: "google_ads", label: "Google Ads", icon: "🔍",
-    description: "Search + display campaigns for your business",
-    authType: "oauth", required: false, oauthPath: "/api/oauth/google-ads",
-  } as unknown as Integration,
-  stripe: {
-    id: "stripe", label: "Stripe", icon: "💳",
-    description: "Pull transaction data, revenue reporting, invoicing",
-    authType: "apikey", required: false,
-  } as unknown as Integration,
-  square: {
-    id: "square", label: "Square", icon: "🟦",
-    description: "POS data, customer purchase history, loyalty tracking",
-    authType: "apikey", required: false,
-  } as unknown as Integration,
-};
 
 // ─── Vertical-specific integration sets ──────────────────────────────────────
 
@@ -301,7 +252,6 @@ const VERTICAL_INTEGRATIONS: Record<string, Integration[]> = {
   ],
 };
 
-// Normalize vertical key
 function normalizeVertical(v: string): string {
   const map: Record<string, string> = {
     music: "artist",
@@ -310,8 +260,6 @@ function normalizeVertical(v: string): string {
   };
   return map[v] ?? v;
 }
-
-// ─── API key / credentials input form ────────────────────────────────────────
 
 interface ApiKeyFormProps {
   integration: Integration;
@@ -324,8 +272,6 @@ function ApiKeyForm({ integration, workspaceSlug, onConnect }: ApiKeyFormProps) 
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // MLS needs username + password
   const isCredentials = integration.authType === "credentials";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -334,18 +280,11 @@ function ApiKeyForm({ integration, workspaceSlug, onConnect }: ApiKeyFormProps) 
     setSaving(true);
     setError(null);
     try {
-      const creds = isCredentials
-        ? { username, password }
-        : { api_key: value };
-
+      const creds = isCredentials ? { username, password } : { api_key: value };
       const res = await fetch("/api/integrations/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          workspaceSlug,
-          provider: integration.id,
-          credentials: creds,
-        }),
+        body: JSON.stringify({ workspaceSlug, provider: integration.id, credentials: creds }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save");
@@ -363,40 +302,26 @@ function ApiKeyForm({ integration, workspaceSlug, onConnect }: ApiKeyFormProps) 
     <div style={{ marginTop: 10, background: "#060612", border: "1px solid #ffffff18", borderRadius: 10, padding: 14 }}>
       {isCredentials ? (
         <>
-          <input
-            placeholder="MLS Username"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            style={{ width: "100%", background: "#0d0d1a", border: "1px solid #ffffff22", borderRadius: 8, padding: "8px 10px", color: "#fff", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }}
-          />
-          <input
-            type="password"
-            placeholder="MLS Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            style={{ width: "100%", background: "#0d0d1a", border: "1px solid #ffffff22", borderRadius: 8, padding: "8px 10px", color: "#fff", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }}
-          />
+          <input placeholder="MLS Username" value={username} onChange={e => setUsername(e.target.value)}
+            style={{ width: "100%", background: "#0d0d1a", border: "1px solid #ffffff22", borderRadius: 8, padding: "8px 10px", color: "#fff", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }} />
+          <input type="password" placeholder="MLS Password" value={password} onChange={e => setPassword(e.target.value)}
+            style={{ width: "100%", background: "#0d0d1a", border: "1px solid #ffffff22", borderRadius: 8, padding: "8px 10px", color: "#fff", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }} />
         </>
       ) : (
-        <input
-          placeholder={`${integration.label} API Key`}
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          style={{ width: "100%", background: "#0d0d1a", border: "1px solid #ffffff22", borderRadius: 8, padding: "8px 10px", color: "#fff", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }}
-        />
+        <input placeholder={`${integration.label} API Key`} value={value} onChange={e => setValue(e.target.value)}
+          style={{ width: "100%", background: "#0d0d1a", border: "1px solid #ffffff22", borderRadius: 8, padding: "8px 10px", color: "#fff", fontSize: 13, marginBottom: 8, boxSizing: "border-box" }} />
       )}
       {error && <div style={{ color: "#ff9999", fontSize: 11, marginBottom: 8 }}>{error}</div>}
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={() => setOpen(false)} style={{ flex: 1, background: "transparent", border: "1px solid #ffffff22", borderRadius: 8, padding: "7px", color: "#ffffff66", fontSize: 12, cursor: "pointer" }}>Cancel</button>
-        <button onClick={save} disabled={saving || (isCredentials ? !username || !password : !value)} style={{ flex: 2, background: "#00D4FF22", border: "1px solid #00D4FF55", borderRadius: 8, padding: "7px", color: "#00D4FF", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+        <button onClick={save} disabled={saving || (isCredentials ? !username || !password : !value)}
+          style={{ flex: 2, background: "#00D4FF22", border: "1px solid #00D4FF55", borderRadius: 8, padding: "7px", color: "#00D4FF", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
           {saving ? "Saving…" : "Connect"}
         </button>
       </div>
     </div>
   );
 }
-
-// ─── Main component ───────────────────────────────────────────────────────────
 
 interface ConnectToolsProps {
   vertical: string;
@@ -422,13 +347,7 @@ export default function ConnectTools({ vertical, workspaceSlug, onContinue }: Co
   const handleOAuth = async (integration: Integration) => {
     if (!integration.oauthPath) return;
     setConnecting(integration.id);
-    // Open OAuth popup; parent page handles the callback
-    const w = window.open(
-      `${integration.oauthPath}?workspace=${workspaceSlug}`,
-      "oauth",
-      "width=560,height=620"
-    );
-    // Poll for popup close — when it closes assume success
+    const w = window.open(`${integration.oauthPath}?workspace=${workspaceSlug}`, "oauth", "width=560,height=620");
     const poll = setInterval(() => {
       if (w?.closed) {
         clearInterval(poll);
@@ -463,77 +382,43 @@ export default function ConnectTools({ vertical, workspaceSlug, onContinue }: Co
 
   return (
     <div style={{ background: "#0d0d1a", border: "1px solid #ffffff18", borderRadius: 16, padding: 32 }}>
-      {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ color, fontSize: 11, letterSpacing: 3, fontWeight: 700, marginBottom: 8 }}>
-          CONNECT YOUR TOOLS
-        </div>
-        <div style={{ color: "#fff", fontSize: 20, fontWeight: 700, marginBottom: 6 }}>
-          Give your crew access
-        </div>
+        <div style={{ color, fontSize: 11, letterSpacing: 3, fontWeight: 700, marginBottom: 8 }}>CONNECT YOUR TOOLS</div>
+        <div style={{ color: "#fff", fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Give your crew access</div>
         <div style={{ color: "#ffffff66", fontSize: 13, lineHeight: 1.6 }}>
           Connect your accounts so your {verticalLabel[normalizedVertical]} agents can start working.
-          You run your accounts — CrewwOS just gets permission to post, track, and automate on your behalf.
           <span style={{ color: "#ffffff44", fontSize: 12, display: "block", marginTop: 6 }}>
             📬 Direct mail, email, and platform infrastructure runs automatically — no setup needed.
           </span>
         </div>
       </div>
 
-      {/* Required integrations */}
       {required.length > 0 && (
         <div style={{ marginBottom: 20 }}>
-          <div style={{ color: "#ffffff44", fontSize: 10, letterSpacing: 2, marginBottom: 10 }}>
-            RECOMMENDED TO CONNECT FIRST
-          </div>
+          <div style={{ color: "#ffffff44", fontSize: 10, letterSpacing: 2, marginBottom: 10 }}>RECOMMENDED TO CONNECT FIRST</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {required.map(integration => {
               const isConnected = connected.has(integration.id);
               const isOpen = apiKeyOpen === integration.id;
               const isConnecting = connecting === integration.id;
-
               return (
                 <div key={integration.id}>
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 12,
-                    background: isConnected ? "#10B98110" : "#060612",
-                    border: `1px solid ${isConnected ? "#10B98155" : color + "55"}`,
-                    borderRadius: 12, padding: "12px 14px",
-                  }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, background: isConnected ? "#10B98110" : "#060612", border: `1px solid ${isConnected ? "#10B98155" : color + "55"}`, borderRadius: 12, padding: "12px 14px" }}>
                     <div style={{ fontSize: 22, flexShrink: 0 }}>{integration.icon}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ color: "#fff", fontSize: 13, fontWeight: 600, marginBottom: 2 }}>
-                        {integration.label}
-                        <span style={{ color: color, fontSize: 10, marginLeft: 6 }}>★ KEY</span>
+                        {integration.label}<span style={{ color, fontSize: 10, marginLeft: 6 }}>★ KEY</span>
                       </div>
                       <div style={{ color: "#ffffff55", fontSize: 11, lineHeight: 1.4 }}>{integration.description}</div>
                     </div>
-                    <button
-                      onClick={() => {
-                        if (isConnected) return;
-                        if (integration.authType === "oauth") handleOAuth(integration);
-                        else setApiKeyOpen(isOpen ? null : integration.id);
-                      }}
+                    <button onClick={() => { if (isConnected) return; if (integration.authType === "oauth") handleOAuth(integration); else setApiKeyOpen(isOpen ? null : integration.id); }}
                       disabled={isConnected || isConnecting}
-                      style={{
-                        flexShrink: 0,
-                        background: isConnected ? "#10B98122" : `${color}22`,
-                        border: `1px solid ${isConnected ? "#10B98155" : color + "55"}`,
-                        borderRadius: 8, padding: "6px 14px",
-                        color: isConnected ? "#10B981" : color,
-                        fontSize: 12, fontWeight: 700, cursor: isConnected ? "default" : "pointer",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
+                      style={{ flexShrink: 0, background: isConnected ? "#10B98122" : `${color}22`, border: `1px solid ${isConnected ? "#10B98155" : color + "55"}`, borderRadius: 8, padding: "6px 14px", color: isConnected ? "#10B981" : color, fontSize: 12, fontWeight: 700, cursor: isConnected ? "default" : "pointer", whiteSpace: "nowrap" }}>
                       {isConnected ? "✓ Connected" : isConnecting ? "Opening…" : "Connect"}
                     </button>
                   </div>
                   {isOpen && integration.authType !== "oauth" && (
-                    <ApiKeyForm
-                      integration={integration}
-                      workspaceSlug={workspaceSlug}
-                      onConnect={handleConnect}
-                    />
+                    <ApiKeyForm integration={integration} workspaceSlug={workspaceSlug} onConnect={handleConnect} />
                   )}
                 </div>
               );
@@ -542,57 +427,30 @@ export default function ConnectTools({ vertical, workspaceSlug, onContinue }: Co
         </div>
       )}
 
-      {/* Optional integrations */}
       {optional.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <div style={{ color: "#ffffff44", fontSize: 10, letterSpacing: 2, marginBottom: 10 }}>
-            OPTIONAL — CONNECT ANYTIME
-          </div>
+          <div style={{ color: "#ffffff44", fontSize: 10, letterSpacing: 2, marginBottom: 10 }}>OPTIONAL — CONNECT ANYTIME</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {optional.map(integration => {
               const isConnected = connected.has(integration.id);
               const isOpen = apiKeyOpen === integration.id;
               const isConnecting = connecting === integration.id;
-
               return (
                 <div key={integration.id}>
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 12,
-                    background: isConnected ? "#10B98110" : "#060612",
-                    border: `1px solid ${isConnected ? "#10B98155" : "#ffffff18"}`,
-                    borderRadius: 12, padding: "12px 14px",
-                  }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, background: isConnected ? "#10B98110" : "#060612", border: `1px solid ${isConnected ? "#10B98155" : "#ffffff18"}`, borderRadius: 12, padding: "12px 14px" }}>
                     <div style={{ fontSize: 20, flexShrink: 0 }}>{integration.icon}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ color: "#fff", fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{integration.label}</div>
                       <div style={{ color: "#ffffff44", fontSize: 11, lineHeight: 1.4 }}>{integration.description}</div>
                     </div>
-                    <button
-                      onClick={() => {
-                        if (isConnected) return;
-                        if (integration.authType === "oauth") handleOAuth(integration);
-                        else setApiKeyOpen(isOpen ? null : integration.id);
-                      }}
+                    <button onClick={() => { if (isConnected) return; if (integration.authType === "oauth") handleOAuth(integration); else setApiKeyOpen(isOpen ? null : integration.id); }}
                       disabled={isConnected || isConnecting}
-                      style={{
-                        flexShrink: 0,
-                        background: isConnected ? "#10B98122" : "#ffffff0a",
-                        border: `1px solid ${isConnected ? "#10B98155" : "#ffffff22"}`,
-                        borderRadius: 8, padding: "6px 14px",
-                        color: isConnected ? "#10B981" : "#ffffff88",
-                        fontSize: 12, fontWeight: 600, cursor: isConnected ? "default" : "pointer",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
+                      style={{ flexShrink: 0, background: isConnected ? "#10B98122" : "#ffffff0a", border: `1px solid ${isConnected ? "#10B98155" : "#ffffff22"}`, borderRadius: 8, padding: "6px 14px", color: isConnected ? "#10B981" : "#ffffff88", fontSize: 12, fontWeight: 600, cursor: isConnected ? "default" : "pointer", whiteSpace: "nowrap" }}>
                       {isConnected ? "✓ Connected" : isConnecting ? "Opening…" : "Connect"}
                     </button>
                   </div>
                   {isOpen && integration.authType !== "oauth" && (
-                    <ApiKeyForm
-                      integration={integration}
-                      workspaceSlug={workspaceSlug}
-                      onConnect={handleConnect}
-                    />
+                    <ApiKeyForm integration={integration} workspaceSlug={workspaceSlug} onConnect={handleConnect} />
                   )}
                 </div>
               );
@@ -601,35 +459,21 @@ export default function ConnectTools({ vertical, workspaceSlug, onContinue }: Co
         </div>
       )}
 
-      {/* Connected count */}
       {connectedCount > 0 && (
         <div style={{ background: "#10B98110", border: "1px solid #10B98133", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#10B981" }}>
-          ✓ {connectedCount} tool{connectedCount !== 1 ? "s" : ""} connected — your agents are ready to use {connectedCount === 1 ? "it" : "them"} immediately.
+          ✓ {connectedCount} tool{connectedCount !== 1 ? "s" : ""} connected
         </div>
       )}
 
-      {/* CTA */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <button
-          onClick={onContinue}
-          style={{
-            width: "100%",
-            background: connectedCount > 0
-              ? "linear-gradient(135deg, #00D4FF, #A855F7)"
-              : "#ffffff18",
-            border: "none", borderRadius: 10, padding: "12px",
-            color: connectedCount > 0 ? "#000" : "#ffffff66",
-            fontWeight: 700, fontSize: 14, cursor: "pointer",
-          }}
-        >
-          {connectedCount > 0 ? "Continue to Dashboard →" : "Skip for now →"}
-        </button>
-        {!allRequiredConnected && connectedCount === 0 && (
-          <div style={{ color: "#ffffff44", fontSize: 11, textAlign: "center" }}>
-            You can connect tools anytime from Settings → Integrations
-          </div>
-        )}
-      </div>
+      <button onClick={onContinue}
+        style={{ width: "100%", background: connectedCount > 0 ? "linear-gradient(135deg, #00D4FF, #A855F7)" : "#ffffff18", border: "none", borderRadius: 10, padding: "12px", color: connectedCount > 0 ? "#000" : "#ffffff66", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+        {connectedCount > 0 ? "Continue to Dashboard →" : "Skip for now →"}
+      </button>
+      {!allRequiredConnected && connectedCount === 0 && (
+        <div style={{ color: "#ffffff44", fontSize: 11, textAlign: "center", marginTop: 8 }}>
+          You can connect tools anytime from Settings → Integrations
+        </div>
+      )}
     </div>
   );
 }
