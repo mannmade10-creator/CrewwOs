@@ -1,11 +1,11 @@
 // app/api/webhooks/lob/route.ts
 //
-// Receives Lob delivery status webhooks and updates mail_sends accordingly.
-// Add this URL in your Lob dashboard under Settings → Webhooks.
-// Verifies the Lob-Signature header to ensure events are genuine.
+// Receives PostGrid delivery status webhooks and updates mail_sends accordingly.
+// Add this URL in your PostGrid dashboard under Settings → Webhooks.
+// Verifies the PostGrid-Signature header to ensure events are genuine.
 
 import { NextRequest, NextResponse } from "next/server";
-import { handleLobWebhook } from "@/lib/postgrid";
+import { handlePostGridWebhook, type PostGridWebhookEvent } from "@/lib/postgrid";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -25,24 +25,20 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  let event: {
-    id: string;
-    event_type: { id: string };
-    body: { id: string; status?: string; expected_delivery_date?: string };
-  };
+  let event: PostGridWebhookEvent;
 
   try {
-    event = JSON.parse(rawBody);
+    event = JSON.parse(rawBody) as PostGridWebhookEvent;
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   try {
-    await handleLobWebhook(event);
+    await handlePostGridWebhook(event);
     return NextResponse.json({ received: true });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[lob-webhook]", message);
+    console.error("[postgrid-webhook]", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
