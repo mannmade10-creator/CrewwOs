@@ -5,7 +5,7 @@
 // Verifies the Lob-Signature header to ensure events are genuine.
 
 import { NextRequest, NextResponse } from "next/server";
-import { handleLobWebhook } from "@/lib/lob";
+import { handleLobWebhook } from "@/lib/postgrid";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
