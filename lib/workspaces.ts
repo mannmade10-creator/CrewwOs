@@ -92,10 +92,13 @@ export async function createWorkspace(
   const supabase = supabaseAdmin();
   const slug = makeSlug(name);
 
+  // NOTE: `name` is a GENERATED ALWAYS AS (business_name) column in Supabase —
+  // inserting `name` directly throws "cannot insert a non-DEFAULT value into
+  // column 'name'". We insert `business_name` and Postgres auto-populates `name`.
   const { data: workspace, error } = await supabase
     .from("workspaces")
     .insert({
-      name,
+      business_name: name,
       slug,
       owner_id: userId,
       vertical,
