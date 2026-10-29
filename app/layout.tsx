@@ -17,7 +17,7 @@ export const metadata: Metadata = {
       "19 AI agents that run your communications, sales, content, and operations — 24/7, for any industry. Built for businesses, artists, and beyond.",
     images: [
       {
-        url: "/og-image-business.png",
+        url: "https://crewwos.com/og-image-business.png",
         width: 1200,
         height: 630,
         alt: "CrewwOS — The AI Agent Platform",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: "CrewwOS — The AI Agent Platform for Every Industry",
     description:
       "19 AI agents that run your communications, sales, content, and operations — 24/7, for any industry.",
-    images: ["/og-image-business.png"],
+    images: ["https://crewwos.com/og-image-business.png"],
   },
 };
 
