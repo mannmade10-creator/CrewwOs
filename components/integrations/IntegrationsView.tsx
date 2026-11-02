@@ -1,4 +1,4 @@
-﻿// components/integrations/IntegrationsView.tsx
+// components/integrations/IntegrationsView.tsx
 "use client";
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
@@ -64,14 +64,14 @@ export default function IntegrationsView({ workspaceSlug, plan }: { workspaceSlu
   const saveTables = async (provider: Provider) => {
     const tables = tablesEditValue.split(",").map(t => t.trim()).filter(Boolean);
     if (tables.length === 0) {
-      setError("List at least one table â€” an empty list blocks all queries, which disconnecting would do anyway.");
+      setError("List at least one table — an empty list blocks all queries, which disconnecting would do anyway.");
       return;
     }
     setBusyProvider(provider.id);
     setError(null);
     try {
       // Session tokens are short-lived (~60s) and only refresh automatically
-      // on GET/navigation â€” force a fresh one before this POST or a form
+      // on GET/navigation — force a fresh one before this POST or a form
       // left open for a bit will 404 on submit.
       await getToken({ skipCache: true });
       const res = await fetch("/api/integrations/tables", {
@@ -96,7 +96,7 @@ export default function IntegrationsView({ workspaceSlug, plan }: { workspaceSlu
     }
     const allowedTables = allowedTablesInput.split(",").map(t => t.trim()).filter(Boolean);
     if (provider.id === "supabase" && allowedTables.length === 0) {
-      setError("List at least one table agents are allowed to query â€” this can't be connected wide-open.");
+      setError("List at least one table agents are allowed to query — this can't be connected wide-open.");
       return;
     }
     setBusyProvider(provider.id);
@@ -115,6 +115,7 @@ export default function IntegrationsView({ workspaceSlug, plan }: { workspaceSlu
       setAllowedTablesInput("");
       await loadStatus();
     } catch (err: any) {
+      console.error("[IntegrationsView] submitConnect error:", err);
       setError(err.message ?? "Connect failed");
     }
     setBusyProvider(null);
@@ -143,12 +144,12 @@ export default function IntegrationsView({ workspaceSlug, plan }: { workspaceSlu
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
         <div style={{ color: "#ffffff88", fontSize: 11, letterSpacing: 2 }} className="mono">INTEGRATIONS</div>
         <div style={{ color: atLimit ? "#FF6B35" : "#ffffff55", fontSize: 11 }} className="mono">
-          {connectedCount}{limit != null ? `/${limit}` : ""} connected Â· {PLAN_LABELS[plan]?.name ?? plan} plan
+          {connectedCount}{limit != null ? `/${limit}` : ""} connected · {PLAN_LABELS[plan]?.name ?? plan} plan
         </div>
       </div>
       <div style={{ color: "#fff", fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Connect your tools</div>
       <div style={{ color: "#ffffff55", fontSize: 12, marginBottom: 24, maxWidth: 560 }}>
-        Credentials are encrypted before they're stored â€” this page never displays a saved value back to you. To rotate a key, disconnect and reconnect with the new one.
+        Credentials are encrypted before they're stored — this page never displays a saved value back to you. To rotate a key, disconnect and reconnect with the new one.
       </div>
 
       {atLimit && (
@@ -157,7 +158,7 @@ export default function IntegrationsView({ workspaceSlug, plan }: { workspaceSlu
           <a href={`/dashboard/${workspaceSlug}/settings`} style={{ color: "#FF6B35", fontWeight: 700, textDecoration: "underline" }}>Upgrade</a>
         </div>
       )}
-      {error && (
+      {error && !openForm && (
         <div style={{ background: "#ff444411", border: "1px solid #ff444455", color: "#ff9999", borderRadius: 8, padding: "8px 14px", fontSize: 12, marginBottom: 16 }}>
           {error}
         </div>
@@ -182,7 +183,7 @@ export default function IntegrationsView({ workspaceSlug, plan }: { workspaceSlu
                   fontSize: 9, padding: "3px 8px", borderRadius: 20,
                   background: connected ? "#10B98122" : "#ffffff0a", color: connected ? "#10B981" : "#ffffff55",
                 }} className="mono">
-                  {loadingStatus ? "Â·Â·Â·" : connected ? "â— CONNECTED" : "â—‹ NOT CONNECTED"}
+                  {loadingStatus ? "···" : connected ? "● CONNECTED" : "○ NOT CONNECTED"}
                 </div>
               </div>
               <div style={{ color: "#ffffff66", fontSize: 12, marginBottom: 6, lineHeight: 1.5 }}>{provider.desc}</div>
@@ -197,7 +198,7 @@ export default function IntegrationsView({ workspaceSlug, plan }: { workspaceSlu
                     style={{ width: "100%", background: "#060612", border: "1px solid #FF6B3555", borderRadius: 8, padding: "7px 10px", color: "#fff", fontSize: 12, outline: "none", boxSizing: "border-box" }}
                   />
                   <div style={{ color: "#FF6B35", fontSize: 10, marginTop: 4, lineHeight: 1.4 }}>
-                    Replaces the current list entirely â€” not additive. Don't list tables with credentials, password hashes, or full payment details.
+                    Replaces the current list entirely — not additive. Don't list tables with credentials, password hashes, or full payment details.
                   </div>
                 </div>
               ) : null}
@@ -223,12 +224,18 @@ export default function IntegrationsView({ workspaceSlug, plan }: { workspaceSlu
                         style={{ width: "100%", background: "#060612", border: "1px solid #FF6B3555", borderRadius: 8, padding: "7px 10px", color: "#fff", fontSize: 12, outline: "none", boxSizing: "border-box" }}
                       />
                       <div style={{ color: "#FF6B35", fontSize: 10, marginTop: 4, lineHeight: 1.4 }}>
-                        Required. Agents can only query/write tables listed here â€” anything else is refused, even by a valid db_query call. Don't list tables with credentials, password hashes, or full payment details.
+                        Required. Agents can only query/write tables listed here — anything else is refused, even by a valid db_query call. Don't list tables with credentials, password hashes, or full payment details.
                       </div>
                     </div>
                   )}
                 </div>
               ) : null}
+
+              {isOpen && error && (
+                <div style={{ background: "#ff444411", border: "1px solid #ff444455", color: "#ff9999", borderRadius: 8, padding: "8px 10px", fontSize: 12, marginBottom: 8 }}>
+                  {error}
+                </div>
+              )}
 
               <div style={{ display: "flex", gap: 8 }}>
                 {connected && provider.id === "supabase" && editingTables ? (
@@ -285,5 +292,3 @@ export default function IntegrationsView({ workspaceSlug, plan }: { workspaceSlu
     </div>
   );
 }
-
-
