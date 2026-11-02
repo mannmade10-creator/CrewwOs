@@ -1,88 +1,94 @@
-﻿// app/api/integrations/connect/route.ts
-// POST { workspaceSlug, provider, credentials }
+// app/api/agent-chat/route.ts
+// Main chat endpoint: POST { workspaceSlug, agentSlug, message, images?, handoffNote? }
+// Auth, plan-gating, and rate limiting live here; the actual Claude
+// tool_use loop lives in lib/agent-runtime.ts (runAgentTurn), shared with
+// the cron route for autonomous scheduled runs.
 //
-// Credentials arrive as plaintext exactly once, in this request body, from
-// the Integrations page form. They are encrypted before the first database
-// write and never logged, never echoed back, and never stored anywhere
-// else (no analytics, no error-tracking breadcrumbs — be careful adding
-// Sentry/logging middleware in front of this route).
+// images (optional): array of { media_type, data } — data is base64,
+// already converted client-side by ChatWindow.tsx from whatever file the
+// CEO picked. Passed straight through to runAgentTurn, which builds the
+// correct multi-block message for Claude's vision API.
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { AGENTS, getAgent } from "@/lib/agents";
 import { getWorkspace } from "@/lib/supabase";
-import { setIntegrationCredentials, setAllowedTables, listIntegrations } from "@/lib/integrations";
-import { integrationLimitForPlan } from "@/lib/plans";
+import { isAgentAllowedForPlan } from "@/lib/plans";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAuditEvent } from "@/lib/audit";
+import { runAgentTurn, type ImageAttachment } from "@/lib/agent-runtime";
 
-const KNOWN_PROVIDERS = [
-  "supabase", "vercel", "resend", "twilio", "apollo",
-  "replyio", "ghl", "retell", "github", "stripe",
-  "serpapi", "cjdropshipping", "shopify", "tiktok", "meta", "google_ads",
-  // Outbound marketing + scheduling
-  "brevo", "vapi", "google_calendar",
-  // Direct mail
-  "lob",
-];
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+const MAX_IMAGES_PER_MESSAGE = 5;
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const rl = checkRateLimit(`integrations-connect:${userId}`, 10, 60_000);
+  const rl = checkRateLimit(`agent-chat:${userId}`, 30, 60_000); // 30 messages/minute
   if (!rl.allowed) {
-    await logAuditEvent({ req, actorId: userId, action: "auth.rate_limited", target: "integrations.connect" });
-    return NextResponse.json({ error: "Too many attempts — slow down a bit." }, { status: 429 });
+    await logAuditEvent({ req, actorId: userId, action: "auth.rate_limited", target: "agent-chat" });
+    return NextResponse.json({ error: "Too many messages — slow down a bit." }, { status: 429 });
   }
 
-  const { workspaceSlug, provider, credentials, allowedTables } = await req.json();
+  const { workspaceSlug, agentSlug, message, images, handoffNote } = await req.json();
 
-  if (!KNOWN_PROVIDERS.includes(provider)) {
-    return NextResponse.json({ error: `Unknown provider: ${provider}` }, { status: 400 });
-  }
-  if (!credentials || typeof credentials !== "object" || Object.keys(credentials).length === 0) {
-    return NextResponse.json({ error: "credentials object is required" }, { status: 400 });
-  }
-  // Supabase is the only provider db_query/db_write can reach, and it's
-  // the one connection with direct access to arbitrary tables — require an
-  // explicit, non-empty allowlist before it can be connected at all, so
-  // there's never a moment where it's live with unrestricted table access.
-  if (provider === "supabase" && (!Array.isArray(allowedTables) || allowedTables.filter((t: string) => t?.trim()).length === 0)) {
-    return NextResponse.json({ error: "List at least one table agents are allowed to query before connecting Supabase." }, { status: 400 });
-  }
+  const agent = getAgent(agentSlug);
+  if (!agent) return NextResponse.json({ error: `Unknown agent: ${agentSlug}` }, { status: 400 });
 
   const workspace = await getWorkspace(workspaceSlug, userId);
   if (!workspace) return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
 
-  const limit = integrationLimitForPlan(workspace.plan);
-  if (limit != null) {
-    const existing = await listIntegrations(workspace.id);
-    const alreadyConnected = existing.filter(i => i.is_connected);
-    const isNewConnection = !alreadyConnected.some(i => i.provider === provider);
-    if (isNewConnection && alreadyConnected.length >= limit) {
-      await logAuditEvent({
-        req, workspaceId: workspace.id, actorId: userId, action: "auth.access_denied",
-        target: provider, metadata: { reason: "integration_limit", plan: workspace.plan, limit },
-      });
-      return NextResponse.json({
-        error: `The ${workspace.plan} plan includes ${limit} integration${limit === 1 ? "" : "s"} — you're already using ${alreadyConnected.length}. Disconnect one first, or upgrade in Settings.`,
-        limitReached: true,
-      }, { status: 403 });
-    }
+  const allSlugs = AGENTS.map(a => a.slug);
+  if (!isAgentAllowedForPlan(workspace.plan, agentSlug, allSlugs)) {
+    await logAuditEvent({
+      req, workspaceId: workspace.id, actorId: userId, action: "auth.access_denied",
+      target: agentSlug, metadata: { reason: "plan_gated", plan: workspace.plan },
+    });
+    return NextResponse.json({
+      error: `${agent.name} (${agent.role}) isn't included on the ${workspace.plan} plan. Upgrade in Settings to unlock them.`,
+      locked: true,
+    }, { status: 403 });
   }
 
-  try {
-    await setIntegrationCredentials(workspace.id, provider, credentials);
-    if (provider === "supabase") {
-      await setAllowedTables(workspace.id, provider, allowedTables);
+  let validatedImages: ImageAttachment[] | undefined;
+  if (images) {
+    if (!Array.isArray(images)) return NextResponse.json({ error: "images must be an array" }, { status: 400 });
+    if (images.length > MAX_IMAGES_PER_MESSAGE) {
+      return NextResponse.json({ error: `Too many images — max ${MAX_IMAGES_PER_MESSAGE} per message.` }, { status: 400 });
     }
-    await logAuditEvent({
-      req, workspaceId: workspace.id, actorId: userId, action: "integration.connect", target: provider,
-      metadata: provider === "supabase" ? { allowed_tables: allowedTables } : undefined,
+    for (const img of images) {
+      if (!img?.media_type || !ALLOWED_IMAGE_TYPES.has(img.media_type) || !img?.data) {
+        return NextResponse.json({ error: "Each image needs a valid media_type (jpeg/png/gif/webp) and base64 data." }, { status: 400 });
+      }
+    }
+    validatedImages = images;
+  }
+
+  // Everything below can genuinely fail in ways worth catching cleanly —
+  // a malformed stored conversation, an Anthropic API error, a Supabase
+  // hiccup. An uncaught exception escaping this route previously seemed to
+  // put Next's dev server into a bad state (subsequent requests 404ing
+  // until it recovered) — this guarantees a real JSON error response
+  // instead, regardless of what goes wrong inside.
+  try {
+    const result = await runAgentTurn({
+      workspaceId: workspace.id,
+      workspaceName: workspace.name,
+      agentSlug,
+      userId,
+      message,
+      images: validatedImages,
+      handoffNote,
     });
-    // Deliberately do not echo `credentials` back in the response.
-    return NextResponse.json({ provider, connected: true });
+    return NextResponse.json(result);
   } catch (err: any) {
-    return NextResponse.json({ error: "Failed to save credentials" }, { status: 500 });
+    const detail = err?.message ?? String(err);
+    console.error(`agent-chat failed for ${agentSlug} in workspace ${workspaceSlug}:`, err);
+    // Include the actual error message so you can see it in the chat UI and diagnose the root cause.
+    // Once the issue is identified and fixed, this can be cleaned up to a generic message.
+    return NextResponse.json({
+      error: `Something went wrong: ${detail}`,
+    }, { status: 500 });
   }
 }
