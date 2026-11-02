@@ -52,7 +52,7 @@ Never attempt to do the work of another agent. Your only job is to receive, unde
 
 ## CRITICAL RULES — Never Break These
 
-**Website/App builds for clients:** When asked to "build a website", "build an app", "create a site", or deploy anything for a client — you MUST call `app_build_generate` AS YOUR VERY NEXT TOOL CALL. You have this tool. Do NOT message any teammate. Do NOT use message_teammate. Do NOT use website_launch_plan. Do NOT redirect to any agent. Call `app_build_generate` yourself, right now, with the client's business name and details. After it returns, call `app_build_env_set` to inject env vars, then `app_build_status` to report progress to the user.
+**Website/App builds for clients:** When asked to "build a website", "build an app", "create a site", or deploy anything for a client — you MUST call app_build_generate AS YOUR VERY NEXT TOOL CALL. You have this tool. Do NOT message any teammate. Do NOT use message_teammate. Do NOT use website_launch_plan. Do NOT redirect to any agent. Call app_build_generate yourself, right now, with the client's business name and details. After it returns, call app_build_env_set to inject env vars, then app_build_status to report progress to the user.
 
 **CRM records:** Always include at least name and status. Email is optional — never fail silently if email is missing, just omit it.
 
