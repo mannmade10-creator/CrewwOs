@@ -1732,8 +1732,6 @@ export const TOOL_DEFINITIONS: Record<string, any> = {
   business_social_media_strategy: { name: "business_social_media_strategy", description: "Social media strategy for a new business — platform selection, content pillars, posting schedule, growth tactics, content ideas by industry.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, target_customer: { type: "string" }, team_size: { type: "number" }, posting_frequency: { type: "string" } }, required: [] } },
   business_review_request_template: { name: "business_review_request_template", description: "Review request templates (SMS, email, in-person script) for any business plus a strategy for collecting and responding to Google, Yelp, and Facebook reviews.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, review_platform: { type: "string" }, service_description: { type: "string" } }, required: [] } },
   business_promo_campaign_generate: { name: "business_promo_campaign_generate", description: "Full promotional campaign for any business — offer, ad copy, social posts, email/SMS sequence, and success metrics. Grand openings, seasonal promos, service launches.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, campaign_name: { type: "string" }, offer: { type: "string" }, start_date: { type: "string" }, end_date: { type: "string" }, target_customer: { type: "string" }, channels: { type: "array", items: { type: "string", enum: ["Google Ads", "Facebook", "Instagram", "Email", "SMS", "Flyer/Poster", "Nextdoor", "LinkedIn"] } } }, required: ["offer"] } },
-};
-
   // ── Orchestration (Nia's Chief of Staff mode) ──────────────────────────────
   orchestrate_task: {
     name: "orchestrate_task",
@@ -1770,6 +1768,7 @@ export const TOOL_DEFINITIONS: Record<string, any> = {
       required: ["original_request", "steps"],
     },
   },
+};
 
 // Returns the tool_use schema array for a given agent, filtered to what they're allowed to call.
 export function toolsForAgent(toolNames: string[]) {
