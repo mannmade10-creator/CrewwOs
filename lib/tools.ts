@@ -1734,6 +1734,43 @@ export const TOOL_DEFINITIONS: Record<string, any> = {
   business_promo_campaign_generate: { name: "business_promo_campaign_generate", description: "Full promotional campaign for any business — offer, ad copy, social posts, email/SMS sequence, and success metrics. Grand openings, seasonal promos, service launches.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, campaign_name: { type: "string" }, offer: { type: "string" }, start_date: { type: "string" }, end_date: { type: "string" }, target_customer: { type: "string" }, channels: { type: "array", items: { type: "string", enum: ["Google Ads", "Facebook", "Instagram", "Email", "SMS", "Flyer/Poster", "Nextdoor", "LinkedIn"] } } }, required: ["offer"] } },
 };
 
+  // ── Orchestration (Nia's Chief of Staff mode) ──────────────────────────────
+  orchestrate_task: {
+    name: "orchestrate_task",
+    description: "Dispatch a multi-agent task plan. Call this when a user request requires 2+ specialist agents working in sequence or parallel. Build a step-by-step plan assigning each subtask to the correct agent slug, note dependencies between steps, and this tool handles execution, handoffs, and returns a unified result.",
+    input_schema: {
+      type: "object",
+      properties: {
+        original_request: {
+          type: "string",
+          description: "The user's full original request, verbatim",
+        },
+        steps: {
+          type: "array",
+          description: "Ordered list of steps — parallel steps have no depends_on, sequential steps reference the step number they wait for",
+          items: {
+            type: "object",
+            properties: {
+              step: { type: "number", description: "Step number, starting at 1" },
+              agent: { type: "string", description: "Agent slug to execute this step (e.g. 'content', 'sdr', 'email')" },
+              instruction: { type: "string", description: "Full instruction for this agent — be specific about what to produce" },
+              depends_on: {
+                description: "Step number(s) this step waits for, or null if it can run immediately",
+                oneOf: [
+                  { type: "number" },
+                  { type: "array", items: { type: "number" } },
+                  { type: "null" },
+                ],
+              },
+            },
+            required: ["step", "agent", "instruction", "depends_on"],
+          },
+        },
+      },
+      required: ["original_request", "steps"],
+    },
+  },
+
 // Returns the tool_use schema array for a given agent, filtered to what they're allowed to call.
 export function toolsForAgent(toolNames: string[]) {
   return toolNames.map(name => TOOL_DEFINITIONS[name]).filter(Boolean);
