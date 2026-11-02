@@ -19,6 +19,12 @@ import { toolsForAgent, TOOL_DEFINITIONS } from "./tools";
 import { EXECUTORS } from "./tool-executors";
 import { logTask } from "./supabase";
 import { loadConversationMessages, saveConversationMessages, sanitizeAndTrim } from "./conversations";
+import {
+  recallFacts,
+  formatMemoryBlock,
+  saveCheckpoint,
+  loadLatestCheckpoint,
+} from "./agent-memory";
 
 const MAX_TOOL_ROUNDS = 5;
 const MAX_HISTORY_MESSAGES = 60;
@@ -65,7 +71,13 @@ export async function runAgentTurn(params: RunAgentTurnParams): Promise<RunAgent
   const priorMessages = await loadConversationMessages(workspaceId, agentSlug, userId);
   const isFreshConversation = priorMessages.length === 0;
 
-  let system = systemPromptFor(agent, workspaceName);
+  // ── Persistent memory injection ──────────────────────────────────────────────
+  // Load any facts this agent has remembered about the workspace and prepend
+  // them to the system prompt so every turn starts with full context.
+  const memories = await recallFacts(workspaceId, agentSlug);
+  const memoryBlock = formatMemoryBlock(memories);
+
+  let system = memoryBlock + systemPromptFor(agent, workspaceName);
   if (handoffNote && isFreshConversation) {
     system += `\n\nA teammate just handed this conversation off to you with this context: "${handoffNote}". Acknowledge the handoff naturally and briefly before addressing what the CEO actually asks — don't just repeat the note back verbatim.`;
   }
@@ -168,6 +180,17 @@ export async function runAgentTurn(params: RunAgentTurnParams): Promise<RunAgent
 
   const trimmedMessages = sanitizeAndTrim(messages, MAX_HISTORY_MESSAGES);
   await saveConversationMessages(workspaceId, agentSlug, userId, trimmedMessages);
+
+  // ── Checkpoint save ──────────────────────────────────────────────────────────
+  // Save a resumable snapshot after every turn so autonomous runs can pick up
+  // where they left off if the process is interrupted mid-task.
+  // Fire-and-forget: a checkpoint failure is never fatal to the turn itself.
+  saveCheckpoint(
+    workspaceId,
+    agentSlug,
+    { messages: trimmedMessages },
+    { label: `turn-end:${new Date().toISOString()}` }
+  ).catch((err) => console.error("[agent-runtime] saveCheckpoint failed:", err));
 
   const newMessages = messages.slice(turnStartIndex);
   return { reply: finalText || "Task in progress.", newMessages };
