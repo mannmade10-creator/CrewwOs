@@ -1678,6 +1678,238 @@ export const TOOL_DEFINITIONS: Record<string, any> = {
     },
   },
 
+  // ── RESTAURANT BUSINESS SETUP (16) ────────────────────────────────────────
+  restaurant_ein_guide: {
+    name: "restaurant_ein_guide",
+    description: "Step-by-step IRS EIN application walkthrough for a restaurant business — entity type selection, what info you need, instant online process.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string", description: "e.g. 'food truck', 'fast casual', 'fine dining', 'bar & grill'" },
+        owner_name: { type: "string" },
+        state: { type: "string" },
+      },
+    },
+  },
+
+  restaurant_state_registration_guide: {
+    name: "restaurant_state_registration_guide",
+    description: "Guide to forming an LLC or corporation for a restaurant — state filing steps, registered agent, operating agreement, and why the entity matters for a food business.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        restaurant_type: { type: "string" },
+        entity_type: { type: "string", enum: ["LLC", "S-Corp", "Sole Proprietor"], default: "LLC" },
+      },
+    },
+  },
+
+  restaurant_license_permit_guide: {
+    name: "restaurant_license_permit_guide",
+    description: "Complete checklist of every license, permit, and certification needed to open a restaurant — food handler cards, food manager certification (ServSafe), business license, seller's permit, liquor license, and more by state.",
+    input_schema: {
+      type: "object",
+      properties: {
+        state: { type: "string" },
+        restaurant_type: { type: "string" },
+        serves_alcohol: { type: "boolean", default: false },
+        has_outdoor_seating: { type: "boolean", default: false },
+        is_food_truck: { type: "boolean", default: false },
+      },
+    },
+  },
+
+  restaurant_health_inspection_guide: {
+    name: "restaurant_health_inspection_guide",
+    description: "How to pass your health department inspection — what inspectors look for, common violations by category (temperature control, cross-contamination, sanitation, pest control), and how to prep your kitchen.",
+    input_schema: {
+      type: "object",
+      properties: {
+        state: { type: "string" },
+        restaurant_type: { type: "string" },
+        kitchen_type: { type: "string", description: "e.g. 'commercial kitchen', 'food truck', 'commissary'" },
+      },
+    },
+  },
+
+  restaurant_fire_safety_guide: {
+    name: "restaurant_fire_safety_guide",
+    description: "Fire safety and code compliance guide for restaurants — hood/suppression systems, fire extinguisher requirements, egress, occupancy load, and how to pass the fire marshal inspection.",
+    input_schema: {
+      type: "object",
+      properties: {
+        state: { type: "string" },
+        restaurant_type: { type: "string" },
+        seating_capacity: { type: "number" },
+      },
+    },
+  },
+
+  restaurant_business_email_setup: {
+    name: "restaurant_business_email_setup",
+    description: "Professional email setup for a restaurant — domain purchase, Google Workspace or Microsoft 365 setup, recommended email addresses (reservations@, catering@, info@), and email signature template.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        preferred_domain: { type: "string" },
+      },
+    },
+  },
+
+  restaurant_business_address_setup: {
+    name: "restaurant_business_address_setup",
+    description: "Business address setup for a restaurant or food truck — using the restaurant location, virtual mailbox for admin mail, registered agent for LLC, and Google Business Profile address verification.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        restaurant_type: { type: "string" },
+        has_physical_location: { type: "boolean", default: true },
+      },
+    },
+  },
+
+  restaurant_business_phone_setup: {
+    name: "restaurant_business_phone_setup",
+    description: "Business phone setup for a restaurant — VoIP options (OpenPhone, Google Voice, RingCentral), reservation line setup, voicemail script, and SMS for order updates and promotions.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        takes_reservations: { type: "boolean", default: true },
+        team_size: { type: "number", default: 1 },
+      },
+    },
+  },
+
+  restaurant_business_bank_guide: {
+    name: "restaurant_business_bank_guide",
+    description: "Restaurant business bank account guide — best banks for food businesses, what to bring to open the account, merchant processing setup (Square, Toast, Stripe), and cash flow tips for high-volume daily sales.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        state: { type: "string" },
+        monthly_revenue_estimate: { type: "string" },
+        has_employees: { type: "boolean", default: false },
+      },
+    },
+  },
+
+  restaurant_servsafe_guide: {
+    name: "restaurant_servsafe_guide",
+    description: "ServSafe Food Manager Certification guide — why it's required, how to register for the exam, study resources, what the exam covers, and how to get your staff food handler cards.",
+    input_schema: {
+      type: "object",
+      properties: {
+        state: { type: "string" },
+        number_of_staff: { type: "number", default: 1 },
+        is_manager: { type: "boolean", default: true },
+      },
+    },
+  },
+
+  restaurant_insurance_guide: {
+    name: "restaurant_insurance_guide",
+    description: "Restaurant insurance guide — general liability, commercial property, liquor liability, workers' comp, food spoilage, and business interruption coverage. What's required vs. recommended and where to get quotes.",
+    input_schema: {
+      type: "object",
+      properties: {
+        restaurant_type: { type: "string" },
+        state: { type: "string" },
+        serves_alcohol: { type: "boolean", default: false },
+        has_employees: { type: "boolean", default: false },
+        annual_revenue_estimate: { type: "string" },
+      },
+    },
+  },
+
+  restaurant_google_ads_campaign: {
+    name: "restaurant_google_ads_campaign",
+    description: "Google Ads strategy for a restaurant — Google Business Profile optimization, Local Services Ads setup, Search Ads for 'restaurants near me', keyword lists, and budget recommendations.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        service_area: { type: "string" },
+        monthly_budget: { type: "number", default: 400 },
+        cuisine_type: { type: "string" },
+      },
+    },
+  },
+
+  restaurant_facebook_ads_campaign: {
+    name: "restaurant_facebook_ads_campaign",
+    description: "Facebook and Instagram Ads strategy for a restaurant — audience targeting (local foodies, event planners, families), food photo ad formats, offer campaigns, and event promotion ads.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        service_area: { type: "string" },
+        monthly_budget: { type: "number", default: 250 },
+        cuisine_type: { type: "string" },
+        campaign_goal: { type: "string", enum: ["Drive foot traffic", "Grow online orders", "Promote events", "Build following"], default: "Drive foot traffic" },
+      },
+    },
+  },
+
+  restaurant_menu_marketing: {
+    name: "restaurant_menu_marketing",
+    description: "Restaurant menu marketing guide — how to design a high-converting menu, menu engineering (star/plow-horse/puzzle/dog items), pricing psychology, QR code menus, and seasonal menu strategy.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        cuisine_type: { type: "string" },
+        price_point: { type: "string", enum: ["Budget ($)", "Mid-range ($$)", "Upscale ($$$)", "Fine dining ($$$$)"], default: "Mid-range ($$)" },
+      },
+    },
+  },
+
+  restaurant_review_request_template: {
+    name: "restaurant_review_request_template",
+    description: "SMS and email review request templates for restaurants — when to send, what to say, how to respond to negative reviews, and how to build Google and Yelp review volume fast.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        review_platform: { type: "string", enum: ["Google", "Yelp", "TripAdvisor", "All"], default: "Google" },
+      },
+    },
+  },
+
+  restaurant_promo_campaign_generate: {
+    name: "restaurant_promo_campaign_generate",
+    description: "Full multi-channel promotional campaign generator for a restaurant — grand opening, holiday specials, happy hour, catering push, or seasonal offers across Google, Facebook, email, and SMS.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        restaurant_type: { type: "string" },
+        campaign_name: { type: "string" },
+        offer: { type: "string", description: "e.g. '20% off', 'Free dessert', 'Buy one get one', 'Grand Opening special'" },
+        start_date: { type: "string" },
+        end_date: { type: "string" },
+        channels: {
+          type: "array",
+          items: { type: "string", enum: ["Google Ads", "Facebook", "Instagram", "Email", "SMS", "Flyer/Poster", "Nextdoor"] },
+        },
+      },
+      required: ["business_name", "offer"],
+    },
+  },
+
   trades_promo_campaign_generate: {
     name: "trades_promo_campaign_generate",
     description: "Generate a full promotional campaign for a trades business — including offer, ad copy, social posts, email/SMS sequence, and follow-up schedule. Seasonal or event-based.",
@@ -1699,73 +1931,133 @@ export const TOOL_DEFINITIONS: Record<string, any> = {
     },
   },
 
-  // ── Restaurant Business Setup (16) ──────────────────────────────────────────
-  restaurant_ein_guide: { name: "restaurant_ein_guide", description: "Walk through the EIN application for a restaurant business — required for bank accounts, payroll, licenses, and permits.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, owner_name: { type: "string" }, state: { type: "string" } }, required: [] } },
-  restaurant_state_registration_guide: { name: "restaurant_state_registration_guide", description: "Guide to forming an LLC or registering a restaurant business entity in any state.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, restaurant_type: { type: "string" }, entity_type: { type: "string" } }, required: [] } },
-  restaurant_license_permit_guide: { name: "restaurant_license_permit_guide", description: "Full checklist of licenses and permits to open a restaurant: health permit, food handler cards, ServSafe, seller's permit, CO, liquor license, fire inspection.", input_schema: { type: "object", properties: { state: { type: "string" }, restaurant_type: { type: "string" }, serves_alcohol: { type: "boolean" }, has_outdoor_seating: { type: "boolean" }, is_food_truck: { type: "boolean" } }, required: [] } },
-  restaurant_health_inspection_guide: { name: "restaurant_health_inspection_guide", description: "Health inspection prep guide — temperature control, hygiene, cross-contamination, sanitation, pest control, day-before checklist.", input_schema: { type: "object", properties: { state: { type: "string" }, restaurant_type: { type: "string" }, kitchen_type: { type: "string" } }, required: [] } },
-  restaurant_fire_safety_guide: { name: "restaurant_fire_safety_guide", description: "Fire safety and code compliance guide — hood/suppression systems, extinguishers, sprinklers, occupancy/egress, fire marshal inspection.", input_schema: { type: "object", properties: { state: { type: "string" }, restaurant_type: { type: "string" }, seating_capacity: { type: "number" } }, required: [] } },
-  restaurant_business_email_setup: { name: "restaurant_business_email_setup", description: "Guide to setting up professional business email for a restaurant — domain, Google Workspace, address structure (info@, catering@, reservations@).", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, preferred_domain: { type: "string" } }, required: [] } },
-  restaurant_business_address_setup: { name: "restaurant_business_address_setup", description: "Guide to setting up a business address for a restaurant — physical vs. virtual mailbox, registered agent, Google Business Profile verification.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, restaurant_type: { type: "string" }, has_physical_location: { type: "boolean" } }, required: [] } },
-  restaurant_business_phone_setup: { name: "restaurant_business_phone_setup", description: "Guide to setting up a dedicated business phone for a restaurant — Google Voice vs. OpenPhone vs. RingCentral, voicemail scripts, SMS strategy.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, takes_reservations: { type: "boolean" }, team_size: { type: "number" } }, required: [] } },
-  restaurant_business_bank_guide: { name: "restaurant_business_bank_guide", description: "Guide to opening a business bank account for a restaurant — what to bring, bank options, merchant processing, cash flow sub-accounts, accounting setup.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, monthly_revenue_estimate: { type: "string" }, has_employees: { type: "boolean" } }, required: [] } },
-  restaurant_servsafe_guide: { name: "restaurant_servsafe_guide", description: "ServSafe food safety certification guide — food handler cards, Food Manager exam, HACCP plan, staff training program.", input_schema: { type: "object", properties: { state: { type: "string" }, number_of_staff: { type: "number" }, is_manager: { type: "boolean" } }, required: [] } },
-  restaurant_insurance_guide: { name: "restaurant_insurance_guide", description: "Restaurant insurance guide — general liability, property, workers' comp, liquor liability, business interruption, BOP packages.", input_schema: { type: "object", properties: { restaurant_type: { type: "string" }, state: { type: "string" }, serves_alcohol: { type: "boolean" }, has_employees: { type: "boolean" }, annual_revenue_estimate: { type: "string" } }, required: [] } },
-  restaurant_google_ads_campaign: { name: "restaurant_google_ads_campaign", description: "Google Ads strategy for a restaurant — Google Business Profile optimization, search keywords, remarketing, catering campaign.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, service_area: { type: "string" }, monthly_budget: { type: "number" }, cuisine_type: { type: "string" } }, required: [] } },
-  restaurant_facebook_ads_campaign: { name: "restaurant_facebook_ads_campaign", description: "Facebook and Instagram ads strategy for a restaurant — audience targeting, ad formats, seasonal calendar, budget allocation.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, service_area: { type: "string" }, monthly_budget: { type: "number" }, cuisine_type: { type: "string" }, campaign_goal: { type: "string" } }, required: [] } },
-  restaurant_menu_marketing: { name: "restaurant_menu_marketing", description: "Menu engineering and marketing guide — Stars/Plowhorses/Puzzles/Dogs framework, design principles, QR codes, pricing psychology, upsell training.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, cuisine_type: { type: "string" }, price_point: { type: "string" } }, required: [] } },
-  restaurant_review_request_template: { name: "restaurant_review_request_template", description: "SMS, email, table tent, and receipt review request templates for a restaurant plus collection strategy and responding to reviews.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, review_platform: { type: "string" } }, required: [] } },
-  restaurant_promo_campaign_generate: { name: "restaurant_promo_campaign_generate", description: "Full promotional campaign for a restaurant — offer, ad copy, social posts, email/SMS sequence, grand opening extras, success metrics.", input_schema: { type: "object", properties: { business_name: { type: "string" }, restaurant_type: { type: "string" }, campaign_name: { type: "string" }, offer: { type: "string" }, start_date: { type: "string" }, end_date: { type: "string" }, channels: { type: "array", items: { type: "string", enum: ["Google Ads", "Facebook", "Instagram", "Email", "SMS", "Flyer/Poster", "Nextdoor"] } } }, required: ["offer"] } },
+  // ── UNIVERSAL CROSS-CUTTING TOOLS (available to all verticals) ──────────────
 
-  // ── Business Setup (14) ──────────────────────────────────────────────────────
-  business_ein_guide: { name: "business_ein_guide", description: "Walk through the EIN application for any new business — required for bank accounts, payroll, hiring, and taxes. Free and instant from the IRS.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, owner_name: { type: "string" }, state: { type: "string" }, entity_type: { type: "string", enum: ["LLC", "Sole Proprietor", "S-Corp", "C-Corp", "Partnership"] } }, required: [] } },
-  business_state_registration_guide: { name: "business_state_registration_guide", description: "Guide to forming an LLC, corporation, or registering any business entity in any state — entity comparison, Articles of Organization, registered agent, operating agreement.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, business_type: { type: "string" }, entity_type: { type: "string", enum: ["LLC", "S-Corp", "C-Corp", "Sole Proprietor", "Partnership"] } }, required: [] } },
-  business_license_permit_guide: { name: "business_license_permit_guide", description: "Checklist of licenses and permits for any business: general business license, seller's permit, professional licenses, zoning, home occupation permit.", input_schema: { type: "object", properties: { state: { type: "string" }, business_type: { type: "string" }, is_home_based: { type: "boolean" }, is_online_only: { type: "boolean" }, sells_physical_products: { type: "boolean" }, requires_professional_license: { type: "boolean" } }, required: [] } },
-  business_email_setup: { name: "business_email_setup", description: "Guide to setting up professional business email for any company — domain, Google Workspace or M365, address structure, email signature.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, preferred_domain: { type: "string" }, team_size: { type: "number" } }, required: [] } },
-  business_address_setup: { name: "business_address_setup", description: "Guide to setting up a business address — physical location, virtual mailbox, registered agent, home-based business considerations, Google Business Profile.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, business_type: { type: "string" }, has_physical_location: { type: "boolean" }, is_home_based: { type: "boolean" } }, required: [] } },
-  business_phone_setup: { name: "business_phone_setup", description: "Guide to setting up a dedicated business phone number — Google Voice vs. OpenPhone vs. RingCentral, voicemail scripts, auto-attendant, SMS strategy.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, team_size: { type: "number" }, needs_auto_attendant: { type: "boolean" } }, required: [] } },
-  business_bank_account_guide: { name: "business_bank_account_guide", description: "Guide to opening a business bank account — what to bring, bank options (Chase, BofA, Relay, Mercury), merchant processing, cash flow management, accounting software.", input_schema: { type: "object", properties: { business_name: { type: "string" }, state: { type: "string" }, business_type: { type: "string" }, monthly_revenue_estimate: { type: "string" }, has_employees: { type: "boolean" }, accepts_payments_online: { type: "boolean" } }, required: [] } },
-  business_website_guide: { name: "business_website_guide", description: "Guide to launching a professional business website — platform options (Squarespace, Webflow, WordPress, Shopify), must-have pages, SEO basics, domain and hosting.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, sells_products_online: { type: "boolean" }, budget: { type: "string" } }, required: [] } },
-  business_google_ads_campaign: { name: "business_google_ads_campaign", description: "Google Ads strategy for any business — Google Business Profile, search keywords, ad copy, remarketing, and budget allocation.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, service_area: { type: "string" }, monthly_budget: { type: "number" }, target_customer: { type: "string" } }, required: [] } },
-  business_facebook_ads_campaign: { name: "business_facebook_ads_campaign", description: "Facebook and Instagram ads strategy for any business — audience targeting, ad formats, content calendar, budget allocation.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, service_area: { type: "string" }, monthly_budget: { type: "number" }, target_customer: { type: "string" }, campaign_goal: { type: "string" } }, required: [] } },
-  business_brand_guide: { name: "business_brand_guide", description: "Brand identity guide for a new business — name, logo direction, color palette, typography, voice/tone, and brand standards for consistent marketing.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, target_customer: { type: "string" }, brand_personality: { type: "string" } }, required: [] } },
-  business_social_media_strategy: { name: "business_social_media_strategy", description: "Social media strategy for a new business — platform selection, content pillars, posting schedule, growth tactics, content ideas by industry.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, target_customer: { type: "string" }, team_size: { type: "number" }, posting_frequency: { type: "string" } }, required: [] } },
-  business_review_request_template: { name: "business_review_request_template", description: "Review request templates (SMS, email, in-person script) for any business plus a strategy for collecting and responding to Google, Yelp, and Facebook reviews.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, review_platform: { type: "string" }, service_description: { type: "string" } }, required: [] } },
-  business_promo_campaign_generate: { name: "business_promo_campaign_generate", description: "Full promotional campaign for any business — offer, ad copy, social posts, email/SMS sequence, and success metrics. Grand openings, seasonal promos, service launches.", input_schema: { type: "object", properties: { business_name: { type: "string" }, business_type: { type: "string" }, campaign_name: { type: "string" }, offer: { type: "string" }, start_date: { type: "string" }, end_date: { type: "string" }, target_customer: { type: "string" }, channels: { type: "array", items: { type: "string", enum: ["Google Ads", "Facebook", "Instagram", "Email", "SMS", "Flyer/Poster", "Nextdoor", "LinkedIn"] } } }, required: ["offer"] } },
-  // ── Orchestration (Nia's Chief of Staff mode) ──────────────────────────────
-  orchestrate_task: {
-    name: "orchestrate_task",
-    description: "Dispatch a multi-agent task plan. Call this when a user request requires 2+ specialist agents working in sequence or parallel. Build a step-by-step plan assigning each subtask to the correct agent slug, note dependencies between steps, and this tool handles execution, handoffs, and returns a unified result.",
+  website_launch_plan: {
+    name: "website_launch_plan",
+    description: "Generate a complete website and digital presence launch plan for any business. Includes site structure, copy framework, SEO strategy, hosting recommendation, and launch checklist. Works for any industry vertical.",
     input_schema: {
       type: "object",
       properties: {
-        original_request: {
-          type: "string",
-          description: "The user's full original request, verbatim",
-        },
-        steps: {
-          type: "array",
-          description: "Ordered list of steps — parallel steps have no depends_on, sequential steps reference the step number they wait for",
-          items: {
-            type: "object",
-            properties: {
-              step: { type: "number", description: "Step number, starting at 1" },
-              agent: { type: "string", description: "Agent slug to execute this step (e.g. 'content', 'sdr', 'email')" },
-              instruction: { type: "string", description: "Full instruction for this agent — be specific about what to produce" },
-              depends_on: {
-                description: "Step number(s) this step waits for, or null if it can run immediately",
-                oneOf: [
-                  { type: "number" },
-                  { type: "array", items: { type: "number" } },
-                  { type: "null" },
-                ],
-              },
-            },
-            required: ["step", "agent", "instruction", "depends_on"],
-          },
-        },
+        business_name: { type: "string" },
+        business_type: { type: "string", description: "e.g. 'restaurant', 'plumbing contractor', 'music label', 'e-commerce clothing brand'" },
+        target_customer: { type: "string" },
+        has_existing_site: { type: "boolean" },
+        sells_online: { type: "boolean" },
+        budget: { type: "string", enum: ["under $50/mo", "$50–$150/mo", "$150–$500/mo", "$500+/mo"] },
+        primary_goal: { type: "string", enum: ["Generate leads", "Sell products online", "Build brand awareness", "Take reservations/bookings", "Showcase portfolio"] },
       },
-      required: ["original_request", "steps"],
+      required: ["business_name", "business_type"],
+    },
+  },
+
+  app_launch_plan: {
+    name: "app_launch_plan",
+    description: "Generate a full mobile or web app launch plan for a business — feature set definition, tech stack recommendation, app store optimization (ASO), launch checklist, and marketing strategy. For businesses wanting to offer a customer-facing app.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        business_type: { type: "string" },
+        app_purpose: { type: "string", description: "What should the app do? e.g. 'let customers book appointments', 'loyalty rewards program', 'order food for pickup'" },
+        target_platform: { type: "string", enum: ["iOS + Android", "iOS only", "Android only", "Web app (PWA)", "All platforms"] },
+        has_developer: { type: "boolean", description: "Do they have a developer or will they use a no-code tool?" },
+        monetization: { type: "string", enum: ["Free for customers", "Subscription", "In-app purchases", "Commission on transactions"] },
+      },
+      required: ["business_name", "business_type", "app_purpose"],
+    },
+  },
+
+  call_script_generate: {
+    name: "call_script_generate",
+    description: "Generate professional phone call scripts for outbound sales calls, customer follow-ups, appointment reminders, re-engagement calls, or cold outreach. Includes opening, objection handlers, and close. Designed to be read naturally.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        business_type: { type: "string" },
+        call_type: { type: "string", enum: ["Outbound sales", "Follow-up", "Appointment reminder", "Re-engagement", "Cold outreach", "Review request", "Customer satisfaction check-in"] },
+        target_customer: { type: "string" },
+        offer_or_reason: { type: "string", description: "What is the reason for the call or what offer is being made?" },
+        caller_name: { type: "string" },
+        desired_outcome: { type: "string", description: "e.g. 'book an appointment', 'get a yes on the proposal', 'collect a payment'" },
+      },
+      required: ["business_name", "call_type", "desired_outcome"],
+    },
+  },
+
+  sms_campaign_generate: {
+    name: "sms_campaign_generate",
+    description: "Generate a complete SMS marketing campaign — sequence of text messages with timing, copy, opt-out language, and compliance notes. For promotions, re-engagement, appointment reminders, or launch announcements.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        business_type: { type: "string" },
+        campaign_type: { type: "string", enum: ["Promotional offer", "Grand opening", "Appointment reminder series", "Re-engagement", "New product/service launch", "Event invitation", "Flash sale"] },
+        offer_or_message: { type: "string" },
+        audience: { type: "string" },
+        num_messages: { type: "number", description: "Number of messages in the sequence (1–7)" },
+        start_date: { type: "string" },
+      },
+      required: ["business_name", "campaign_type", "offer_or_message"],
+    },
+  },
+
+  email_sequence_generate: {
+    name: "email_sequence_generate",
+    description: "Generate a complete email sequence — welcome series, nurture sequence, promotional campaign, or post-purchase follow-up. Returns subject lines, preview text, and full email body for each message with send timing.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        business_type: { type: "string" },
+        sequence_type: { type: "string", enum: ["Welcome series", "Nurture/education", "Promotional campaign", "Post-purchase follow-up", "Re-engagement", "Launch announcement", "Event follow-up"] },
+        audience: { type: "string" },
+        goal: { type: "string" },
+        num_emails: { type: "number", description: "Number of emails in the sequence (2–7)" },
+        offer_or_theme: { type: "string" },
+        brand_voice: { type: "string", enum: ["Professional", "Friendly", "Luxury", "Bold/Direct", "Educational"] },
+      },
+      required: ["business_name", "sequence_type", "goal"],
+    },
+  },
+
+  content_brief_generate: {
+    name: "content_brief_generate",
+    description: "Generate a complete content creation brief for Higgsfield video ads, social media posts, or marketing materials. Returns video ad scripts, image prompts, social captions, and content calendar ready to hand to Higgsfield or a designer.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        business_type: { type: "string" },
+        content_type: { type: "string", enum: ["Video ad (Higgsfield)", "Social media post", "Reel/TikTok script", "Flyer/graphic brief", "Email header image", "Story ad", "YouTube intro"] },
+        platform: { type: "string", enum: ["Instagram", "TikTok", "Facebook", "YouTube", "LinkedIn", "All platforms"] },
+        campaign_goal: { type: "string" },
+        offer_or_message: { type: "string" },
+        target_customer: { type: "string" },
+        tone: { type: "string", enum: ["Energetic", "Professional", "Luxury", "Friendly", "Urgent", "Educational"] },
+        duration_seconds: { type: "number", description: "For video content: target duration in seconds (15, 30, 60)" },
+      },
+      required: ["business_name", "business_type", "content_type", "campaign_goal"],
+    },
+  },
+
+  marketing_automation_plan: {
+    name: "marketing_automation_plan",
+    description: "Generate a full marketing automation playbook for a business — triggers, sequences, tool stack, and month-by-month execution plan covering email, SMS, social, ads, and review generation. Platform-agnostic.",
+    input_schema: {
+      type: "object",
+      properties: {
+        business_name: { type: "string" },
+        business_type: { type: "string" },
+        target_customer: { type: "string" },
+        monthly_budget: { type: "number" },
+        current_tools: { type: "string", description: "Tools already in use, e.g. 'Mailchimp, Square'" },
+        primary_goal: { type: "string", enum: ["Get more new customers", "Retain existing customers", "Increase average order value", "Build brand awareness", "Launch a new product/service"] },
+        team_size: { type: "number" },
+      },
+      required: ["business_name", "business_type", "primary_goal"],
     },
   },
 };
