@@ -242,6 +242,16 @@ export const PROVIDERS: Provider[] = [
   // ── New providers: App Builder + Direct Mail ──────────────────────────────
 
   {
+    id: "higgsfield",
+    name: "Higgsfield AI",
+    desc: "AI video generation platform. Used to create ads, product videos, and AI influencer content.",
+    usedBy: ["cmo", "ads"],
+    fields: [
+      { key: "api_key", label: "API Key", placeholder: "xxxx", secret: true },
+    ],
+  },
+
+  {
     id: "lob",
     name: "Lob",
     desc: "Direct mail platform. Luna uses this to send postcards and EDDM campaigns to local business zip codes.",
