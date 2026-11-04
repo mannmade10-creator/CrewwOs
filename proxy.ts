@@ -1,4 +1,4 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+﻿import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 const ADMIN_USER_ID = "user_3KssQdrEnCwzR428Q5nmtYKYqHF";
@@ -20,9 +20,29 @@ const isPublicRoute = createRouteMatcher([
   "/api/print/send-mailer",
   "/api/artist/fan-lead",
   "/scan/(.*)",
+  "/api/affiliates/track",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // Capture affiliate ref on landing
+  const ref = req.nextUrl.searchParams.get("ref");
+  if (ref) {
+    const res = NextResponse.next();
+    res.cookies.set("aff_ref", ref, {
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+      sameSite: "lax",
+      httpOnly: true,
+    });
+    res.cookies.set("aff_product", "crewwos", {
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+      sameSite: "lax",
+      httpOnly: true,
+    });
+    return res;
+  }
+
   const { userId } = await auth();
   if (isAdminRoute(req)) {
     if (userId !== ADMIN_USER_ID) {
