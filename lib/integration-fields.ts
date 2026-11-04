@@ -260,6 +260,17 @@ export const PROVIDERS: Provider[] = [
       { key: "api_key", label: "API Key (Live)", placeholder: "live_...", secret: true },
     ],
   },
+  {
+    id: "linkedin",
+    name: "LinkedIn",
+    desc: "LinkedIn account credentials for outbound prospecting, connection requests, and direct messages. Used by Jordan (boxflow_sdr) to run BoxFlow OS outreach to warehouse and logistics decision-makers.",
+    usedBy: ["boxflow_sdr"],
+    fields: [
+      { key: "access_token", label: "Access Token", placeholder: "AQV...", secret: true },
+      { key: "client_id", label: "Client ID", placeholder: "77abc123...", secret: false },
+      { key: "client_secret", label: "Client Secret", placeholder: "XXXX...", secret: true },
+    ],
+  },
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

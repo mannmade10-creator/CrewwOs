@@ -23,8 +23,8 @@ const KNOWN_PROVIDERS = [
   "brevo", "vapi", "google_calendar",
   // Direct mail
   "lob",
-  // AI video
-  "higgsfield",
+  // LinkedIn outreach (BoxFlow OS)
+  "linkedin",
 ];
 
 export async function POST(req: NextRequest) {
@@ -87,5 +87,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-

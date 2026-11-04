@@ -2205,6 +2205,38 @@ export async function execGoogleBusinessUpdateHours(
 
 // ── EXECUTORS map ─────────────────────────────────────────────────────────────
 
+// ── Orchestration executor ─────────────────────────────────────────────────
+export async function execOrchestrateTask(workspaceId: string, input: { original_request: string; steps: any[] }) {
+  // This executor is called by the agent runtime when Nia uses orchestrate_task.
+  // It POSTs to /api/orchestrate internally (same process, avoids HTTP overhead
+  // in prod by importing runOrchestration directly).
+  const { runOrchestration } = await import("./orchestrator");
+  const { createClient } = await import("@supabase/supabase-js");
+  
+  const supa = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  
+  // Resolve workspace name
+  const { data: wsRow } = await supa.from("workspaces").select("name, owner_id").eq("id", workspaceId).single();
+  const workspaceName = wsRow?.name ?? "Your Company";
+  const userId = wsRow?.owner_id ?? "system";
+  
+  const result = await runOrchestration({
+    workspaceId,
+    workspaceName,
+    userId,
+    plan: {
+      original_request: input.original_request,
+      steps: input.steps,
+    },
+  });
+  
+  return { task_id: result.task_id, summary: result.summary };
+}
+
+
 export const EXECUTORS: Record<string, (workspaceId: string, input: any) => Promise<any>> = {
   // Original 36
   db_query: execDbQuery,
@@ -2344,6 +2376,7 @@ export const EXECUTORS: Record<string, (workspaceId: string, input: any) => Prom
   business_social_media_strategy: execBusinessSocialMediaStrategy,
   business_review_request_template: execBusinessReviewRequestTemplate,
   business_promo_campaign_generate: execBusinessPromoCampaignGenerate,
+  orchestrate_task: execOrchestrateTask,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
