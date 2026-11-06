@@ -34,13 +34,16 @@ export default async function NiaPage({
 
   const credits = await getNiaCredits(workspace.id);
 
+  const isSuperAdmin = workspace.plan === "superadmin";
+
   return (
     <NiaCreditsClient
       workspaceSlug={slug}
-      creditsRemaining={credits.credits_remaining}
+      creditsRemaining={isSuperAdmin ? 999999 : credits.credits_remaining}
       creditsUsed={credits.credits_used}
       lastUpdated={credits.updated_at}
-      niaActive={workspace.nia_active ?? false}
+      niaActive={isSuperAdmin ? true : (workspace.nia_active ?? false)}
+      isSuperAdmin={isSuperAdmin}
     />
   );
 }

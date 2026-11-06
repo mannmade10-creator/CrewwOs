@@ -60,12 +60,14 @@ export default function NiaCreditsClient({
   creditsUsed,
   lastUpdated,
   niaActive,
+  isSuperAdmin = false,
 }: {
   workspaceSlug: string;
   creditsRemaining: number;
   creditsUsed: number;
   lastUpdated: string | null;
   niaActive: boolean;
+  isSuperAdmin?: boolean;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
@@ -169,13 +171,13 @@ export default function NiaCreditsClient({
           <p
             style={{
               margin: 0,
-              fontSize: 48,
+              fontSize: isSuperAdmin ? 36 : 48,
               fontWeight: 900,
-              color: meterColor,
+              color: isSuperAdmin ? "#00D4FF" : meterColor,
               lineHeight: 1,
             }}
           >
-            {creditsRemaining.toLocaleString()}
+            {isSuperAdmin ? "Unlimited" : creditsRemaining.toLocaleString()}
           </p>
           {lastUpdated && (
             <p style={{ margin: "6px 0 0", fontSize: 10, color: "#ffffff33" }}>
@@ -234,7 +236,7 @@ export default function NiaCreditsClient({
               }}
             />
           </div>
-          {creditsRemaining < 100 && (
+          {!isSuperAdmin && creditsRemaining < 100 && (
             <p
               style={{
                 margin: "8px 0 0",
@@ -251,8 +253,34 @@ export default function NiaCreditsClient({
         </div>
       </div>
 
+      {/* Superadmin unlimited access banner */}
+      {isSuperAdmin && (
+        <div
+          style={{
+            background: "linear-gradient(135deg, #00D4FF11, #A855F711)",
+            border: "1px solid #00D4FF44",
+            borderRadius: 12,
+            padding: "16px 20px",
+            marginBottom: 28,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <span style={{ fontSize: 22 }}>♾️</span>
+          <div>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "#00D4FF" }}>
+              Founder Access — Unlimited
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#ffffff66" }}>
+              As the platform owner, you have unlimited Nia credits with no charges. All features are fully unlocked.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Not set up yet */}
-      {!niaActive && creditsRemaining === 0 && creditsUsed === 0 && (
+      {!isSuperAdmin && !niaActive && creditsRemaining === 0 && creditsUsed === 0 && (
         <div
           style={{
             background: "#A855F711",
@@ -278,8 +306,8 @@ export default function NiaCreditsClient({
         </div>
       )}
 
-      {/* Buy credits section */}
-      <h2
+      {/* Buy credits section — hidden for superadmin */}
+      {!isSuperAdmin && <h2
         style={{
           margin: "0 0 16px",
           fontSize: 16,
@@ -288,9 +316,9 @@ export default function NiaCreditsClient({
         }}
       >
         Top Up Credits
-      </h2>
+      </h2>}
 
-      <div
+      {!isSuperAdmin && <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
