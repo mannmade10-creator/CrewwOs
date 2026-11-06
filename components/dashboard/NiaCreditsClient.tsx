@@ -216,7 +216,7 @@ export default function NiaCreditsClient({
             }}
           >
             <span>Usage</span>
-            <span>{pct}% remaining</span>
+            <span>{isSuperAdmin ? "∞" : `${pct}% remaining`}</span>
           </div>
           <div
             style={{
@@ -229,9 +229,9 @@ export default function NiaCreditsClient({
             <div
               style={{
                 height: "100%",
-                width: `${pct}%`,
+                width: isSuperAdmin ? "100%" : `${pct}%`,
                 borderRadius: 999,
-                background: `linear-gradient(90deg, ${meterColor}, #A855F7)`,
+                background: `linear-gradient(90deg, #00D4FF, #A855F7)`,
                 transition: "width 0.6s ease",
               }}
             />
@@ -279,7 +279,7 @@ export default function NiaCreditsClient({
         </div>
       )}
 
-      {/* Not set up yet */}
+      {/* Not set up yet — only for non-superadmin */}
       {!isSuperAdmin && !niaActive && creditsRemaining === 0 && creditsUsed === 0 && (
         <div
           style={{
@@ -307,108 +307,112 @@ export default function NiaCreditsClient({
       )}
 
       {/* Buy credits section — hidden for superadmin */}
-      {!isSuperAdmin && <h2
-        style={{
-          margin: "0 0 16px",
-          fontSize: 16,
-          fontWeight: 700,
-          color: "#ffffffcc",
-        }}
-      >
-        Top Up Credits
-      </h2>}
-
-      {!isSuperAdmin && <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-          gap: 16,
-          marginBottom: 40,
-        }}
-      >
-        {PACKS.map((pack) => (
-          <div
-            key={pack.key}
+      {!isSuperAdmin && (
+        <>
+          <h2
             style={{
-              background: pack.highlight ? "linear-gradient(135deg, #00D4FF12, #A855F712)" : "#ffffff06",
-              border: `1px solid ${pack.highlight ? "#00D4FF33" : "#ffffff12"}`,
-              borderRadius: 14,
-              padding: "20px 18px",
-              display: "flex",
-              flexDirection: "column",
-              position: "relative",
+              margin: "0 0 16px",
+              fontSize: 16,
+              fontWeight: 700,
+              color: "#ffffffcc",
             }}
           >
-            {pack.badge && (
-              <span
+            Top Up Credits
+          </h2>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+              gap: 16,
+              marginBottom: 40,
+            }}
+          >
+            {PACKS.map((pack) => (
+              <div
+                key={pack.key}
                 style={{
-                  position: "absolute",
-                  top: -10,
-                  right: 14,
-                  background: pack.highlight ? "linear-gradient(90deg,#00D4FF,#A855F7)" : "#ffffff18",
-                  color: pack.highlight ? "#000" : "#ffffffcc",
-                  fontSize: 9,
-                  fontWeight: 800,
-                  padding: "3px 8px",
-                  borderRadius: 20,
-                  letterSpacing: 0.5,
+                  background: pack.highlight ? "linear-gradient(135deg, #00D4FF12, #A855F712)" : "#ffffff06",
+                  border: `1px solid ${pack.highlight ? "#00D4FF33" : "#ffffff12"}`,
+                  borderRadius: 14,
+                  padding: "20px 18px",
+                  display: "flex",
+                  flexDirection: "column",
+                  position: "relative",
                 }}
               >
-                {pack.badge}
-              </span>
-            )}
+                {pack.badge && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: -10,
+                      right: 14,
+                      background: pack.highlight ? "linear-gradient(90deg,#00D4FF,#A855F7)" : "#ffffff18",
+                      color: pack.highlight ? "#000" : "#ffffffcc",
+                      fontSize: 9,
+                      fontWeight: 800,
+                      padding: "3px 8px",
+                      borderRadius: 20,
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {pack.badge}
+                  </span>
+                )}
 
-            <p
-              style={{
-                margin: "0 0 4px",
-                fontSize: 13,
-                fontWeight: 700,
-                color: pack.highlight ? "#00D4FF" : "#ffffffcc",
-              }}
-            >
-              {pack.label}
-            </p>
+                <p
+                  style={{
+                    margin: "0 0 4px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: pack.highlight ? "#00D4FF" : "#ffffffcc",
+                  }}
+                >
+                  {pack.label}
+                </p>
 
-            <p
-              style={{
-                margin: "0 0 2px",
-                fontSize: 30,
-                fontWeight: 900,
-                lineHeight: 1.1,
-                color: "#fff",
-              }}
-            >
-              {pack.price}
-            </p>
+                <p
+                  style={{
+                    margin: "0 0 2px",
+                    fontSize: 30,
+                    fontWeight: 900,
+                    lineHeight: 1.1,
+                    color: "#fff",
+                  }}
+                >
+                  {pack.price}
+                </p>
 
-            <p style={{ margin: "0 0 12px", fontSize: 11, color: "#ffffff44" }}>
-              {pack.credits.toLocaleString()} credits · ${costPerCredit(pack)}/credit
-            </p>
+                <p style={{ margin: "0 0 12px", fontSize: 11, color: "#ffffff44" }}>
+                  {pack.credits.toLocaleString()} credits · ${costPerCredit(pack)}/credit
+                </p>
 
-            <button
-              onClick={() => buyCredits(pack.key)}
-              disabled={loading === pack.key}
-              style={{
-                marginTop: "auto",
-                padding: "10px 0",
-                borderRadius: 10,
-                border: "none",
-                cursor: loading === pack.key ? "not-allowed" : "pointer",
-                background: pack.highlight
-                  ? "linear-gradient(90deg,#00D4FF,#A855F7)"
-                  : "#ffffff14",
-                color: pack.highlight ? "#000" : "#fff",
-                fontWeight: 700,
-                fontSize: 13,
-                opacity: loading === pack.key ? 0.6 : 1,
-                transition: "opacity 0.2s",
-              }}
-            >
-              {loading === pack.key ? "Redirecting…" : pack.key === "nia_setup" ? "Activate Nia" : "Buy Credits"}
-            </button>
+                <button
+                  onClick={() => buyCredits(pack.key)}
+                  disabled={loading === pack.key}
+                  style={{
+                    marginTop: "auto",
+                    padding: "10px 0",
+                    borderRadius: 10,
+                    border: "none",
+                    cursor: loading === pack.key ? "not-allowed" : "pointer",
+                    background: pack.highlight
+                      ? "linear-gradient(90deg,#00D4FF,#A855F7)"
+                      : "#ffffff14",
+                    color: pack.highlight ? "#000" : "#fff",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    opacity: loading === pack.key ? 0.6 : 1,
+                    transition: "opacity 0.2s",
+                  }}
+                >
+                  {loading === pack.key ? "Redirecting…" : pack.key === "nia_setup" ? "Activate Nia" : "Buy Credits"}
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
       {/* How credits work */}
       <div
